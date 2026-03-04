@@ -52,7 +52,13 @@ npm run dev
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
-- 최소 검증: `npm run verify:activity`
+- 최소 검증:
+  - `npm run verify:activity`
+  - `npm run verify:activity-config`
+  - `npm run verify:activity-log`
+- 운영 설정:
+  - 엔드포인트 후보: `config/activity-endpoints.json`
+  - Probe 로그(JSONL): `logs/activity-probe-log.jsonl` (기본값, 마스킹 저장)
 - 리팩토링/에러 경로/검증 상세: [`docs/ACTIVITY_FETCHER.md`](./docs/ACTIVITY_FETCHER.md)
 
 ## 도메인 컨텍스트
