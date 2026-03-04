@@ -192,3 +192,8 @@
   - Effect: repeated hung ticks now deterministically escalate into safety-blocked ticks (`execution_failure_circuit_open`) instead of allowing unconstrained retries.
   - Extended `scripts/verify-worker-reliability.js` with a threshold-1 scenario proving first timed-out tick emits `tick_error` and second tick is blocked by circuit-open reason.
   - Verification executed: `npm run verify:worker`, `npm run verify:cycle`, `npm run verify:replay` (all passed).
+- [2026-03-05 07:06 KST] Deterministic score-throughput optimization completed: efficient low-threat attack window.
+  - Updated `src/engine/fsm-rules.js` with `attack-low-threat-efficient-window` rule to allow `BASIC_ATTACK` at energy `30-39` when enemy is visible and threat is low (`<=25`).
+  - Expected impact: fewer idle HOLD ticks in safe combat states, improving action density and potential score gain while preserving safety-first rule precedence.
+  - Extended `scripts/verify-cycle.js` with a dedicated assertion for `ATTACK_EFFICIENT` decision path.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).

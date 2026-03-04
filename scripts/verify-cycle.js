@@ -128,6 +128,29 @@ assert.equal(energyRecovery.decision.ruleId, 'recover-energy-safe-window');
 assert.equal(energyRecovery.decision.action.type, 'REST');
 assert.equal(energyRecovery.execution.status, 'success');
 
+const lowThreatEfficientAttackState = {
+  ...stateSnapshot,
+  battleId: 'verify-battle-efficient-attack',
+  enemyId: 'enemy-2',
+  enemyVisible: true,
+  healthPct: 78,
+  energy: 35,
+  enemyThreat: 20
+};
+const efficientAttack = await runDeterministicCycleOnce({
+  tickNumber: 11,
+  tickId: 'tick-verify-000011',
+  nowMs: 13_500,
+  logger,
+  actionCooldownGuard: createInProcessActionCooldownGuard({ cooldownMs: 0 }),
+  executeAction: executor,
+  stateProvider: () => lowThreatEfficientAttackState
+});
+assert.equal(efficientAttack.decision.fsmState, 'ATTACK_EFFICIENT');
+assert.equal(efficientAttack.decision.ruleId, 'attack-low-threat-efficient-window');
+assert.equal(efficientAttack.decision.action.type, 'BASIC_ATTACK');
+assert.equal(efficientAttack.execution.status, 'success');
+
 const alwaysFailExecutor = createActionExecutor({
   transport: async () => ({
     ok: false,

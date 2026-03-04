@@ -61,3 +61,6 @@
 - Linked tick-timeout failures to execution-failure circuit accounting in worker loop: when a tick ends with `ETICK_TIMEOUT`, record a failed execution signal in the circuit breaker.
 - Rationale: repeated hung ticks indicate execution-path instability and should trigger deterministic safety blocking rather than continuing unrestricted attempts.
 - Added worker reliability verification for this path: with circuit threshold `1`, first timeout forces next tick into `execution_failure_circuit_open` block.
+- Added deterministic opportunistic attack rule `attack-low-threat-efficient-window`: when enemy is visible, threat is low (`<=25`), and energy is in efficient band (`30-39`), execute `BASIC_ATTACK` instead of falling through to `HOLD`.
+- Rationale: increases scoring/action throughput in low-risk windows without weakening existing high-priority survival rules (low-health recovery, high-threat defense, low-energy pressure defense).
+- Added cycle verification coverage to lock this behavior with an explicit low-threat, mid-energy scenario.

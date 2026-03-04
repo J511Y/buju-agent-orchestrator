@@ -43,6 +43,19 @@ export function decideAction(stateSnapshot) {
     };
   }
 
+  if (
+    (stateSnapshot.energy ?? 0) >= 30 &&
+    (stateSnapshot.energy ?? 0) < 40 &&
+    stateSnapshot.enemyVisible &&
+    (stateSnapshot.enemyThreat ?? 0) <= 25
+  ) {
+    return {
+      fsmState: 'ATTACK_EFFICIENT',
+      ruleId: 'attack-low-threat-efficient-window',
+      action: { type: 'BASIC_ATTACK', targetId: stateSnapshot.enemyId }
+    };
+  }
+
   return {
     fsmState: 'HOLD',
     ruleId: 'hold-default',
