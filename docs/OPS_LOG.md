@@ -93,3 +93,12 @@
   - Anomaly/failure mode: recent-activity endpoints still failing (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` -> 404).
   - Retry recommendation: keep `/api/status` polling and retry discovery using docs-backed endpoint list once configurable probe is added.
 - [2026-03-05 01:08 KST] Next 30-min actionable TODO: implement `config/activity-endpoints.json` + loader in probe script, and record per-endpoint success/failure counts in `logs/activity-probe.jsonl`.
+- [2026-03-05 01:38 KST] Activity probe observability hardening completed.
+  - Added per-run append log `logs/activity-probe.jsonl` in `scripts/lib/activity/fetch-activity-kpis.js` for both API-success and fallback paths (single write per run).
+  - Log record schema: `ts`, `source`, `endpoint_statuses` summary counters (`total`, `ok`, `http_fail`, `network_fail`, `skipped`, `missing_api_key`) and compact per-endpoint statuses.
+  - Security guardrail: probe log content is sanitized and never includes API keys.
+  - Added verifier `scripts/verify-activity-probe-log.js` + npm script `verify:activity-log` using temp probe-log path override.
+  - Verification executed: `npm run verify:activity-log`, `npm run verify:activity`, `npm run verify:activity-config` (all passed).
+- [2026-03-05 01:39 KST] Commit/persist step blocked after activity probe log implementation.
+  - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run commit from a runtime with `.git` write permission using message `feat: persist masked activity probe outcomes per run`, then push.

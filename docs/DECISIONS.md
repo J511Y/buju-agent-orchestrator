@@ -30,3 +30,5 @@
 - Locked deterministic fallback behavior to built-in endpoint candidates when endpoint config file is missing, unreadable, malformed JSON, empty, or schema-invalid.
 - Added dedicated verification (`npm run verify:activity-config`) with a deterministic `data:` endpoint config to assert CLI-provided endpoint config path is honored end-to-end.
 - Added deterministic FSM rule `recover-energy-safe-window` so low-energy snapshots with safe health choose `REST` (`RECOVER_ENERGY`) before `hold-default`, preserving higher-priority survival/defense ordering and improving uptime for future attack windows.
+- Added per-run activity probe outcome logging to `logs/activity-probe.jsonl` with deterministic endpoint status counters (`total`, `ok`, `http_fail`, `network_fail`, `skipped`, `missing_api_key`) and compact per-endpoint statuses, while preserving API key masking and logging exactly once per `activity:fetch` run.
+- Added `npm run verify:activity-log` to assert skip-API mode writes one probe-log record with correct deterministic counters using a temp log path override.

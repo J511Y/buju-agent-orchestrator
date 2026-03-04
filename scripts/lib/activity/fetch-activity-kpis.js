@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import {
+  DEFAULT_ACTIVITY_PROBE_LOG_FILE,
   DEFAULT_ACTION_STATUS_COUNTS,
   DEFAULT_BASE_URL,
   DEFAULT_HOURS,
@@ -11,6 +12,7 @@ import {
 } from './constants.js';
 import { sanitizeOutput, toFiniteNumber, toPositiveInteger } from './common.js';
 import { probeActivityApi } from './api-client.js';
+import { appendActivityProbeLog } from './probe-log.js';
 import { summarizeFromLocalReplay } from './replay-fallback.js';
 
 /**
@@ -27,6 +29,9 @@ export async function fetchActivityKpis(options = {}) {
   const apiKey = String(options.apiKey ?? process.env.BUJU_API_KEY ?? '');
   const skipApi = Boolean(options.skipApi);
   const logFilePath = path.resolve(options.logFilePath ?? DEFAULT_LOG_FILE);
+  const activityProbeLogPath = path.resolve(
+    options.activityProbeLogPath ?? DEFAULT_ACTIVITY_PROBE_LOG_FILE
+  );
   const activityEndpointsConfigPath =
     options.activityEndpointsConfigPath !== undefined
       ? String(options.activityEndpointsConfigPath)
@@ -43,30 +48,35 @@ export async function fetchActivityKpis(options = {}) {
     activityEndpointsConfigPath
   });
 
+  let resultPayload;
   if (apiProbe.summary) {
-    return sanitizeOutput(
-      {
-        progress_delta: apiProbe.summary.progress_delta,
-        action_status_counts: apiProbe.summary.action_status_counts,
-        known_outcomes: apiProbe.summary.known_outcomes,
-        source: apiProbe.source,
-        endpoint_statuses: apiProbe.endpoint_statuses
-      },
-      apiKey
-    );
-  }
-
-  const fallbackSummary = await summarizeFromLocalReplay(logFilePath, sinceMs, nowMs);
-  return sanitizeOutput(
-    {
+    resultPayload = {
+      progress_delta: apiProbe.summary.progress_delta,
+      action_status_counts: apiProbe.summary.action_status_counts,
+      known_outcomes: apiProbe.summary.known_outcomes,
+      source: apiProbe.source,
+      endpoint_statuses: apiProbe.endpoint_statuses
+    };
+  } else {
+    const fallbackSummary = await summarizeFromLocalReplay(logFilePath, sinceMs, nowMs);
+    resultPayload = {
       progress_delta: fallbackSummary.progress_delta,
       action_status_counts: fallbackSummary.action_status_counts,
       known_outcomes: fallbackSummary.known_outcomes,
       source: 'fallback:local_replay',
       endpoint_statuses: apiProbe.endpoint_statuses
-    },
-    apiKey
-  );
+    };
+  }
+
+  await appendActivityProbeLog({
+    tsMs: nowMs,
+    source: resultPayload.source,
+    endpointStatuses: apiProbe.endpoint_statuses,
+    apiKey,
+    activityProbeLogPath
+  });
+
+  return sanitizeOutput(resultPayload, apiKey);
 }
 
 /**

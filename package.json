@@ -12,6 +12,7 @@
     "replay:analyze": "node scripts/replay-analyze.js",
     "verify:replay": "node scripts/verify-replay-analyze.js",
     "verify:activity": "node scripts/verify-fetch-activity-fallback.js",
-    "verify:activity-config": "node scripts/verify-activity-config.js"
+    "verify:activity-config": "node scripts/verify-activity-config.js",
+    "verify:activity-log": "node scripts/verify-activity-probe-log.js"
   }
 }
