@@ -171,3 +171,8 @@
   - Anomaly: activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) remained `404`; `/api/status` stayed healthy (`200`). Probe summary now shows failure streak `2` for all history endpoints.
   - Retry recommendation: keep `/api/status` as baseline; revalidate endpoint catalog against current Buju API spec and keep replay fallback until any history endpoint returns usable payload.
 - [2026-03-05 05:12 KST] Next 30-min actionable TODO: add `HISTORY_ENDPOINT_FAILOVER_STREAK` threshold (e.g., 3) in hourly feedback path to auto-tag history API as degraded and prioritize replay-derived signals in summaries.
+- [2026-03-05 05:36 KST] Deterministic rule-engine optimization completed: low-energy pressure defense.
+  - Updated `src/engine/fsm-rules.js` to add `defend-low-energy-pressure` rule: if `energy < 30` with enemy visible and `enemyThreat >= 50`, select `RAISE_SHIELD` (`DEFEND_LOW_ENERGY`) before energy-rest rule.
+  - Objective impact: avoid vulnerable REST actions during active enemy pressure, improving survival continuity and preserving future scoring windows.
+  - Extended `scripts/verify-cycle.js` to assert the new defense path and keep existing low-energy safe-window rest behavior regression-safe.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).

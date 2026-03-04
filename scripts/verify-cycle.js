@@ -93,10 +93,31 @@ const lowEnergySafeState = {
   energy: 18,
   enemyThreat: 10
 };
-const energyRecovery = await runDeterministicCycleOnce({
+const lowEnergyEnemyPressureState = {
+  ...stateSnapshot,
+  enemyVisible: true,
+  healthPct: 90,
+  energy: 20,
+  enemyThreat: 55
+};
+const lowEnergyDefense = await runDeterministicCycleOnce({
   tickNumber: 9,
   tickId: 'tick-verify-000009',
   nowMs: 5_500,
+  logger,
+  actionCooldownGuard: createInProcessActionCooldownGuard({ cooldownMs: 0 }),
+  executeAction: executor,
+  stateProvider: () => lowEnergyEnemyPressureState
+});
+assert.equal(lowEnergyDefense.decision.fsmState, 'DEFEND_LOW_ENERGY');
+assert.equal(lowEnergyDefense.decision.ruleId, 'defend-low-energy-pressure');
+assert.equal(lowEnergyDefense.decision.action.type, 'RAISE_SHIELD');
+assert.equal(lowEnergyDefense.execution.status, 'success');
+
+const energyRecovery = await runDeterministicCycleOnce({
+  tickNumber: 10,
+  tickId: 'tick-verify-000010',
+  nowMs: 9_500,
   logger,
   actionCooldownGuard: cooldownGuard,
   executeAction: executor,

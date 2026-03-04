@@ -52,3 +52,6 @@
 - Hardened `activity_probe_summary` against test-only/non-production endpoint noise by applying a configured endpoint allowlist sourced from activity endpoint config (with deterministic fallback to built-in candidates).
 - Added endpoint-template normalization (`hours=*`, `window=*h`) so allowlist matching remains stable across different runtime hour windows while still excluding unknown schemes like `data:`.
 - Wired summary allowlist to the same config path used by API probing to keep probe execution and trailing-streak analytics aligned.
+- Added deterministic FSM guard `defend-low-energy-pressure`: when energy is low (`<30`) and an enemy is visible with moderate+ pressure (`enemyThreat >= 50`), choose `RAISE_SHIELD` instead of resting.
+- Preserved rule priority: critical health recovery and very-high-threat defense still execute first; low-energy rest remains for safe windows only.
+- Locked coverage in `npm run verify:cycle` with explicit low-energy-under-pressure case (`DEFEND_LOW_ENERGY`) plus existing safe-window recovery assertion (`RECOVER_ENERGY`).

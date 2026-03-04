@@ -15,6 +15,18 @@ export function decideAction(stateSnapshot) {
     };
   }
 
+  if (
+    (stateSnapshot.energy ?? 0) < 30 &&
+    stateSnapshot.enemyVisible &&
+    (stateSnapshot.enemyThreat ?? 0) >= 50
+  ) {
+    return {
+      fsmState: 'DEFEND_LOW_ENERGY',
+      ruleId: 'defend-low-energy-pressure',
+      action: { type: 'RAISE_SHIELD', targetId: stateSnapshot.selfId }
+    };
+  }
+
   if ((stateSnapshot.energy ?? 0) < 30 && (stateSnapshot.healthPct ?? 0) >= 60) {
     return {
       fsmState: 'RECOVER_ENERGY',
