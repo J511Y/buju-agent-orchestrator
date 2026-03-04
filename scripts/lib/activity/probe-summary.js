@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { toFiniteNumber, toPositiveInteger } from './common.js';
 import {
+  CANDIDATE_ENDPOINTS,
+  DEFAULT_ACTIVITY_ENDPOINTS_CONFIG_PATH,
   DEFAULT_ACTIVITY_PROBE_LOG_FILE,
   DEFAULT_ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS
 } from './constants.js';
@@ -40,7 +42,47 @@ function toEmptySummary(lookbackHours, generatedAtIso) {
   };
 }
 
-function extractEndpointEvents(content, sinceMs, nowMs) {
+function normalizeEndpointTemplate(endpoint) {
+  if (typeof endpoint !== 'string') {
+    return null;
+  }
+  const trimmed = endpoint.trim();
+  if (!trimmed) {
+    return null;
+  }
+  return trimmed
+    .replace(/([?&]hours=)\d+/gi, '$1*')
+    .replace(/([?&]window=)\d+h/gi, '$1*h');
+}
+
+async function loadAllowedEndpointTemplates(configPath) {
+  const resolvedPath = path.resolve(configPath ?? DEFAULT_ACTIVITY_ENDPOINTS_CONFIG_PATH);
+  let content;
+  try {
+    content = await fs.readFile(resolvedPath, 'utf8');
+  } catch {
+    return CANDIDATE_ENDPOINTS;
+  }
+
+  try {
+    const parsed = JSON.parse(content);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return CANDIDATE_ENDPOINTS;
+    }
+    const normalized = [];
+    for (const item of parsed) {
+      if (typeof item !== 'string' || !item.trim()) {
+        return CANDIDATE_ENDPOINTS;
+      }
+      normalized.push(item.trim());
+    }
+    return normalized;
+  } catch {
+    return CANDIDATE_ENDPOINTS;
+  }
+}
+
+function extractEndpointEvents(content, sinceMs, nowMs, allowedEndpointSet) {
   const events = [];
   const lines = content.split('\n');
 
@@ -72,6 +114,10 @@ function extractEndpointEvents(content, sinceMs, nowMs) {
       const endpoint =
         typeof endpointItem?.endpoint === 'string' ? endpointItem.endpoint.trim() : '';
       if (!endpoint) {
+        continue;
+      }
+      const normalizedEndpoint = normalizeEndpointTemplate(endpoint);
+      if (!normalizedEndpoint || !allowedEndpointSet.has(normalizedEndpoint)) {
         continue;
       }
       events.push({
@@ -133,6 +179,7 @@ function summarizeEndpointFailureStreaks(events) {
  */
 export async function buildActivityProbeSummary({
   activityProbeLogPath,
+  activityEndpointsConfigPath,
   lookbackHours,
   nowMs
 } = {}) {
@@ -144,6 +191,12 @@ export async function buildActivityProbeSummary({
   const generatedAtIso = new Date(resolvedNowMs).toISOString();
   const sinceMs = resolvedNowMs - resolvedLookbackHours * 60 * 60 * 1_000;
   const logPath = path.resolve(activityProbeLogPath ?? DEFAULT_ACTIVITY_PROBE_LOG_FILE);
+  const allowedEndpointTemplates = await loadAllowedEndpointTemplates(activityEndpointsConfigPath);
+  const allowedEndpointSet = new Set(
+    allowedEndpointTemplates
+      .map((endpoint) => normalizeEndpointTemplate(endpoint))
+      .filter(Boolean)
+  );
 
   let content;
   try {
@@ -155,7 +208,7 @@ export async function buildActivityProbeSummary({
     return toEmptySummary(resolvedLookbackHours, generatedAtIso);
   }
 
-  const events = extractEndpointEvents(content, sinceMs, resolvedNowMs);
+  const events = extractEndpointEvents(content, sinceMs, resolvedNowMs, allowedEndpointSet);
   return {
     lookback_hours: resolvedLookbackHours,
     generated_at: generatedAtIso,

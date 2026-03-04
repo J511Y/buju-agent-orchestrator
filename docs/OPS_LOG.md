@@ -159,3 +159,9 @@
   - Added `acquireLock` injection option to make lock-heartbeat retry path testable in isolation.
   - Extended `scripts/verify-worker-reliability.js` with injected transient lock-touch failure scenario (first touch fails once, retry succeeds) and assertion that no terminal `lock heartbeat failed` tick error is emitted.
   - Verification executed: `npm run verify:worker`, `npm run verify:cycle`, `npm run verify:replay` (all passed).
+- [2026-03-05 05:12 KST] Activity probe summary signal-quality hardening completed: configured endpoint allowlist enforcement.
+  - Updated `scripts/lib/activity/probe-summary.js` to load endpoint allowlist from activity endpoint config (fallback deterministic to built-in candidates) and ignore non-allowlisted endpoints when computing rolling failure streaks.
+  - Added deterministic endpoint-template normalization for allowlist matching so dynamic hour windows still match (`hours=*`, `window=*h`) without admitting unrelated endpoints.
+  - Wired `fetchActivityKpis` to pass the active endpoint config path into probe-summary generation, ensuring API probe candidates and summary streak analysis use the same endpoint universe.
+  - Extended `scripts/verify-activity-probe-summary.js` with synthetic config allowlist + injected `data:` endpoint record; verified that non-allowlisted endpoint noise is excluded from summary output.
+  - Verification executed: `npm run verify:activity-probe-summary`, `npm run verify:activity`, `npm run verify:activity-config` (all passed).

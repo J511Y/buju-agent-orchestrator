@@ -49,3 +49,6 @@
 - Added worker lock-heartbeat retry in loop (`WORKER_LOCK_HEARTBEAT_RETRIES`, default `1`; `WORKER_LOCK_HEARTBEAT_RETRY_DELAY_MS`, default `25`) so transient lock touch failures do not terminate the worker immediately.
 - Kept deterministic fail-fast behavior for persistent heartbeat failure: after bounded retries, loop still emits `tick_error` with `lock heartbeat failed` and exits.
 - Added lock acquisition dependency injection hook (`acquireLock`) in worker loop to enable deterministic reliability verification without filesystem race dependence.
+- Hardened `activity_probe_summary` against test-only/non-production endpoint noise by applying a configured endpoint allowlist sourced from activity endpoint config (with deterministic fallback to built-in candidates).
+- Added endpoint-template normalization (`hours=*`, `window=*h`) so allowlist matching remains stable across different runtime hour windows while still excluding unknown schemes like `data:`.
+- Wired summary allowlist to the same config path used by API probing to keep probe execution and trailing-streak analytics aligned.

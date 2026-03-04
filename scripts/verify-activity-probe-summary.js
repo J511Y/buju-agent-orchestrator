@@ -23,7 +23,14 @@ function makeRecord(tsMs, endpointStatuses) {
 
 const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'buju-activity-probe-summary-'));
 const probeLogPath = path.join(tempDir, 'activity-probe.synthetic.jsonl');
+const endpointsConfigPath = path.join(tempDir, 'activity-endpoints.synthetic.json');
 const nowMs = Date.UTC(2026, 2, 5, 6, 0, 0);
+
+await fs.writeFile(
+  endpointsConfigPath,
+  `${JSON.stringify(['/api/a', '/api/b', '/api/c'], null, 2)}\n`,
+  'utf8'
+);
 
 const lines = [
   JSON.stringify(
@@ -55,7 +62,8 @@ const lines = [
   JSON.stringify(
     makeRecord(nowMs - 1 * 60 * 60 * 1_000, [
       { endpoint: '/api/b', status: 'network_fail' },
-      { endpoint: '/api/c', status: 'missing_api_key' }
+      { endpoint: '/api/c', status: 'missing_api_key' },
+      { endpoint: 'data:application/json,[]', status: 'http_fail', http_status: 500 }
     ])
   ),
   JSON.stringify(
@@ -71,6 +79,7 @@ await fs.writeFile(probeLogPath, `${lines.join('\n')}\n`, 'utf8');
 try {
   const summary = await buildActivityProbeSummary({
     activityProbeLogPath: probeLogPath,
+    activityEndpointsConfigPath: endpointsConfigPath,
     lookbackHours: 6,
     nowMs
   });

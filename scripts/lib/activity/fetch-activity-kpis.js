@@ -86,6 +86,7 @@ export async function fetchActivityKpis(options = {}) {
 
   resultPayload.activity_probe_summary = await buildActivityProbeSummary({
     activityProbeLogPath,
+    activityEndpointsConfigPath,
     lookbackHours: activityProbeSummaryLookbackHours,
     nowMs
   });
