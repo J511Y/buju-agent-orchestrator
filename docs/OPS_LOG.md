@@ -29,3 +29,10 @@
   - Anomaly/failure mode: attempted recent-activity endpoints (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent`) all returned 404 Not Found.
   - Retry recommendation: keep `/api/status` as baseline and retry activity discovery with documented/updated endpoints (or capture battle outcomes in local JSONL) before next hourly cycle.
 - [2026-03-04 22:09 KST] Next 30-min actionable TODO: add a tiny `scripts/fetch-activity.js` probe that tests candidate activity endpoints + normalized fallback to local `logs/worker-events.jsonl`, then wire it into hourly feedback automation.
+- [2026-03-04 22:38 KST] Worker reliability hardening cycle completed.
+  - Added loop-level filesystem lock with stale TTL recovery (`src/worker/fs-lock.js`) and integrated lock acquire/touch/release in deterministic loop startup/shutdown.
+  - Added per-tick timeout guard in loop (`ETICK_TIMEOUT`) to log `tick_error` and continue subsequent ticks when an action hangs.
+  - Added verification script `npm run verify:worker` for lock collision, stale lock takeover, timeout continuation, and lock cleanup assertions.
+  - Verification executed: `npm run verify:worker`, `npm run verify:cycle`, `npm run verify:replay` (all passed).
+  - Blocker: commit attempt failed in this runtime with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run `git add ... && git commit -m "fix: harden worker loop with fs lock and tick timeout"` in a runtime with `.git` write permission, then push.

@@ -4,6 +4,59 @@ import { createActionExecutor } from '../client/action-executor.js';
 import { decideAction } from '../engine/fsm-rules.js';
 import { evaluateSafetyGates } from '../engine/safety-gates.js';
 import { JsonlLogger } from '../ops/jsonl-logger.js';
+import { acquireWorkerLoopLock } from './fs-lock.js';
+
+function formatTickId(tickNumber) {
+  return `tick-${String(tickNumber).padStart(6, '0')}`;
+}
+
+function toPositiveInteger(value, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return Math.floor(parsed);
+}
+
+function createTickTimeoutError(tickId, tickTimeoutMs) {
+  const error = new Error(`tick timeout after ${tickTimeoutMs}ms`);
+  error.code = 'ETICK_TIMEOUT';
+  error.tickId = tickId;
+  return error;
+}
+
+async function runTickWithTimeout({ tickPromise, tickId, tickTimeoutMs }) {
+  if (!Number.isFinite(tickTimeoutMs) || tickTimeoutMs <= 0) {
+    return tickPromise;
+  }
+
+  let timeoutHandle = null;
+  const outcome = await Promise.race([
+    tickPromise.then(
+      (value) => ({ status: 'success', value }),
+      (error) => ({ status: 'error', error })
+    ),
+    new Promise((resolve) => {
+      timeoutHandle = setTimeout(() => resolve({ status: 'timeout' }), tickTimeoutMs);
+    })
+  ]);
+
+  if (timeoutHandle) {
+    clearTimeout(timeoutHandle);
+  }
+
+  if (outcome.status === 'timeout') {
+    // Ignore eventual completion/rejection; the loop must move to the next tick.
+    tickPromise.catch(() => {});
+    throw createTickTimeoutError(tickId, tickTimeoutMs);
+  }
+
+  if (outcome.status === 'error') {
+    throw outcome.error;
+  }
+
+  return outcome.value;
+}
 
 function defaultStateProvider(tickNumber) {
   return {
@@ -33,7 +86,7 @@ async function defaultTransport(action, context) {
 export async function runDeterministicCycleOnce(options = {}) {
   const {
     tickNumber = 1,
-    tickId = `tick-${String(tickNumber).padStart(6, '0')}`,
+    tickId = formatTickId(tickNumber),
     nowMs = Date.now(),
     stateProvider = defaultStateProvider,
     logger = new JsonlLogger(path.resolve('logs/worker-events.jsonl')),
@@ -97,37 +150,86 @@ export async function runDeterministicCycleOnce(options = {}) {
 export async function startDeterministicWorkerLoop(options = {}) {
   const {
     intervalMs = Number(process.env.WORKER_TICK_MS ?? 10_000),
+    tickTimeoutMs = Number(process.env.WORKER_TICK_TIMEOUT_MS ?? intervalMs),
     maxTicks = Number(process.env.WORKER_MAX_TICKS ?? Number.POSITIVE_INFINITY),
+    lockFilePath = path.resolve(process.env.WORKER_LOCK_FILE ?? 'logs/worker-loop.lock'),
+    lockStaleTtlMs = Number(process.env.WORKER_LOCK_STALE_TTL_MS ?? Math.max(intervalMs * 3, 30_000)),
     logger = new JsonlLogger(path.resolve('logs/worker-events.jsonl')),
     stateProvider = defaultStateProvider,
     executeAction = createActionExecutor({ transport: defaultTransport })
   } = options;
 
+  const normalizedIntervalMs = toPositiveInteger(intervalMs, 10_000);
+  const normalizedTickTimeoutMs = toPositiveInteger(tickTimeoutMs, normalizedIntervalMs);
+  const normalizedLockStaleTtlMs = toPositiveInteger(
+    lockStaleTtlMs,
+    Math.max(normalizedIntervalMs * 3, 30_000)
+  );
+
+  let lock;
+  try {
+    lock = await acquireWorkerLoopLock({
+      lockFilePath,
+      staleTtlMs: normalizedLockStaleTtlMs
+    });
+  } catch (error) {
+    if (error.code === 'ELOCKED') {
+      return {
+        started: false,
+        reason: 'lock_held',
+        lockFilePath
+      };
+    }
+    throw error;
+  }
+
   let tickNumber = 1;
-  while (tickNumber <= maxTicks) {
-    const tickStart = Date.now();
-    try {
-      await runDeterministicCycleOnce({
-        tickNumber,
-        nowMs: tickStart,
-        stateProvider,
-        logger,
-        executeAction
-      });
-    } catch (error) {
-      await logger.append('tick_error', {
-        tickId: `tick-${String(tickNumber).padStart(6, '0')}`,
-        message: error.message
-      });
-    }
+  try {
+    while (tickNumber <= maxTicks) {
+      const tickStart = Date.now();
+      const tickId = formatTickId(tickNumber);
+      try {
+        await runTickWithTimeout({
+          tickId,
+          tickTimeoutMs: normalizedTickTimeoutMs,
+          tickPromise: runDeterministicCycleOnce({
+            tickNumber,
+            tickId,
+            nowMs: tickStart,
+            stateProvider,
+            logger,
+            executeAction
+          })
+        });
+      } catch (error) {
+        await logger.append('tick_error', {
+          tickId,
+          message: error.message,
+          code: error.code ?? null
+        });
+      }
 
-    tickNumber += 1;
-    if (tickNumber > maxTicks) {
-      break;
-    }
+      try {
+        await lock.touch();
+      } catch (error) {
+        await logger.append('tick_error', {
+          tickId,
+          message: `lock heartbeat failed: ${error.message}`,
+          code: error.code ?? null
+        });
+        throw error;
+      }
 
-    const elapsedMs = Date.now() - tickStart;
-    const waitMs = Math.max(0, intervalMs - elapsedMs);
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
+      tickNumber += 1;
+      if (tickNumber > maxTicks) {
+        break;
+      }
+
+      const elapsedMs = Date.now() - tickStart;
+      const waitMs = Math.max(0, normalizedIntervalMs - elapsedMs);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  } finally {
+    await lock.release();
   }
 }

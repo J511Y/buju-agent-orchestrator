@@ -13,3 +13,6 @@
 - Added `npm run verify:cycle` smoke verification for retry behavior, idempotency skip path, and secret masking regression coverage.
 - Added replay analyzer utility for worker event JSONL logs with per-tick schema/order validation and concise KPI extraction (tick volume, blocked rate, action success/fail/skipped, top safety reasons).
 - Added dedicated replay verification script (`npm run verify:replay`) to lock expected analyzer behavior on valid/invalid event streams.
+- Added filesystem worker loop lock (`WORKER_LOCK_FILE`, stale TTL) to prevent concurrent loop instances and reclaim stale locks deterministically.
+- Added per-tick timeout guard (`WORKER_TICK_TIMEOUT_MS`) so hung ticks emit `tick_error` with timeout code and loop advances to the next tick.
+- Added reliability verification script (`npm run verify:worker`) covering live-lock denial, stale lock takeover, timeout recovery, and lock release on shutdown.
