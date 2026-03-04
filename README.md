@@ -11,7 +11,7 @@ BujuAgent 고득점 자동운영을 위한 백엔드 오케스트레이터입니
 - 10초 틱 기반 안정 운영 + 재시도/복구 자동화
 
 ## 아키텍처 개요
-- **Hot path (실시간):** State Ingest → Safety Gate → FSM/Rules → Action Executor
+- **Hot path (실시간):** State Ingest → Safety Gate(실행 실패 서킷 브레이커 포함) → FSM/Rules → Action Executor
 - **Cold path (비동기):** Battle Logs → Optimizer → Policy Update
 - **LLM 역할:** 예외/전략 조정(비동기), 실시간 경로에서 제외
 
@@ -56,6 +56,8 @@ npm run dev
   - `npm run verify:activity`
   - `npm run verify:activity-config`
   - `npm run verify:activity-log`
+  - `npm run verify:activity-log-rotation`
+  - `npm run verify:activity-probe-summary`
 - 운영 설정:
   - 엔드포인트 후보: `config/activity-endpoints.json`
   - Probe 로그(JSONL): `logs/activity-probe-log.jsonl` (기본값, 마스킹 저장)

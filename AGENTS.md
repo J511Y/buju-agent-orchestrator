@@ -34,7 +34,8 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
    - 로그/리플레이/테스트 강화
 3. 구현 + 최소 검증
    - 로컬 실행 또는 최소 테스트
-   - Activity 수집 경로 변경 시: `npm run verify:activity`, `npm run verify:activity-config`, `npm run verify:activity-log`
+   - Activity 수집 경로 변경 시: `npm run verify:activity`, `npm run verify:activity-config`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity-probe-summary`
+   - 워커 safety gate/실패 복구 로직 변경 시: `npm run verify:cycle`, `npm run verify:replay`
 4. 문서화
    - 결정사항 `docs/DECISIONS.md`
    - 운영 이벤트 `docs/OPS_LOG.md`
