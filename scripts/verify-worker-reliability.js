@@ -114,6 +114,7 @@ const secondTickFinished = logLines.find(
 assert.ok(secondTickFinished, 'second tick should continue and finish after first tick timeout');
 
 const heartbeatRetryLogger = new JsonlLogger(heartbeatRetryLogPath);
+const timeoutCircuitLogPath = path.join(tempDir, 'worker-timeout-circuit-events.jsonl');
 let transientTouchFailures = 0;
 let releaseCalls = 0;
 
@@ -168,5 +169,50 @@ assert.equal(
   undefined,
   'transient lock heartbeat failure should recover via retry without terminal tick_error'
 );
+
+const timeoutCircuitLogger = new JsonlLogger(timeoutCircuitLogPath);
+await startDeterministicWorkerLoop({
+  intervalMs: 1,
+  tickTimeoutMs: 20,
+  maxTicks: 2,
+  logger: timeoutCircuitLogger,
+  stateProvider,
+  executeAction: async ({ tickId }) => {
+    if (tickId === 'tick-000001') {
+      return new Promise(() => {});
+    }
+    return {
+      status: 'success',
+      actionKey: `${tickId}:unexpected-success`,
+      attempts: 1,
+      response: { ok: true }
+    };
+  },
+  failureCircuitStreak: 1,
+  failureCircuitCooldownMs: 60_000,
+  lockFilePath: path.join(tempDir, 'timeout-circuit.lock'),
+  lockStaleTtlMs: 100
+});
+
+const timeoutCircuitLines = (await fs.readFile(timeoutCircuitLogPath, 'utf8'))
+  .trim()
+  .split('\n')
+  .filter(Boolean)
+  .map((line) => JSON.parse(line));
+
+const timeoutError = timeoutCircuitLines.find(
+  (entry) => entry.eventType === 'tick_error' && entry.payload.tickId === 'tick-000001'
+);
+assert.ok(timeoutError, 'first timed-out tick should emit tick_error');
+assert.equal(timeoutError.payload.code, 'ETICK_TIMEOUT');
+
+const secondTickBlocked = timeoutCircuitLines.find(
+  (entry) =>
+    entry.eventType === 'tick_blocked' &&
+    entry.payload.tickId === 'tick-000002' &&
+    Array.isArray(entry.payload.reasons) &&
+    entry.payload.reasons.includes('execution_failure_circuit_open')
+);
+assert.ok(secondTickBlocked, 'second tick should be blocked by execution failure circuit after timeout');
 
 console.log(`verify:worker passed (${tempDir})`);

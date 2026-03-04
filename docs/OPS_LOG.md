@@ -187,3 +187,8 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling probe failure streak reached `3` for all history endpoints.
   - Retry recommendation: mark history API path as degraded after this streak and keep replay-first summaries until endpoint list is refreshed from latest Buju API documentation.
 - [2026-03-05 06:08 KST] Next 30-min actionable TODO: implement deterministic degraded-state flag in `activity:fetch` output (e.g., `history_api_degraded=true` when streak>=3) and add verification for threshold crossing behavior.
+- [2026-03-05 06:36 KST] Worker timeout containment hardening completed: timeout now contributes to failure circuit.
+  - Updated `src/worker/loop.js` so `ETICK_TIMEOUT` in loop catch path records `executionStatus=failed` into execution-failure circuit breaker.
+  - Effect: repeated hung ticks now deterministically escalate into safety-blocked ticks (`execution_failure_circuit_open`) instead of allowing unconstrained retries.
+  - Extended `scripts/verify-worker-reliability.js` with a threshold-1 scenario proving first timed-out tick emits `tick_error` and second tick is blocked by circuit-open reason.
+  - Verification executed: `npm run verify:worker`, `npm run verify:cycle`, `npm run verify:replay` (all passed).

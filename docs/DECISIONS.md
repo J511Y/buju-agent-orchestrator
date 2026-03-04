@@ -58,3 +58,6 @@
 - Refined execution-failure circuit semantics so `skipped` executions no longer reset consecutive failure streaks; only `success` clears the streak.
 - Rationale: non-execution paths (cooldown/safety skips) should not mask underlying transport instability, improving deterministic failure containment.
 - Added verification coverage in `npm run verify:cycle` to assert `failed -> skipped -> failed` opens the circuit when threshold is reached.
+- Linked tick-timeout failures to execution-failure circuit accounting in worker loop: when a tick ends with `ETICK_TIMEOUT`, record a failed execution signal in the circuit breaker.
+- Rationale: repeated hung ticks indicate execution-path instability and should trigger deterministic safety blocking rather than continuing unrestricted attempts.
+- Added worker reliability verification for this path: with circuit threshold `1`, first timeout forces next tick into `execution_failure_circuit_open` block.

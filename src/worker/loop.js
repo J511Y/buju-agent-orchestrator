@@ -361,6 +361,12 @@ export async function startDeterministicWorkerLoop(options = {}) {
           message: error.message,
           code: error.code ?? null
         });
+        if (error?.code === 'ETICK_TIMEOUT') {
+          resolvedExecutionFailureCircuitBreaker.recordExecutionStatus({
+            executionStatus: 'failed',
+            nowMs: Date.now()
+          });
+        }
       }
 
       try {
