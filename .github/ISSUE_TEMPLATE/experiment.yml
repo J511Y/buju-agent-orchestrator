@@ -1,0 +1,21 @@
+name: Experiment
+description: Propose or track an A/B experiment
+labels: ["experiment"]
+body:
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+      description: What do we expect to improve?
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Change
+      description: What will be changed?
+  - type: textarea
+    id: metric
+    attributes:
+      label: Success Metric
+      description: How will we measure success?

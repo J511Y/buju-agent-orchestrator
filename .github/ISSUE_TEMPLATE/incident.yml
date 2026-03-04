@@ -1,0 +1,18 @@
+name: Incident
+description: Report runtime or operational incident
+labels: ["incident"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Incident summary
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Mitigation / Next actions

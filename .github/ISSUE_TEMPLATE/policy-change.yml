@@ -1,0 +1,18 @@
+name: Policy Change
+description: Track rule/policy updates
+labels: ["policy-change"]
+body:
+  - type: input
+    id: policy_version
+    attributes:
+      label: Target policy version
+  - type: textarea
+    id: reason
+    attributes:
+      label: Reason for change
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
