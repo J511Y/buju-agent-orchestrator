@@ -67,3 +67,7 @@
 - Extended replay analyzer with deterministic `topDecisionRules` aggregation from `decision_made.decision.ruleId` to make strategy distribution observable without changing worker hot path.
 - Updated replay text summary output to include `top_decision_rules` line (top-5 by count, stable tie-break by ruleId) for quick operator feedback on which deterministic policies are dominating.
 - Locked coverage in `npm run verify:replay` with explicit rule-id counts (including `attack-low-threat-efficient-window`) and summary formatting assertion.
+- Added deterministic action target validation in worker cycle: actions that require a target (`!= WAIT/REST`) are now skipped when `targetId` is missing, with reason `invalid_action_target`.
+- Rationale: prevents avoidable transport attempts/failures from malformed state snapshots and preserves loop stability for next tick decisions.
+- Kept circuit semantics stable: invalid-target path is treated as `skipped` (data quality block), not a transport failure.
+- Added regression coverage in `npm run verify:cycle` to assert attack decision with missing `enemyId` is blocked pre-transport (`attempts=0`).

@@ -96,6 +96,13 @@ async function runTickWithTimeout({ tickPromise, tickId, tickTimeoutMs }) {
   return outcome.value;
 }
 
+function shouldRequireActionTarget(action) {
+  if (!action || typeof action !== 'object') {
+    return false;
+  }
+  return !new Set(['WAIT', 'REST']).has(action.type);
+}
+
 function defaultStateProvider(tickNumber) {
   return {
     battleId: 'default-battle',
@@ -201,6 +208,39 @@ export async function runDeterministicCycleOnce(options = {}) {
     tickId,
     decision
   });
+
+  if (shouldRequireActionTarget(decision.action) && !decision.action?.targetId) {
+    const execution = {
+      status: 'skipped',
+      reason: 'invalid_action_target',
+      blockedBy: 'action_target_validation',
+      attempts: 0
+    };
+    executionFailureCircuitBreaker.recordExecutionStatus({
+      executionStatus: execution.status,
+      nowMs
+    });
+    await logger.append('action_executed', {
+      tickId,
+      action: decision.action,
+      execution
+    });
+    await logger.append('tick_finished', {
+      tickId,
+      fsmState: decision.fsmState,
+      executionStatus: execution.status,
+      reason: execution.reason
+    });
+
+    return {
+      tickId,
+      blocked: true,
+      blockReason: execution.reason,
+      safety,
+      decision,
+      execution
+    };
+  }
 
   const cooldownCheck = actionCooldownGuard.checkAndMark({
     action: decision.action,

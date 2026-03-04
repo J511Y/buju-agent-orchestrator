@@ -151,6 +151,32 @@ assert.equal(efficientAttack.decision.ruleId, 'attack-low-threat-efficient-windo
 assert.equal(efficientAttack.decision.action.type, 'BASIC_ATTACK');
 assert.equal(efficientAttack.execution.status, 'success');
 
+const invalidAttackTargetState = {
+  ...stateSnapshot,
+  battleId: 'verify-battle-invalid-target',
+  enemyVisible: true,
+  enemyId: null,
+  healthPct: 80,
+  energy: 60,
+  enemyThreat: 20
+};
+const attemptsBeforeInvalidTarget = attemptCount;
+const invalidAttackTarget = await runDeterministicCycleOnce({
+  tickNumber: 12,
+  tickId: 'tick-verify-000012',
+  nowMs: 17_500,
+  logger,
+  actionCooldownGuard: createInProcessActionCooldownGuard({ cooldownMs: 0 }),
+  executeAction: executor,
+  stateProvider: () => invalidAttackTargetState
+});
+assert.equal(invalidAttackTarget.decision.ruleId, 'attack-energy-window');
+assert.equal(invalidAttackTarget.execution.status, 'skipped');
+assert.equal(invalidAttackTarget.execution.reason, 'invalid_action_target');
+assert.equal(invalidAttackTarget.execution.blockedBy, 'action_target_validation');
+assert.equal(invalidAttackTarget.execution.attempts, 0);
+assert.equal(attemptCount, attemptsBeforeInvalidTarget);
+
 const alwaysFailExecutor = createActionExecutor({
   transport: async () => ({
     ok: false,

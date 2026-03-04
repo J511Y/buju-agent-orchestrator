@@ -208,3 +208,8 @@
   - Extended replay summary formatter with `top_decision_rules` line so operators can quickly spot dominant deterministic behavior patterns and validate score-optimization rule rollout effects.
   - Updated `scripts/verify-replay-analyze.js` fixture to include rule IDs and assert deterministic count/order in both structured output and formatted summary line.
   - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (all passed).
+- [2026-03-05 08:06 KST] Worker safety-gate hardening completed: action target validation before execution.
+  - Updated `src/worker/loop.js` to block/skip target-required actions when `action.targetId` is missing, logging `action_executed.status=skipped` with reason `invalid_action_target` and `blockedBy=action_target_validation`.
+  - Impact: malformed decision/state combinations no longer trigger avoidable transport calls or noisy downstream failures.
+  - Extended `scripts/verify-cycle.js` with invalid-target attack scenario and assertion that transport attempt count does not increase on blocked tick.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay` (all passed).
