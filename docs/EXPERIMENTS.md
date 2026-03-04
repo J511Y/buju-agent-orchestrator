@@ -42,3 +42,9 @@ Track A/B and policy experiments.
 - Metric(s): 24h endpoint success ratio; consecutive-failure streak length per endpoint.
 - Result: Activity endpoint success ratio still 0/3 for this cycle.
 - Decision: Continue experiment; add telemetry persistence next cycle.
+- Date: 2026-03-05 03:08 KST
+- Hypothesis: A rolling endpoint-failure streak metric will provide a reliable trigger for switching from API-history mode to local-log mode.
+- Change: Hourly probe repeated across same 3 activity endpoints.
+- Metric(s): Consecutive failure streak per endpoint.
+- Result: Failure streak continues (all three endpoints failed again this cycle).
+- Decision: Pending implementation of streak tracker + fallback threshold.

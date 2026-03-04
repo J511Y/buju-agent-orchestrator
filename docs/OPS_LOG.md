@@ -132,3 +132,9 @@
 - [2026-03-05 03:06 KST] Commit/persist step blocked after replay circuit-open counter update.
   - Blocker: `git add ... && git commit -m "fix: add replay circuit-open block counter"` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run the same commit from a runtime with `.git` write permission, then push.
+- [2026-03-05 03:08 KST] Hourly gameplay feedback cycle executed with masked `.env` key and live API probe.
+  - Evidence (`GET /api/status`): Lv3, exp `34/90`, HP `129/130`, MP `43/66`, gold `184`, area `talking_island_field`, combat `false`.
+  - Last-hour signals: progression flat; no explicit win/defeat indicators in available payload; resource trend stable.
+  - Anomaly/failure mode: activity endpoints unchanged and unavailable (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` all 404).
+  - Retry recommendation: maintain `/api/status` baseline, and after endpoint-config rollout retry discovery with versioned candidate list + telemetry.
+- [2026-03-05 03:08 KST] Next 30-min actionable TODO: add simple `activity_probe_summary` output (rolling 6h endpoint failure streaks) to support automatic fallback thresholding.
