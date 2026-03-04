@@ -21,3 +21,11 @@
 - Verification: `npm run verify:replay` executed with synthetic valid/invalid streams to confirm KPI counts and ordering guardrails.
 - Blocker: commit attempt failed in this runtime with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
 - Next action: run `git add ... && git commit ...` from a runtime with `.git` write permission and push the same patchset.
+- [2026-03-04 22:09 KST] Hourly gameplay feedback cycle: loaded `.env` key successfully (masked) and queried live `GET /api/status`.
+  - Evidence: Lv3 knight `exp 34/90`, HP `129/130` (99.2%), MP `43/66` (65.2%), gold `184`, area `talking_island_field`, combat `in_progress=false`, season active (6 days left).
+  - Last-hour progression signal: no clear progression delta from API alone; local worker log only shows a single successful attack tick at `2026-03-04T12:37:59Z` (~31m ago), suggesting low activity density.
+  - Win/defeat signal: no explicit win/defeat events available from exposed API response; no defeat indicators observed (HP near max, no combat lock).
+  - Resource trend: stable/healthy HP and moderate MP; no scarcity risk in current snapshot.
+  - Anomaly/failure mode: attempted recent-activity endpoints (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent`) all returned 404 Not Found.
+  - Retry recommendation: keep `/api/status` as baseline and retry activity discovery with documented/updated endpoints (or capture battle outcomes in local JSONL) before next hourly cycle.
+- [2026-03-04 22:09 KST] Next 30-min actionable TODO: add a tiny `scripts/fetch-activity.js` probe that tests candidate activity endpoints + normalized fallback to local `logs/worker-events.jsonl`, then wire it into hourly feedback automation.
