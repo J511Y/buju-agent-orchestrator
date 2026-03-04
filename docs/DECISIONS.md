@@ -55,3 +55,6 @@
 - Added deterministic FSM guard `defend-low-energy-pressure`: when energy is low (`<30`) and an enemy is visible with moderate+ pressure (`enemyThreat >= 50`), choose `RAISE_SHIELD` instead of resting.
 - Preserved rule priority: critical health recovery and very-high-threat defense still execute first; low-energy rest remains for safe windows only.
 - Locked coverage in `npm run verify:cycle` with explicit low-energy-under-pressure case (`DEFEND_LOW_ENERGY`) plus existing safe-window recovery assertion (`RECOVER_ENERGY`).
+- Refined execution-failure circuit semantics so `skipped` executions no longer reset consecutive failure streaks; only `success` clears the streak.
+- Rationale: non-execution paths (cooldown/safety skips) should not mask underlying transport instability, improving deterministic failure containment.
+- Added verification coverage in `npm run verify:cycle` to assert `failed -> skipped -> failed` opens the circuit when threshold is reached.

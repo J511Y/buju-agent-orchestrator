@@ -82,7 +82,7 @@ export function createInProcessExecutionFailureCircuitBreaker(options = {}) {
       if (consecutiveFailedExecutions >= failedTickStreakThreshold && cooldownMs > 0) {
         openUntilMs = normalizedNowMs + cooldownMs;
       }
-    } else {
+    } else if (executionStatus === 'success') {
       consecutiveFailedExecutions = 0;
     }
 

@@ -144,6 +144,19 @@ const failureCircuitBreaker = createInProcessExecutionFailureCircuitBreaker({
   cooldownMs: 30_000
 });
 
+const skippedDoesNotResetBreaker = createInProcessExecutionFailureCircuitBreaker({
+  failedTickStreakThreshold: 2,
+  cooldownMs: 10_000
+});
+skippedDoesNotResetBreaker.recordExecutionStatus({ executionStatus: 'failed', nowMs: 1_000 });
+skippedDoesNotResetBreaker.recordExecutionStatus({ executionStatus: 'skipped', nowMs: 1_100 });
+const skippedPathCircuitState = skippedDoesNotResetBreaker.recordExecutionStatus({
+  executionStatus: 'failed',
+  nowMs: 1_200
+});
+assert.equal(skippedPathCircuitState.allowed, false);
+assert.equal(skippedPathCircuitState.reason, 'execution_failure_circuit_open');
+
 for (let index = 0; index < 3; index += 1) {
   const failedTick = await runDeterministicCycleOnce({
     tickNumber: 100 + index,

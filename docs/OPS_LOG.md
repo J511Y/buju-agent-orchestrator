@@ -176,3 +176,8 @@
   - Objective impact: avoid vulnerable REST actions during active enemy pressure, improving survival continuity and preserving future scoring windows.
   - Extended `scripts/verify-cycle.js` to assert the new defense path and keep existing low-energy safe-window rest behavior regression-safe.
   - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).
+- [2026-03-05 06:06 KST] Failure-containment hardening completed: skipped executions no longer reset failure circuit streak.
+  - Updated `src/engine/execution-failure-circuit-breaker.js` so only `executionStatus=success` clears `consecutiveFailedExecutions`; `skipped` now preserves streak state.
+  - Impact: repeated transport failures cannot be accidentally diluted by intervening skipped ticks, leading to more reliable circuit-open protection.
+  - Extended `scripts/verify-cycle.js` with explicit `failed -> skipped -> failed` threshold test to lock deterministic behavior.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).
