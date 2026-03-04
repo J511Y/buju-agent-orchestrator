@@ -13,12 +13,20 @@
 4. 변경은 항상 커밋 단위로 남긴다.
 5. 실패/차단 시 원인과 다음 액션을 `docs/OPS_LOG.md`에 기록한다.
 
+
+## Required Domain Context (Buju-specific)
+Before implementing any feature, read:
+- `docs/BUJU_GAME_CONTEXT.md`
+- `docs/ARCHITECTURE.md`
+
+Agent tasks must stay aligned with the Buju objective: maximize in-game score via autonomous, robust operation.
+
 ## 30-min Autonomous Cycle (Standard)
 매 사이클마다 아래 순서를 지킨다.
 
 1. 현재 상태 점검
    - 최근 커밋/브랜치 상태 확인
-   - `docs/DECISIONS.md`, `docs/OPS_LOG.md` 확인
+   - `docs/BUJU_GAME_CONTEXT.md`, `docs/DECISIONS.md`, `docs/OPS_LOG.md` 확인
 2. 우선순위 작업 1~2개 선택
    - engine 안정성
    - worker 신뢰성(재시도/락/타임아웃)

@@ -49,3 +49,7 @@ npm run dev
 ## 기여
 - 이슈 기반으로 작업 단위를 분리해 진행
 - 작은 PR, 명확한 커밋 메시지 권장
+
+
+## 도메인 컨텍스트
+- Buju 게임/운영 배경: [`docs/BUJU_GAME_CONTEXT.md`](./docs/BUJU_GAME_CONTEXT.md)
