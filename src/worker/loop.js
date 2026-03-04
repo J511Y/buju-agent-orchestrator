@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { createActionExecutor } from '../client/action-executor.js';
+import { createInProcessActionCooldownGuard } from '../engine/action-cooldown-guard.js';
 import { decideAction } from '../engine/fsm-rules.js';
 import { evaluateSafetyGates } from '../engine/safety-gates.js';
 import { JsonlLogger } from '../ops/jsonl-logger.js';
@@ -13,6 +14,14 @@ function formatTickId(tickNumber) {
 function toPositiveInteger(value, fallback) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return Math.floor(parsed);
+}
+
+function toNonNegativeInteger(value, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
     return fallback;
   }
   return Math.floor(parsed);
@@ -88,6 +97,8 @@ export async function runDeterministicCycleOnce(options = {}) {
     tickNumber = 1,
     tickId = formatTickId(tickNumber),
     nowMs = Date.now(),
+    actionCooldownMs = Number(process.env.ACTION_COOLDOWN_MS ?? 3_000),
+    actionCooldownGuard = createInProcessActionCooldownGuard({ cooldownMs: actionCooldownMs }),
     stateProvider = defaultStateProvider,
     logger = new JsonlLogger(path.resolve('logs/worker-events.jsonl')),
     executeAction = createActionExecutor({ transport: defaultTransport })
@@ -122,6 +133,43 @@ export async function runDeterministicCycleOnce(options = {}) {
     decision
   });
 
+  const cooldownCheck = actionCooldownGuard.checkAndMark({
+    action: decision.action,
+    nowMs
+  });
+  if (!cooldownCheck.allowed) {
+    const execution = {
+      status: 'skipped',
+      reason: cooldownCheck.reason,
+      blockedBy: 'in_process_action_cooldown_guard',
+      actionFingerprint: cooldownCheck.actionFingerprint,
+      cooldownMs: cooldownCheck.cooldownMs,
+      remainingMs: cooldownCheck.remainingMs,
+      lastActionAtMs: cooldownCheck.lastActionAtMs,
+      attempts: 0
+    };
+    await logger.append('action_executed', {
+      tickId,
+      action: decision.action,
+      execution
+    });
+    await logger.append('tick_finished', {
+      tickId,
+      fsmState: decision.fsmState,
+      executionStatus: execution.status,
+      reason: execution.reason
+    });
+
+    return {
+      tickId,
+      blocked: true,
+      blockReason: execution.reason,
+      safety,
+      decision,
+      execution
+    };
+  }
+
   const execution = await executeAction({
     tickId,
     stateSnapshot,
@@ -151,20 +199,28 @@ export async function startDeterministicWorkerLoop(options = {}) {
   const {
     intervalMs = Number(process.env.WORKER_TICK_MS ?? 10_000),
     tickTimeoutMs = Number(process.env.WORKER_TICK_TIMEOUT_MS ?? intervalMs),
+    actionCooldownMs = Number(process.env.ACTION_COOLDOWN_MS ?? 3_000),
     maxTicks = Number(process.env.WORKER_MAX_TICKS ?? Number.POSITIVE_INFINITY),
     lockFilePath = path.resolve(process.env.WORKER_LOCK_FILE ?? 'logs/worker-loop.lock'),
     lockStaleTtlMs = Number(process.env.WORKER_LOCK_STALE_TTL_MS ?? Math.max(intervalMs * 3, 30_000)),
     logger = new JsonlLogger(path.resolve('logs/worker-events.jsonl')),
     stateProvider = defaultStateProvider,
-    executeAction = createActionExecutor({ transport: defaultTransport })
+    executeAction = createActionExecutor({ transport: defaultTransport }),
+    actionCooldownGuard = null
   } = options;
 
   const normalizedIntervalMs = toPositiveInteger(intervalMs, 10_000);
   const normalizedTickTimeoutMs = toPositiveInteger(tickTimeoutMs, normalizedIntervalMs);
+  const normalizedActionCooldownMs = toNonNegativeInteger(actionCooldownMs, 3_000);
   const normalizedLockStaleTtlMs = toPositiveInteger(
     lockStaleTtlMs,
     Math.max(normalizedIntervalMs * 3, 30_000)
   );
+  const resolvedActionCooldownGuard =
+    actionCooldownGuard ??
+    createInProcessActionCooldownGuard({
+      cooldownMs: normalizedActionCooldownMs
+    });
 
   let lock;
   try {
@@ -196,6 +252,8 @@ export async function startDeterministicWorkerLoop(options = {}) {
             tickNumber,
             tickId,
             nowMs: tickStart,
+            actionCooldownMs: normalizedActionCooldownMs,
+            actionCooldownGuard: resolvedActionCooldownGuard,
             stateProvider,
             logger,
             executeAction

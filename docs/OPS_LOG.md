@@ -36,3 +36,12 @@
   - Verification executed: `npm run verify:worker`, `npm run verify:cycle`, `npm run verify:replay` (all passed).
   - Blocker: commit attempt failed in this runtime with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run `git add ... && git commit -m "fix: harden worker loop with fs lock and tick timeout"` in a runtime with `.git` write permission, then push.
+- [2026-03-04 23:07 KST] Deterministic safety improvement cycle completed: in-process action cooldown guard.
+  - Added `src/engine/action-cooldown-guard.js` with process-local cooldown map keyed by `action.type + action.targetId` and configurable window (`ACTION_COOLDOWN_MS`, default `3000`).
+  - Integrated guard into `runDeterministicCycleOnce` pre-execution path so blocked actions are safely skipped without transport call.
+  - Logged cooldown blocks as replay-friendly JSONL via `action_executed` (`status=skipped`, `reason=action_cooldown_active`, cooldown metadata) and `tick_finished`.
+  - Updated `scripts/verify-cycle.js` to validate cross-tick block behavior and assert no extra execution attempts during cooldown.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay` (all passed).
+- [2026-03-04 23:08 KST] Commit/persist step blocked in this runtime.
+  - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run commit from a runtime with `.git` write permission using message `fix: add deterministic in-process action cooldown guard`, then push.

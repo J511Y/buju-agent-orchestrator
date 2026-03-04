@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { createActionExecutor } from '../src/client/action-executor.js';
+import { createInProcessActionCooldownGuard } from '../src/engine/action-cooldown-guard.js';
 import { JsonlLogger } from '../src/ops/jsonl-logger.js';
 import { runDeterministicCycleOnce } from '../src/worker/loop.js';
 
@@ -27,6 +28,9 @@ const executor = createActionExecutor({
   maxAttempts: 4,
   baseDelayMs: 1
 });
+const cooldownGuard = createInProcessActionCooldownGuard({
+  cooldownMs: 3_000
+});
 
 const stateSnapshot = {
   battleId: 'verify-battle',
@@ -46,13 +50,30 @@ const stateSnapshot = {
 const result = await runDeterministicCycleOnce({
   tickNumber: 7,
   tickId: 'tick-verify-000007',
+  nowMs: 1_000,
   logger,
+  actionCooldownGuard: cooldownGuard,
   executeAction: executor,
   stateProvider: () => stateSnapshot
 });
 
 assert.equal(result.execution.status, 'success');
 assert.equal(result.execution.attempts, 3);
+
+const cooldownBlocked = await runDeterministicCycleOnce({
+  tickNumber: 8,
+  tickId: 'tick-verify-000008',
+  nowMs: 2_500,
+  logger,
+  actionCooldownGuard: cooldownGuard,
+  executeAction: executor,
+  stateProvider: () => stateSnapshot
+});
+assert.equal(cooldownBlocked.execution.status, 'skipped');
+assert.equal(cooldownBlocked.execution.reason, 'action_cooldown_active');
+assert.equal(cooldownBlocked.execution.blockedBy, 'in_process_action_cooldown_guard');
+assert.equal(cooldownBlocked.execution.attempts, 0);
+assert.equal(attemptCount, 3);
 
 const duplicate = await executor({
   tickId: 'tick-verify-000007',
@@ -65,6 +86,7 @@ assert.equal(duplicate.reason, 'idempotent_duplicate');
 const jsonl = await fs.readFile(tempLogPath, 'utf8');
 assert.ok(jsonl.includes('"eventType":"decision_made"'));
 assert.ok(jsonl.includes('"eventType":"action_executed"'));
+assert.ok(jsonl.includes('"reason":"action_cooldown_active"'));
 assert.ok(!jsonl.includes('VERIFY_SUPER_SECRET'));
 assert.ok(!jsonl.includes('should-never-leak'));
 assert.ok(jsonl.includes('[MASKED]'));

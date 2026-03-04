@@ -16,3 +16,6 @@
 - Added filesystem worker loop lock (`WORKER_LOCK_FILE`, stale TTL) to prevent concurrent loop instances and reclaim stale locks deterministically.
 - Added per-tick timeout guard (`WORKER_TICK_TIMEOUT_MS`) so hung ticks emit `tick_error` with timeout code and loop advances to the next tick.
 - Added reliability verification script (`npm run verify:worker`) covering live-lock denial, stale lock takeover, timeout recovery, and lock release on shutdown.
+- Added in-process action cooldown guard (`ACTION_COOLDOWN_MS`, default `3000`) keyed by `action.type + action.targetId` to block repeated actions across ticks before execution.
+- Standardized cooldown-block path as replay-safe JSONL records with `action_executed.status=skipped` and explicit reason `action_cooldown_active` (plus cooldown metadata) followed by `tick_finished`.
+- Extended cycle verification (`npm run verify:cycle`) to assert second-tick cooldown blocking, no transport call on blocked tick, and persisted cooldown reason in JSONL.
