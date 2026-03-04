@@ -11,3 +11,5 @@
 - Added retry/backoff action executor with bounded attempts, retryable-error filtering, and idempotency window to reduce duplicate side effects.
 - Standardized replay-friendly JSONL schema (`buju.worker.event.v1`) with recursive secret masking to keep logs usable without leaking credentials.
 - Added `npm run verify:cycle` smoke verification for retry behavior, idempotency skip path, and secret masking regression coverage.
+- Added replay analyzer utility for worker event JSONL logs with per-tick schema/order validation and concise KPI extraction (tick volume, blocked rate, action success/fail/skipped, top safety reasons).
+- Added dedicated replay verification script (`npm run verify:replay`) to lock expected analyzer behavior on valid/invalid event streams.

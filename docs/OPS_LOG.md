@@ -17,3 +17,7 @@
 - Blocker: commit creation failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
 - Next action: re-run `git add ... && git commit ...` in an environment with `.git` write permission, then push.
 - Resolution: commit succeeded from main runtime (`9a2cfb1`) and push to `origin/main` completed.
+- Implemented replay analysis hook (`src/ops/replay-analyzer.js`, `npm run replay:analyze`) to validate JSONL schema/event order per tick and report concise KPIs for operator triage.
+- Verification: `npm run verify:replay` executed with synthetic valid/invalid streams to confirm KPI counts and ordering guardrails.
+- Blocker: commit attempt failed in this runtime with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+- Next action: run `git add ... && git commit ...` from a runtime with `.git` write permission and push the same patchset.

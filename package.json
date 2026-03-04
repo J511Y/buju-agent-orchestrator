@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/worker/main.js",
     "dev": "node src/worker/main.js",
-    "verify:cycle": "node scripts/verify-cycle.js"
+    "verify:cycle": "node scripts/verify-cycle.js",
+    "replay:analyze": "node scripts/replay-analyze.js",
+    "verify:replay": "node scripts/verify-replay-analyze.js"
   }
 }
