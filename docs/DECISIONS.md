@@ -32,3 +32,6 @@
 - Added deterministic FSM rule `recover-energy-safe-window` so low-energy snapshots with safe health choose `REST` (`RECOVER_ENERGY`) before `hold-default`, preserving higher-priority survival/defense ordering and improving uptime for future attack windows.
 - Added per-run activity probe outcome logging to `logs/activity-probe.jsonl` with deterministic endpoint status counters (`total`, `ok`, `http_fail`, `network_fail`, `skipped`, `missing_api_key`) and compact per-endpoint statuses, while preserving API key masking and logging exactly once per `activity:fetch` run.
 - Added `npm run verify:activity-log` to assert skip-API mode writes one probe-log record with correct deterministic counters using a temp log path override.
+- Added deterministic size guard for `logs/activity-probe.jsonl`: before append, keep only newest complete JSONL tail within configured byte budget and then append the new masked record.
+- Added activity probe log byte-budget overrides via env/CLI (`ACTIVITY_PROBE_LOG_MAX_BYTES`, `--activity-probe-log-max-bytes`) and defaulted max size to `256 KiB`.
+- Added `npm run verify:activity-log-rotation` to assert oversized probe logs are truncated deterministically, final file size stays within limit, and newest appended record is retained.

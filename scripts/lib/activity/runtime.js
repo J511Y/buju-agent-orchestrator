@@ -85,6 +85,10 @@ export function parseArgs(argv) {
       options.activityProbeLogPath = readValue();
       continue;
     }
+    if (flag === '--activity-probe-log-max-bytes') {
+      options.activityProbeLogMaxBytes = readValue();
+      continue;
+    }
     if (flag === '--timeout-ms') {
       options.timeoutMs = readValue();
       continue;

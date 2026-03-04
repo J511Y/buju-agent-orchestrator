@@ -102,3 +102,11 @@
 - [2026-03-05 01:39 KST] Commit/persist step blocked after activity probe log implementation.
   - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run commit from a runtime with `.git` write permission using message `feat: persist masked activity probe outcomes per run`, then push.
+- [2026-03-05 02:06 KST] Activity probe log reliability hardening completed: deterministic size rotation/truncation guard.
+  - Added byte-budget guard in `scripts/lib/activity/probe-log.js` to trim oversized `activity-probe.jsonl` to newest complete JSONL tail before append.
+  - Added configurable max-bytes overrides (`ACTIVITY_PROBE_LOG_MAX_BYTES`, `--activity-probe-log-max-bytes`) with default `256 KiB`.
+  - Added verifier `scripts/verify-activity-probe-log-rotation.js` + npm script `verify:activity-log-rotation`.
+  - Verification executed: `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity` (all passed).
+- [2026-03-05 02:07 KST] Commit/persist step blocked after activity probe log rotation hardening.
+  - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run commit from a runtime with `.git` write permission using message `fix: bound activity probe log growth with deterministic rotation`, then push.

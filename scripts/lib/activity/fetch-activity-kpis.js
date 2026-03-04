@@ -73,7 +73,8 @@ export async function fetchActivityKpis(options = {}) {
     source: resultPayload.source,
     endpointStatuses: apiProbe.endpoint_statuses,
     apiKey,
-    activityProbeLogPath
+    activityProbeLogPath,
+    activityProbeLogMaxBytes: options.activityProbeLogMaxBytes
   });
 
   return sanitizeOutput(resultPayload, apiKey);

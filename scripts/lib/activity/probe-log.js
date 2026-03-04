@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { sanitizeOutput } from './common.js';
-import { DEFAULT_ACTIVITY_PROBE_LOG_FILE } from './constants.js';
+import { sanitizeOutput, toPositiveInteger } from './common.js';
+import { DEFAULT_ACTIVITY_PROBE_LOG_FILE, DEFAULT_ACTIVITY_PROBE_LOG_MAX_BYTES } from './constants.js';
 
 /**
  * Converts raw endpoint probe item into deterministic compact status.
@@ -60,6 +60,56 @@ function summarizeEndpointStatuses(endpointStatuses) {
 }
 
 /**
+ * Picks newest complete JSONL lines that fit within a byte budget.
+ * Deterministic rule: scan from file tail, keep full lines only, preserve order.
+ * @param {string} content
+ * @param {number} maxBytes
+ */
+function takeNewestJsonlTail(content, maxBytes) {
+  if (maxBytes <= 0 || !content) {
+    return '';
+  }
+
+  const lines = content.split('\n');
+  if (lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+
+  const selected = [];
+  let usedBytes = 0;
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const lineWithNewline = `${lines[index]}\n`;
+    const lineBytes = Buffer.byteLength(lineWithNewline, 'utf8');
+    if (lineBytes > maxBytes) {
+      continue;
+    }
+    if (usedBytes + lineBytes > maxBytes) {
+      break;
+    }
+    selected.push(lineWithNewline);
+    usedBytes += lineBytes;
+  }
+
+  selected.reverse();
+  return selected.join('');
+}
+
+/**
+ * Enforces deterministic size guard before append so resulting growth is bounded.
+ */
+async function truncateProbeLogTailForAppend(logPath, maxBytes, incomingLineBytes) {
+  const keepBytes = Math.max(0, maxBytes - incomingLineBytes);
+  if (keepBytes === 0) {
+    await fs.writeFile(logPath, '', 'utf8');
+    return;
+  }
+
+  const existing = await fs.readFile(logPath, 'utf8');
+  const tail = takeNewestJsonlTail(existing, keepBytes);
+  await fs.writeFile(logPath, tail, 'utf8');
+}
+
+/**
  * Appends one activity probe outcome JSONL record.
  */
 export async function appendActivityProbeLog({
@@ -67,9 +117,14 @@ export async function appendActivityProbeLog({
   source,
   endpointStatuses,
   apiKey,
-  activityProbeLogPath
+  activityProbeLogPath,
+  activityProbeLogMaxBytes
 }) {
   const logPath = path.resolve(activityProbeLogPath ?? DEFAULT_ACTIVITY_PROBE_LOG_FILE);
+  const maxBytes = toPositiveInteger(
+    activityProbeLogMaxBytes ?? process.env.ACTIVITY_PROBE_LOG_MAX_BYTES,
+    DEFAULT_ACTIVITY_PROBE_LOG_MAX_BYTES
+  );
   await fs.mkdir(path.dirname(logPath), { recursive: true });
 
   const record = sanitizeOutput(
@@ -80,6 +135,20 @@ export async function appendActivityProbeLog({
     },
     apiKey
   );
+  const recordLine = `${JSON.stringify(record)}\n`;
+  const recordLineBytes = Buffer.byteLength(recordLine, 'utf8');
 
-  await fs.appendFile(logPath, `${JSON.stringify(record)}\n`, 'utf8');
+  try {
+    const stats = await fs.stat(logPath);
+    const nextSizeBytes = stats.size + recordLineBytes;
+    if (nextSizeBytes > maxBytes) {
+      await truncateProbeLogTailForAppend(logPath, maxBytes, recordLineBytes);
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  await fs.appendFile(logPath, recordLine, 'utf8');
 }
