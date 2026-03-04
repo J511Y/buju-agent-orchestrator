@@ -46,3 +46,6 @@
 - Extended cycle verification to lock the new behavior (`3x failed -> blocked -> cooldown clear`) and adjusted replay validation to accept blocked ticks that terminate with skipped `tick_finished`.
 - Extended replay analyzer operational summary with deterministic `executionFailureCircuitOpen` counter for skipped action/tick paths where reason is `execution_failure_circuit_open` (tick-level dedup to avoid double counting).
 - Updated replay summary formatter and verification coverage (`npm run verify:replay`, `npm run verify:cycle`) to lock this counter while preserving all existing summary fields.
+- Added worker lock-heartbeat retry in loop (`WORKER_LOCK_HEARTBEAT_RETRIES`, default `1`; `WORKER_LOCK_HEARTBEAT_RETRY_DELAY_MS`, default `25`) so transient lock touch failures do not terminate the worker immediately.
+- Kept deterministic fail-fast behavior for persistent heartbeat failure: after bounded retries, loop still emits `tick_error` with `lock heartbeat failed` and exits.
+- Added lock acquisition dependency injection hook (`acquireLock`) in worker loop to enable deterministic reliability verification without filesystem race dependence.

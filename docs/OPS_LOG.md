@@ -154,3 +154,8 @@
   - Anomaly/failure mode: activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all returned `404`; only `/api/status` returned `200`.
   - Retry recommendation: keep `/api/status` as baseline and retry once endpoint catalog is validated against production docs; continue replay fallback until any history endpoint yields non-empty signal.
 - [2026-03-05 04:08 KST] Next 30-min actionable TODO: filter `activity_probe_summary` to configured production endpoint allowlist (exclude test-only `data:` endpoints) and add verifier coverage for allowlist enforcement.
+- [2026-03-05 04:36 KST] Worker loop reliability hardening completed: lock heartbeat retry for transient failures.
+  - Updated `src/worker/loop.js` to retry lock heartbeat touch with bounded deterministic policy (`WORKER_LOCK_HEARTBEAT_RETRIES=1`, `WORKER_LOCK_HEARTBEAT_RETRY_DELAY_MS=25` by default).
+  - Added `acquireLock` injection option to make lock-heartbeat retry path testable in isolation.
+  - Extended `scripts/verify-worker-reliability.js` with injected transient lock-touch failure scenario (first touch fails once, retry succeeds) and assertion that no terminal `lock heartbeat failed` tick error is emitted.
+  - Verification executed: `npm run verify:worker`, `npm run verify:cycle`, `npm run verify:replay` (all passed).

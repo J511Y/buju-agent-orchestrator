@@ -35,6 +35,34 @@ function createTickTimeoutError(tickId, tickTimeoutMs) {
   return error;
 }
 
+async function sleep(delayMs) {
+  if (!Number.isFinite(delayMs) || delayMs <= 0) {
+    return;
+  }
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+async function touchLockWithRetry({
+  lock,
+  retries,
+  retryDelayMs
+}) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      await lock.touch();
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt >= retries) {
+        break;
+      }
+      await sleep(retryDelayMs);
+    }
+  }
+  throw lastError;
+}
+
 async function runTickWithTimeout({ tickPromise, tickId, tickTimeoutMs }) {
   if (!Number.isFinite(tickTimeoutMs) || tickTimeoutMs <= 0) {
     return tickPromise;
@@ -254,11 +282,14 @@ export async function startDeterministicWorkerLoop(options = {}) {
     maxTicks = Number(process.env.WORKER_MAX_TICKS ?? Number.POSITIVE_INFINITY),
     lockFilePath = path.resolve(process.env.WORKER_LOCK_FILE ?? 'logs/worker-loop.lock'),
     lockStaleTtlMs = Number(process.env.WORKER_LOCK_STALE_TTL_MS ?? Math.max(intervalMs * 3, 30_000)),
+    lockHeartbeatRetries = Number(process.env.WORKER_LOCK_HEARTBEAT_RETRIES ?? 1),
+    lockHeartbeatRetryDelayMs = Number(process.env.WORKER_LOCK_HEARTBEAT_RETRY_DELAY_MS ?? 25),
     logger = new JsonlLogger(path.resolve('logs/worker-events.jsonl')),
     stateProvider = defaultStateProvider,
     executeAction = createActionExecutor({ transport: defaultTransport }),
     actionCooldownGuard = null,
-    executionFailureCircuitBreaker = null
+    executionFailureCircuitBreaker = null,
+    acquireLock = acquireWorkerLoopLock
   } = options;
 
   const normalizedIntervalMs = toPositiveInteger(intervalMs, 10_000);
@@ -270,6 +301,8 @@ export async function startDeterministicWorkerLoop(options = {}) {
     lockStaleTtlMs,
     Math.max(normalizedIntervalMs * 3, 30_000)
   );
+  const normalizedLockHeartbeatRetries = toNonNegativeInteger(lockHeartbeatRetries, 1);
+  const normalizedLockHeartbeatRetryDelayMs = toNonNegativeInteger(lockHeartbeatRetryDelayMs, 25);
   const resolvedActionCooldownGuard =
     actionCooldownGuard ??
     createInProcessActionCooldownGuard({
@@ -284,7 +317,7 @@ export async function startDeterministicWorkerLoop(options = {}) {
 
   let lock;
   try {
-    lock = await acquireWorkerLoopLock({
+    lock = await acquireLock({
       lockFilePath,
       staleTtlMs: normalizedLockStaleTtlMs
     });
@@ -331,7 +364,11 @@ export async function startDeterministicWorkerLoop(options = {}) {
       }
 
       try {
-        await lock.touch();
+        await touchLockWithRetry({
+          lock,
+          retries: normalizedLockHeartbeatRetries,
+          retryDelayMs: normalizedLockHeartbeatRetryDelayMs
+        });
       } catch (error) {
         await logger.append('tick_error', {
           tickId,
