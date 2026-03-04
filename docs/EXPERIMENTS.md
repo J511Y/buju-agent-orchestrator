@@ -18,3 +18,9 @@ Track A/B and policy experiments.
 - Result: Pending.
 - Decision: Pending next cycle validation.
 
+- Date: 2026-03-04 23:09 KST
+- Hypothesis: Activity endpoint uncertainty is the primary cause of low-fidelity hourly feedback.
+- Change: Re-ran multi-endpoint probe (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent`) alongside `/api/status`.
+- Metric(s): Endpoint availability rate; ability to report win/defeat in hourly summary.
+- Result: Availability remains 0/3 for recent-activity endpoints (all 404); win/defeat remains unknown from API-only path.
+- Decision: Keep experiment open; prioritize local JSONL fallback implementation next cycle.

@@ -45,3 +45,9 @@
 - [2026-03-04 23:08 KST] Commit/persist step blocked in this runtime.
   - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run commit from a runtime with `.git` write permission using message `fix: add deterministic in-process action cooldown guard`, then push.
+- [2026-03-04 23:09 KST] Hourly gameplay feedback cycle executed with `.env` API key loaded (masked) and live status query.
+  - Evidence (`GET /api/status`): Lv3, exp `34/90` (no delta vs prior hour), HP `129/130`, MP `43/66`, gold `184`, area `talking_island_field`, combat `false`.
+  - Last-hour signals: progression flat (level/exp/gold unchanged), no observable wins/defeats from available API payload, resource state stable (high HP / moderate MP).
+  - Anomaly/failure mode: `GET /api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` all returned `404 Not Found`.
+  - Retry recommendation: continue hourly `/api/status`; retry activity discovery after checking latest Buju docs for valid history endpoints; until then infer activity from local replay logs.
+- [2026-03-04 23:09 KST] Next 30-min actionable TODO: implement `scripts/fetch-activity.js` (API-first + local JSONL fallback) and emit a compact 1h KPI JSON (`progress_delta`, `action_status_counts`, `known_outcomes`).
