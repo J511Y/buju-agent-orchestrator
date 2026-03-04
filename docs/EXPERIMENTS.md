@@ -72,3 +72,9 @@ Track A/B and policy experiments.
 - Metric(s): Number of manual degraded-status notes/day; percentage of cycles with deterministic source-routing decision emitted.
 - Result: Baseline indicates stable degraded pattern suitable for state-machine routing.
 - Decision: Implement health-state persistence and evaluate over next 24h.
+- Date: 2026-03-05 08:08 KST
+- Hypothesis: A recovery gate (require >=1 consecutive `ok` before clearing degraded state) will prevent flapping between degraded/healthy routing when history endpoints are unstable.
+- Change: Current cycle observed continued history-endpoint failure streak `5` with `/api/status` still healthy.
+- Metric(s): Degraded-state flaps/day; mismatch rate between routing state and actual endpoint reliability.
+- Result: Baseline indicates prolonged degraded period suitable for gated recovery logic.
+- Decision: Implement recovery gate and track for next 24h.

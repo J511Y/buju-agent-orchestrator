@@ -213,3 +213,9 @@
   - Impact: malformed decision/state combinations no longer trigger avoidable transport calls or noisy downstream failures.
   - Extended `scripts/verify-cycle.js` with invalid-target attack scenario and assertion that transport attempt count does not increase on blocked tick.
   - Verification executed: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay` (all passed).
+- [2026-03-05 08:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `5` for all history endpoints.
+  - Retry recommendation: continue replay-first summaries, treat history API as persistently degraded, and only re-enable history route after doc-validated endpoint update with one successful probe.
+- [2026-03-05 08:08 KST] Next 30-min actionable TODO: add `history_endpoint_recovery_gate` requiring at least 1 consecutive `ok` response before clearing degraded state in `activity:fetch` output.
