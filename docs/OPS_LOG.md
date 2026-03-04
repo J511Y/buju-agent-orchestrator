@@ -110,3 +110,9 @@
 - [2026-03-05 02:07 KST] Commit/persist step blocked after activity probe log rotation hardening.
   - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run commit from a runtime with `.git` write permission using message `fix: bound activity probe log growth with deterministic rotation`, then push.
+- [2026-03-05 02:08 KST] Hourly gameplay feedback cycle completed using masked `.env` key and live Buju API probe.
+  - Evidence (`GET /api/status`): Lv3, exp `34/90`, HP `129/130`, MP `43/66`, gold `184`, area `talking_island_field`, combat `false`.
+  - Last-hour signals: progression unchanged (exp/gold/level flat), wins/defeats not exposed by current status payload, resource trend stable.
+  - Anomaly/failure mode: activity-history endpoints still unavailable (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` => 404).
+  - Retry recommendation: continue status polling; when endpoint-config work lands, retry with curated endpoint candidates and log health per endpoint.
+- [2026-03-05 02:08 KST] Next 30-min actionable TODO: implement `logs/activity-probe.jsonl` writer (timestamp, endpoint, status_code, ok) to quantify API drift and unblock evidence-based endpoint pruning.

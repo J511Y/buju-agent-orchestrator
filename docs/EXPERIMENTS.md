@@ -36,3 +36,9 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-detect endpoint drift; activity endpoint success ratio over 24h.
 - Result: Baseline remains 0/3 success this cycle.
 - Decision: Pending telemetry implementation in next cycle.
+- Date: 2026-03-05 02:08 KST
+- Hypothesis: Capturing probe telemetry as JSONL each hour will surface stable endpoint failure patterns quickly enough to automate fallback decisions.
+- Change: Repeated endpoint probe this hour (status + 3 activity candidates).
+- Metric(s): 24h endpoint success ratio; consecutive-failure streak length per endpoint.
+- Result: Activity endpoint success ratio still 0/3 for this cycle.
+- Decision: Continue experiment; add telemetry persistence next cycle.
