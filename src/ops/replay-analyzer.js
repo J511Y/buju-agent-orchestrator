@@ -68,6 +68,7 @@ export function analyzeReplayRecords(records) {
   };
   const executionFailureCircuitOpenTickIds = new Set();
   const safetyReasonCounts = new Map();
+  const decisionRuleCounts = new Map();
 
   function countExecutionFailureCircuitOpenSkip({ tickId, status, reason }) {
     if (status !== 'skipped' || reason !== EXECUTION_FAILURE_CIRCUIT_OPEN_REASON) {
@@ -168,6 +169,10 @@ export function analyzeReplayRecords(records) {
         if (tickState.decision || tickState.action || tickState.finished) {
           recordError(validationErrors, lineNumber, `duplicate or late decision_made for ${tickId}`);
         }
+        const ruleId = data.payload.decision?.ruleId;
+        if (typeof ruleId === 'string' && ruleId) {
+          decisionRuleCounts.set(ruleId, (decisionRuleCounts.get(ruleId) ?? 0) + 1);
+        }
         tickState.decision = true;
         break;
       }
@@ -253,6 +258,10 @@ export function analyzeReplayRecords(records) {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, 5)
     .map(([reason, count]) => ({ reason, count }));
+  const topDecisionRules = [...decisionRuleCounts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 5)
+    .map(([ruleId, count]) => ({ ruleId, count }));
   const ticksCount = ticks.size;
 
   return {
@@ -262,6 +271,7 @@ export function analyzeReplayRecords(records) {
     actionStatusCounts,
     operationalBlockCounts,
     topSafetyReasons,
+    topDecisionRules,
     validationErrors
   };
 }
@@ -283,12 +293,18 @@ export function formatReplaySummary(filePath, summary) {
       ? 'none'
       : summary.topSafetyReasons.map((item) => `${item.reason}=${item.count}`).join(', ');
 
+  const topRules =
+    summary.topDecisionRules?.length
+      ? summary.topDecisionRules.map((item) => `${item.ruleId}=${item.count}`).join(', ')
+      : 'none';
+
   const lines = [
     `Replay log: ${filePath}`,
     `ticks=${summary.ticks} blocked=${summary.blockedTicks} (${blockedPercent}%)`,
     `actions success=${summary.actionStatusCounts.success} fail=${summary.actionStatusCounts.failed} skipped=${summary.actionStatusCounts.skipped}`,
     `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0} execution_failure_circuit_blocks=${summary.operationalBlockCounts?.executionFailureCircuitOpen ?? 0}`,
-    `top_safety_reasons ${reasons}`
+    `top_safety_reasons ${reasons}`,
+    `top_decision_rules ${topRules}`
   ];
 
   if (summary.validationErrors.length === 0) {

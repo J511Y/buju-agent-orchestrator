@@ -64,3 +64,6 @@
 - Added deterministic opportunistic attack rule `attack-low-threat-efficient-window`: when enemy is visible, threat is low (`<=25`), and energy is in efficient band (`30-39`), execute `BASIC_ATTACK` instead of falling through to `HOLD`.
 - Rationale: increases scoring/action throughput in low-risk windows without weakening existing high-priority survival rules (low-health recovery, high-threat defense, low-energy pressure defense).
 - Added cycle verification coverage to lock this behavior with an explicit low-threat, mid-energy scenario.
+- Extended replay analyzer with deterministic `topDecisionRules` aggregation from `decision_made.decision.ruleId` to make strategy distribution observable without changing worker hot path.
+- Updated replay text summary output to include `top_decision_rules` line (top-5 by count, stable tie-break by ruleId) for quick operator feedback on which deterministic policies are dominating.
+- Locked coverage in `npm run verify:replay` with explicit rule-id counts (including `attack-low-threat-efficient-window`) and summary formatting assertion.

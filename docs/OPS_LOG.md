@@ -203,3 +203,8 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `4` for all history endpoints.
   - Retry recommendation: keep replay-first feedback mode and schedule endpoint-catalog refresh against current Buju API docs before attempting history-endpoint reactivation.
 - [2026-03-05 07:08 KST] Next 30-min actionable TODO: implement endpoint health-state persistence (`healthy|degraded|disabled`) driven by failure streak and expose it in `activity:fetch` output for deterministic ops routing.
+- [2026-03-05 07:36 KST] Replay hook enhancement completed: decision-rule distribution telemetry.
+  - Updated `src/ops/replay-analyzer.js` to count `decision_made.decision.ruleId` usage and expose `topDecisionRules` in analyzer output.
+  - Extended replay summary formatter with `top_decision_rules` line so operators can quickly spot dominant deterministic behavior patterns and validate score-optimization rule rollout effects.
+  - Updated `scripts/verify-replay-analyze.js` fixture to include rule IDs and assert deterministic count/order in both structured output and formatted summary line.
+  - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (all passed).
