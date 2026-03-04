@@ -77,6 +77,10 @@ export function parseArgs(argv) {
       options.logFilePath = readValue();
       continue;
     }
+    if (flag === '--activity-endpoints-config') {
+      options.activityEndpointsConfigPath = readValue();
+      continue;
+    }
     if (flag === '--timeout-ms') {
       options.timeoutMs = readValue();
       continue;

@@ -1,0 +1,9 @@
+[
+  "/api/activity/recent?hours=1",
+  "/api/activity/recent?window=1h",
+  "/api/logs/recent?hours=1",
+  "/api/logs/recent?window=1h",
+  "/api/battle/logs/recent?hours=1",
+  "/api/battle/logs/recent?window=1h",
+  "/api/status"
+]

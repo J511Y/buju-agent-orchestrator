@@ -5,6 +5,7 @@ import path from 'node:path';
  */
 export const DEFAULT_BASE_URL = 'https://bujuagent.com';
 export const DEFAULT_LOG_FILE = path.resolve('logs/worker-events.jsonl');
+export const DEFAULT_ACTIVITY_ENDPOINTS_CONFIG_PATH = path.resolve('config/activity-endpoints.json');
 export const DEFAULT_HOURS = 1;
 export const DEFAULT_TIMEOUT_MS = 3_500;
 
@@ -27,7 +28,8 @@ export const DEFAULT_KNOWN_OUTCOMES = Object.freeze({
 });
 
 /**
- * Candidate endpoints probed in order for recent-activity KPIs.
+ * Built-in fallback endpoints probed in order for recent-activity KPIs.
+ * Used when configured endpoint file is missing or invalid.
  */
 export const CANDIDATE_ENDPOINTS = Object.freeze([
   '/api/activity/recent?hours=1',

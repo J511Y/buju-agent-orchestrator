@@ -71,3 +71,12 @@
   - API failure mode: `GET /api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` all `404 Not Found`.
   - Retry recommendation: continue `/api/status` hourly; re-check official endpoint names for recent activity and keep local JSONL inference as fallback.
 - [2026-03-05 00:08 KST] Next 30-min actionable TODO: add endpoint-config map (`config/activity-endpoints.json`) and make probe script iterate it before falling back to replay logs.
+- [2026-03-05 00:31 KST] Activity endpoint-config TODO implemented for ops/replay probing.
+  - Added default endpoint map file: `config/activity-endpoints.json` (ordered endpoint template list).
+  - Refactored activity API probe to load config by default and fallback deterministically to built-in endpoint list if config is missing/invalid.
+  - Added CLI passthrough option `--activity-endpoints-config` so operators can test/override endpoint list per run.
+  - Added verification script + npm alias: `scripts/verify-activity-config.js`, `npm run verify:activity-config`.
+  - Verification executed: `npm run verify:activity-config` (expected custom endpoint source asserted).
+- [2026-03-05 00:34 KST] Commit/persist step blocked after endpoint-config implementation.
+  - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run the same commit from a runtime with `.git` write permission using message `feat: make activity probe endpoints configurable`, then push.

@@ -27,6 +27,10 @@ export async function fetchActivityKpis(options = {}) {
   const apiKey = String(options.apiKey ?? process.env.BUJU_API_KEY ?? '');
   const skipApi = Boolean(options.skipApi);
   const logFilePath = path.resolve(options.logFilePath ?? DEFAULT_LOG_FILE);
+  const activityEndpointsConfigPath =
+    options.activityEndpointsConfigPath !== undefined
+      ? String(options.activityEndpointsConfigPath)
+      : undefined;
 
   const apiProbe = await probeActivityApi({
     baseUrl,
@@ -35,7 +39,8 @@ export async function fetchActivityKpis(options = {}) {
     sinceMs,
     timeoutMs,
     apiKey,
-    skipApi
+    skipApi,
+    activityEndpointsConfigPath
   });
 
   if (apiProbe.summary) {

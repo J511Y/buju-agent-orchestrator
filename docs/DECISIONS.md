@@ -24,3 +24,8 @@
 - Added fallback-path verification script (`npm run verify:activity`) with synthetic temp JSONL to lock 1h window filtering and replay-derived KPI correctness.
 - Extended replay analyzer summary with deterministic operational counters: cooldown skips (`action_cooldown_active`), tick timeouts (`ETICK_TIMEOUT`), and lock-heartbeat failures (`tick_error.message` contains `lock heartbeat failed`).
 - Updated replay CLI summary formatting and verification coverage (`npm run verify:replay`) to keep these counters regression-safe without changing existing summary fields.
+
+## 2026-03-05
+- Externalized activity probe endpoint order into `config/activity-endpoints.json` and made API probe load this file by default for ops-time reconfiguration without code edits.
+- Locked deterministic fallback behavior to built-in endpoint candidates when endpoint config file is missing, unreadable, malformed JSON, empty, or schema-invalid.
+- Added dedicated verification (`npm run verify:activity-config`) with a deterministic `data:` endpoint config to assert CLI-provided endpoint config path is honored end-to-end.

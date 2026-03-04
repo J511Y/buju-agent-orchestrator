@@ -1,7 +1,53 @@
-import { CANDIDATE_ENDPOINTS } from './constants.js';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+import { CANDIDATE_ENDPOINTS, DEFAULT_ACTIVITY_ENDPOINTS_CONFIG_PATH } from './constants.js';
 import { materializeEndpoint } from './common.js';
 import { ActivityNetworkError } from './errors.js';
 import { hasUsefulSignal, summarizeApiPayload } from './summarizer.js';
+
+/**
+ * Reads activity endpoint templates from JSON config.
+ * Fallback is deterministic: always use built-in candidates when config is unavailable/invalid.
+ *
+ * @param {string | undefined} configPath
+ * @returns {Promise<string[]>}
+ */
+async function loadEndpointTemplates(configPath) {
+  const resolvedPath = path.resolve(configPath ?? DEFAULT_ACTIVITY_ENDPOINTS_CONFIG_PATH);
+
+  let content;
+  try {
+    content = await fs.readFile(resolvedPath, 'utf8');
+  } catch {
+    return CANDIDATE_ENDPOINTS;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    return CANDIDATE_ENDPOINTS;
+  }
+
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return CANDIDATE_ENDPOINTS;
+  }
+
+  const normalized = [];
+  for (const item of parsed) {
+    if (typeof item !== 'string') {
+      return CANDIDATE_ENDPOINTS;
+    }
+    const trimmed = item.trim();
+    if (!trimmed) {
+      return CANDIDATE_ENDPOINTS;
+    }
+    normalized.push(trimmed);
+  }
+
+  return normalized;
+}
 
 /**
  * Fetches a single candidate endpoint and decodes JSON response when possible.
@@ -62,12 +108,14 @@ export async function probeActivityApi({
   sinceMs,
   timeoutMs,
   apiKey,
-  skipApi
+  skipApi,
+  activityEndpointsConfigPath
 }) {
+  const endpointTemplates = await loadEndpointTemplates(activityEndpointsConfigPath);
   const endpointStatuses = [];
 
   if (skipApi) {
-    for (const endpoint of CANDIDATE_ENDPOINTS) {
+    for (const endpoint of endpointTemplates) {
       endpointStatuses.push({
         endpoint,
         ok: false,
@@ -82,7 +130,7 @@ export async function probeActivityApi({
   }
 
   if (!apiKey) {
-    for (const endpoint of CANDIDATE_ENDPOINTS) {
+    for (const endpoint of endpointTemplates) {
       endpointStatuses.push({
         endpoint,
         ok: false,
@@ -96,7 +144,7 @@ export async function probeActivityApi({
     };
   }
 
-  for (const endpointTemplate of CANDIDATE_ENDPOINTS) {
+  for (const endpointTemplate of endpointTemplates) {
     const endpoint = materializeEndpoint(endpointTemplate, hours);
     try {
       const response = await fetchEndpointJson({
