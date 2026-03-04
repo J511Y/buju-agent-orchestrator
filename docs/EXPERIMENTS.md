@@ -24,3 +24,9 @@ Track A/B and policy experiments.
 - Metric(s): Endpoint availability rate; ability to report win/defeat in hourly summary.
 - Result: Availability remains 0/3 for recent-activity endpoints (all 404); win/defeat remains unknown from API-only path.
 - Decision: Keep experiment open; prioritize local JSONL fallback implementation next cycle.
+- Date: 2026-03-05 00:08 KST
+- Hypothesis: Endpoint configurability (instead of hardcoded paths) will reduce maintenance churn and improve hourly activity coverage.
+- Change: Repeated hourly probe confirms current hardcoded candidate endpoints remain invalid (3x 404).
+- Metric(s): Valid activity endpoint hit rate per cycle.
+- Result: 0% this cycle (0/3 valid).
+- Decision: Keep open; implement configurable endpoint list in next dev cycle.

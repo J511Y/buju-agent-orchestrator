@@ -63,3 +63,11 @@
 - [2026-03-05 00:06 KST] Commit/persist step blocked after replay counter update.
   - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run commit from a runtime with `.git` write permission using message `fix: add deterministic replay counters for operational blocks`, then push.
+
+## 2026-03-05
+- [2026-03-05 00:08 KST] Hourly gameplay feedback cycle ran with `.env` key loaded (masked) and live Buju API checks.
+  - Evidence (`GET /api/status`): Lv3, exp `34/90`, HP `129/130`, MP `43/66`, gold `184`, area `talking_island_field`, combat `false`.
+  - Last-hour gameplay signals: progression flat (no level/exp/gold delta observed), wins/defeats unavailable from current API payload, resources stable (high HP, moderate MP).
+  - API failure mode: `GET /api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` all `404 Not Found`.
+  - Retry recommendation: continue `/api/status` hourly; re-check official endpoint names for recent activity and keep local JSONL inference as fallback.
+- [2026-03-05 00:08 KST] Next 30-min actionable TODO: add endpoint-config map (`config/activity-endpoints.json`) and make probe script iterate it before falling back to replay logs.
