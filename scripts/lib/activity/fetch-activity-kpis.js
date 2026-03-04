@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import {
   DEFAULT_ACTIVITY_PROBE_LOG_FILE,
+  DEFAULT_ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS,
   DEFAULT_ACTION_STATUS_COUNTS,
   DEFAULT_BASE_URL,
   DEFAULT_HOURS,
@@ -13,6 +14,7 @@ import {
 import { sanitizeOutput, toFiniteNumber, toPositiveInteger } from './common.js';
 import { probeActivityApi } from './api-client.js';
 import { appendActivityProbeLog } from './probe-log.js';
+import { buildActivityProbeSummary } from './probe-summary.js';
 import { summarizeFromLocalReplay } from './replay-fallback.js';
 
 /**
@@ -36,6 +38,11 @@ export async function fetchActivityKpis(options = {}) {
     options.activityEndpointsConfigPath !== undefined
       ? String(options.activityEndpointsConfigPath)
       : undefined;
+  const activityProbeSummaryLookbackHours = toPositiveInteger(
+    options.activityProbeSummaryLookbackHours ??
+      process.env.ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS,
+    DEFAULT_ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS
+  );
 
   const apiProbe = await probeActivityApi({
     baseUrl,
@@ -77,6 +84,12 @@ export async function fetchActivityKpis(options = {}) {
     activityProbeLogMaxBytes: options.activityProbeLogMaxBytes
   });
 
+  resultPayload.activity_probe_summary = await buildActivityProbeSummary({
+    activityProbeLogPath,
+    lookbackHours: activityProbeSummaryLookbackHours,
+    nowMs
+  });
+
   return sanitizeOutput(resultPayload, apiKey);
 }
 
@@ -89,6 +102,11 @@ export function makeErrorFallbackPayload() {
     action_status_counts: { ...DEFAULT_ACTION_STATUS_COUNTS },
     known_outcomes: { ...DEFAULT_KNOWN_OUTCOMES },
     source: 'error',
-    endpoint_statuses: []
+    endpoint_statuses: [],
+    activity_probe_summary: {
+      lookback_hours: DEFAULT_ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS,
+      generated_at: null,
+      endpoints: []
+    }
   };
 }

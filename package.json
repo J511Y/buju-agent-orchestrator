@@ -14,6 +14,7 @@
     "verify:activity": "node scripts/verify-fetch-activity-fallback.js",
     "verify:activity-config": "node scripts/verify-activity-config.js",
     "verify:activity-log": "node scripts/verify-activity-probe-log.js",
-    "verify:activity-log-rotation": "node scripts/verify-activity-probe-log-rotation.js"
+    "verify:activity-log-rotation": "node scripts/verify-activity-probe-log-rotation.js",
+    "verify:activity-probe-summary": "node scripts/verify-activity-probe-summary.js"
   }
 }

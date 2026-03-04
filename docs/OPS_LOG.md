@@ -138,3 +138,8 @@
   - Anomaly/failure mode: activity endpoints unchanged and unavailable (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` all 404).
   - Retry recommendation: maintain `/api/status` baseline, and after endpoint-config rollout retry discovery with versioned candidate list + telemetry.
 - [2026-03-05 03:08 KST] Next 30-min actionable TODO: add simple `activity_probe_summary` output (rolling 6h endpoint failure streaks) to support automatic fallback thresholding.
+- [2026-03-05 03:32 KST] Replay/log TODO implemented: deterministic `activity_probe_summary` for rolling endpoint failure streaks.
+  - Added probe-summary generation in `activity:fetch` output from `logs/activity-probe.jsonl` with default `6h` lookback and deterministic schema: `lookback_hours`, `generated_at`, `endpoints[{endpoint,failure_streak,last_status}]`.
+  - Malformed probe-log lines are safely skipped; endpoint statuses are compact-normalized to avoid surfacing arbitrary sensitive text.
+  - Added lookback override controls: env `ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS`, CLI `--activity-probe-summary-lookback-hours`.
+  - Verification executed: `npm run verify:activity-probe-summary`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity`, `npm run verify:activity-config` (all passed).

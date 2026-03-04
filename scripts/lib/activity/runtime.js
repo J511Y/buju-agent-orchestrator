@@ -89,6 +89,10 @@ export function parseArgs(argv) {
       options.activityProbeLogMaxBytes = readValue();
       continue;
     }
+    if (flag === '--activity-probe-summary-lookback-hours') {
+      options.activityProbeSummaryLookbackHours = readValue();
+      continue;
+    }
     if (flag === '--timeout-ms') {
       options.timeoutMs = readValue();
       continue;

@@ -43,6 +43,22 @@ try {
 
   const response = JSON.parse(stdout.trim());
   assert.equal(response.source, 'fallback:local_replay');
+  assert.deepEqual(response.activity_probe_summary, {
+    lookback_hours: 6,
+    generated_at: new Date(Date.UTC(2026, 2, 4, 12, 0, 0)).toISOString(),
+    endpoints: [
+      {
+        endpoint: '/api/activity/recent?hours=1',
+        failure_streak: 1,
+        last_status: 'skipped'
+      },
+      {
+        endpoint: '/api/status',
+        failure_streak: 1,
+        last_status: 'skipped'
+      }
+    ]
+  });
 
   const written = await fs.readFile(probeLogPath, 'utf8');
   const lines = written

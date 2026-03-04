@@ -7,6 +7,7 @@ export const DEFAULT_BASE_URL = 'https://bujuagent.com';
 export const DEFAULT_LOG_FILE = path.resolve('logs/worker-events.jsonl');
 export const DEFAULT_ACTIVITY_PROBE_LOG_FILE = path.resolve('logs/activity-probe.jsonl');
 export const DEFAULT_ACTIVITY_PROBE_LOG_MAX_BYTES = 256 * 1024;
+export const DEFAULT_ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS = 6;
 export const DEFAULT_ACTIVITY_ENDPOINTS_CONFIG_PATH = path.resolve('config/activity-endpoints.json');
 export const DEFAULT_HOURS = 1;
 export const DEFAULT_TIMEOUT_MS = 3_500;

@@ -24,7 +24,7 @@
 
 ## 동작 호환성
 
-- 출력 계약(`progress_delta`, `action_status_counts`, `known_outcomes`, `source`, `endpoint_statuses`)은 유지됩니다.
+- 출력 계약(`progress_delta`, `action_status_counts`, `known_outcomes`, `source`, `endpoint_statuses`, `activity_probe_summary`)은 유지됩니다.
 - 따라서 기존 운영 루틴( Buju API 조회 → 운영 피드백 문서 업데이트 → 필요 시 git commit/push )에서 `activity:fetch` 연동 방식은 변경하지 않아도 됩니다.
 
 ## 에러 처리 경로 분리
