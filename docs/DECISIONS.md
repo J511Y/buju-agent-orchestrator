@@ -22,3 +22,5 @@
 - Added `scripts/fetch-activity.js` (`npm run activity:fetch`) to produce compact 1h KPI JSON via API-first probing of candidate `/api` activity endpoints, with deterministic fallback to local replay logs (`logs/worker-events.jsonl`) using `analyzeReplayRecords`.
 - Standardized hourly activity output contract to `progress_delta`, `action_status_counts`, `known_outcomes`, `source`, `endpoint_statuses`; enforced API key non-disclosure by masking/sanitizing all surfaced strings.
 - Added fallback-path verification script (`npm run verify:activity`) with synthetic temp JSONL to lock 1h window filtering and replay-derived KPI correctness.
+- Extended replay analyzer summary with deterministic operational counters: cooldown skips (`action_cooldown_active`), tick timeouts (`ETICK_TIMEOUT`), and lock-heartbeat failures (`tick_error.message` contains `lock heartbeat failed`).
+- Updated replay CLI summary formatting and verification coverage (`npm run verify:replay`) to keep these counters regression-safe without changing existing summary fields.

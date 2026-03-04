@@ -56,3 +56,10 @@
   - API-first path probes candidate `/api` recent-activity endpoints and captures per-endpoint status; when unavailable/insufficient, fallback deterministically analyzes local `logs/worker-events.jsonl` via replay analyzer.
   - Security guardrail: API key is never printed; surfaced errors/status strings are sanitized/masked.
   - Verification executed: `npm run verify:activity` (passed; temp JSONL fallback path validated).
+- [2026-03-04 23:56 KST] Replay analyzer observability upgrade completed.
+  - Added deterministic counters in replay summary for cooldown skips (`execution.reason=action_cooldown_active`), tick timeouts (`tick_error.code=ETICK_TIMEOUT`), and lock heartbeat failures (`tick_error.message` contains `lock heartbeat failed`).
+  - Updated CLI replay summary output to print the new operational counter line while preserving existing fields.
+  - Verification executed: `npm run verify:replay` with extended synthetic stream coverage for all three counters.
+- [2026-03-05 00:06 KST] Commit/persist step blocked after replay counter update.
+  - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run commit from a runtime with `.git` write permission using message `fix: add deterministic replay counters for operational blocks`, then push.

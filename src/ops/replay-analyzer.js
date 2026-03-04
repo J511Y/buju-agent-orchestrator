@@ -59,6 +59,11 @@ export function analyzeReplayRecords(records) {
     failed: 0,
     skipped: 0
   };
+  const operationalBlockCounts = {
+    actionCooldownActive: 0,
+    tickTimeout: 0,
+    lockHeartbeatFailed: 0
+  };
   const safetyReasonCounts = new Map();
 
   for (const entry of records) {
@@ -166,6 +171,9 @@ export function analyzeReplayRecords(records) {
         } else {
           recordError(validationErrors, lineNumber, `unknown execution.status: ${String(status)}`);
         }
+        if (data.payload.execution?.reason === 'action_cooldown_active') {
+          operationalBlockCounts.actionCooldownActive += 1;
+        }
 
         tickState.action = true;
         break;
@@ -183,6 +191,15 @@ export function analyzeReplayRecords(records) {
       case 'tick_error': {
         if (tickState.finished || tickState.blocked) {
           recordError(validationErrors, lineNumber, `tick_error after terminal state for ${tickId}`);
+        }
+        if (data.payload.code === 'ETICK_TIMEOUT') {
+          operationalBlockCounts.tickTimeout += 1;
+        }
+        if (
+          typeof data.payload.message === 'string' &&
+          data.payload.message.toLowerCase().includes('lock heartbeat failed')
+        ) {
+          operationalBlockCounts.lockHeartbeatFailed += 1;
         }
         tickState.error = true;
         break;
@@ -215,6 +232,7 @@ export function analyzeReplayRecords(records) {
     blockedTicks,
     blockedRate: ticksCount === 0 ? 0 : blockedTicks / ticksCount,
     actionStatusCounts,
+    operationalBlockCounts,
     topSafetyReasons,
     validationErrors
   };
@@ -241,6 +259,7 @@ export function formatReplaySummary(filePath, summary) {
     `Replay log: ${filePath}`,
     `ticks=${summary.ticks} blocked=${summary.blockedTicks} (${blockedPercent}%)`,
     `actions success=${summary.actionStatusCounts.success} fail=${summary.actionStatusCounts.failed} skipped=${summary.actionStatusCounts.skipped}`,
+    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0}`,
     `top_safety_reasons ${reasons}`
   ];
 
@@ -255,4 +274,3 @@ export function formatReplaySummary(filePath, summary) {
 
   return lines.join('\n');
 }
-

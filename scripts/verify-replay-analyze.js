@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { analyzeReplayFile, analyzeReplayRecords } from '../src/ops/replay-analyzer.js';
+import { analyzeReplayFile, analyzeReplayRecords, formatReplaySummary } from '../src/ops/replay-analyzer.js';
 
 function makeRecord(eventType, payload, offsetSeconds) {
   return {
@@ -32,21 +32,46 @@ const validRecords = [
   makeRecord('safety_evaluated', { tickId: 'tick-4', safety: { allowed: true, reasons: [] } }, 14),
   makeRecord('decision_made', { tickId: 'tick-4', decision: { fsmState: 'HOLD' } }, 15),
   makeRecord('action_executed', { tickId: 'tick-4', execution: { status: 'skipped' } }, 16),
-  makeRecord('tick_finished', { tickId: 'tick-4', executionStatus: 'skipped' }, 17)
+  makeRecord('tick_finished', { tickId: 'tick-4', executionStatus: 'skipped' }, 17),
+  makeRecord('tick_started', { tickId: 'tick-5', tickNumber: 5 }, 18),
+  makeRecord('safety_evaluated', { tickId: 'tick-5', safety: { allowed: true, reasons: [] } }, 19),
+  makeRecord('decision_made', { tickId: 'tick-5', decision: { fsmState: 'ATTACK' } }, 20),
+  makeRecord(
+    'action_executed',
+    { tickId: 'tick-5', execution: { status: 'skipped', reason: 'action_cooldown_active' } },
+    21
+  ),
+  makeRecord('tick_finished', { tickId: 'tick-5', executionStatus: 'skipped' }, 22),
+  makeRecord('tick_started', { tickId: 'tick-6', tickNumber: 6 }, 23),
+  makeRecord('safety_evaluated', { tickId: 'tick-6', safety: { allowed: true, reasons: [] } }, 24),
+  makeRecord('decision_made', { tickId: 'tick-6', decision: { fsmState: 'ATTACK' } }, 25),
+  makeRecord('tick_error', { tickId: 'tick-6', message: 'tick timeout after 10000ms', code: 'ETICK_TIMEOUT' }, 26),
+  makeRecord('tick_started', { tickId: 'tick-7', tickNumber: 7 }, 27),
+  makeRecord('safety_evaluated', { tickId: 'tick-7', safety: { allowed: true, reasons: [] } }, 28),
+  makeRecord('decision_made', { tickId: 'tick-7', decision: { fsmState: 'ATTACK' } }, 29),
+  makeRecord('tick_error', { tickId: 'tick-7', message: 'lock heartbeat failed: EACCES', code: 'EACCES' }, 30)
 ];
 
 const validFilePath = path.join(os.tmpdir(), `buju-replay-valid-${Date.now()}.jsonl`);
 await fs.writeFile(validFilePath, validRecords.map((record) => JSON.stringify(record)).join('\n'), 'utf8');
 
 const summary = await analyzeReplayFile(validFilePath);
-assert.equal(summary.ticks, 4);
+assert.equal(summary.ticks, 7);
 assert.equal(summary.blockedTicks, 1);
 assert.equal(summary.actionStatusCounts.success, 1);
 assert.equal(summary.actionStatusCounts.failed, 1);
-assert.equal(summary.actionStatusCounts.skipped, 1);
+assert.equal(summary.actionStatusCounts.skipped, 2);
+assert.equal(summary.operationalBlockCounts.actionCooldownActive, 1);
+assert.equal(summary.operationalBlockCounts.tickTimeout, 1);
+assert.equal(summary.operationalBlockCounts.lockHeartbeatFailed, 1);
 assert.equal(summary.validationErrors.length, 0);
 assert.equal(summary.topSafetyReasons[0]?.reason, 'low_health');
 assert.equal(summary.topSafetyReasons[0]?.count, 1);
+assert.ok(
+  formatReplaySummary(validFilePath, summary).includes(
+    'operational cooldown_blocks=1 tick_timeouts=1 lock_heartbeat_failures=1'
+  )
+);
 
 const invalidSummary = analyzeReplayRecords([
   {
@@ -57,4 +82,3 @@ const invalidSummary = analyzeReplayRecords([
 assert.ok(invalidSummary.validationErrors.length > 0);
 
 console.log(`verify:replay passed (${validFilePath})`);
-
