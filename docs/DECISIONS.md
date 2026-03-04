@@ -35,3 +35,6 @@
 - Added deterministic size guard for `logs/activity-probe.jsonl`: before append, keep only newest complete JSONL tail within configured byte budget and then append the new masked record.
 - Added activity probe log byte-budget overrides via env/CLI (`ACTIVITY_PROBE_LOG_MAX_BYTES`, `--activity-probe-log-max-bytes`) and defaulted max size to `256 KiB`.
 - Added `npm run verify:activity-log-rotation` to assert oversized probe logs are truncated deterministically, final file size stays within limit, and newest appended record is retained.
+- Added worker-level deterministic execution-failure circuit breaker with in-process state only (`WORKER_FAILURE_CIRCUIT_STREAK`, default `3`; `WORKER_FAILURE_CIRCUIT_COOLDOWN_MS`, default `30000`).
+- Integrated the breaker into cycle/loop safety evaluation so post-streak ticks are safety-blocked with reason `execution_failure_circuit_open`, logged as `safety_evaluated` + `tick_blocked` + `tick_finished(executionStatus=skipped)`, and automatically cleared after cooldown.
+- Extended cycle verification to lock the new behavior (`3x failed -> blocked -> cooldown clear`) and adjusted replay validation to accept blocked ticks that terminate with skipped `tick_finished`.

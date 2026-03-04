@@ -116,3 +116,11 @@
   - Anomaly/failure mode: activity-history endpoints still unavailable (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` => 404).
   - Retry recommendation: continue status polling; when endpoint-config work lands, retry with curated endpoint candidates and log health per endpoint.
 - [2026-03-05 02:08 KST] Next 30-min actionable TODO: implement `logs/activity-probe.jsonl` writer (timestamp, endpoint, status_code, ok) to quantify API drift and unblock evidence-based endpoint pruning.
+- [2026-03-05 02:20 KST] Deterministic worker safety-gate hardening completed: execution-failure circuit breaker.
+  - Added `src/engine/execution-failure-circuit-breaker.js` with process-local streak/cooldown state (`N` failed executions opens circuit, cooldown-based auto-clear).
+  - Integrated into `runDeterministicCycleOnce` + `startDeterministicWorkerLoop` with env controls `WORKER_FAILURE_CIRCUIT_STREAK` (default `3`) and `WORKER_FAILURE_CIRCUIT_COOLDOWN_MS` (default `30000`).
+  - Circuit-open ticks are safety-blocked with reason `execution_failure_circuit_open` and logged replay-safely as `safety_evaluated` + `tick_blocked` + `tick_finished(executionStatus=skipped)`.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:replay`, `npm run verify:worker` (all passed).
+- [2026-03-05 02:21 KST] Commit/persist step blocked after execution-failure circuit breaker update.
+  - Blocker: `git add ... && git commit -m "fix: add deterministic execution failure circuit breaker"` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run the same commit from a runtime with `.git` write permission, then push.

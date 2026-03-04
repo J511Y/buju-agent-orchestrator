@@ -179,7 +179,11 @@ export function analyzeReplayRecords(records) {
         break;
       }
       case 'tick_finished': {
-        if (!tickState.action || tickState.blocked) {
+        if (tickState.blocked) {
+          if (data.payload.executionStatus !== 'skipped') {
+            recordError(validationErrors, lineNumber, `blocked tick_finished must use skipped executionStatus for ${tickId}`);
+          }
+        } else if (!tickState.action) {
           recordError(validationErrors, lineNumber, `tick_finished before action_executed for ${tickId}`);
         }
         if (tickState.finished) {

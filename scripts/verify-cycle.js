@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import { createActionExecutor } from '../src/client/action-executor.js';
 import { createInProcessActionCooldownGuard } from '../src/engine/action-cooldown-guard.js';
+import { createInProcessExecutionFailureCircuitBreaker } from '../src/engine/execution-failure-circuit-breaker.js';
 import { JsonlLogger } from '../src/ops/jsonl-logger.js';
 import { runDeterministicCycleOnce } from '../src/worker/loop.js';
 
@@ -104,10 +105,82 @@ assert.equal(energyRecovery.decision.ruleId, 'recover-energy-safe-window');
 assert.equal(energyRecovery.decision.action.type, 'REST');
 assert.equal(energyRecovery.execution.status, 'success');
 
+const alwaysFailExecutor = createActionExecutor({
+  transport: async () => ({
+    ok: false,
+    retryable: false,
+    code: '400',
+    errorMessage: 'deterministic forced failure'
+  }),
+  maxAttempts: 1,
+  baseDelayMs: 1
+});
+const noCooldownGuard = createInProcessActionCooldownGuard({ cooldownMs: 0 });
+const failureCircuitBreaker = createInProcessExecutionFailureCircuitBreaker({
+  failedTickStreakThreshold: 3,
+  cooldownMs: 30_000
+});
+
+for (let index = 0; index < 3; index += 1) {
+  const failedTick = await runDeterministicCycleOnce({
+    tickNumber: 100 + index,
+    tickId: `tick-verify-cb-00000${index + 1}`,
+    nowMs: 10_000 + index * 1_000,
+    logger,
+    executeAction: alwaysFailExecutor,
+    actionCooldownGuard: noCooldownGuard,
+    executionFailureCircuitBreaker: failureCircuitBreaker,
+    stateProvider: () => stateSnapshot
+  });
+  assert.equal(failedTick.blocked, false);
+  assert.equal(failedTick.execution.status, 'failed');
+}
+
+const circuitBlocked = await runDeterministicCycleOnce({
+  tickNumber: 104,
+  tickId: 'tick-verify-cb-000004',
+  nowMs: 13_500,
+  logger,
+  executeAction: alwaysFailExecutor,
+  actionCooldownGuard: noCooldownGuard,
+  executionFailureCircuitBreaker: failureCircuitBreaker,
+  stateProvider: () => stateSnapshot
+});
+assert.equal(circuitBlocked.blocked, true);
+assert.equal(circuitBlocked.execution.status, 'skipped');
+assert.equal(circuitBlocked.execution.reason, 'execution_failure_circuit_open');
+assert.equal(circuitBlocked.execution.blockedBy, 'execution_failure_circuit_breaker');
+assert.equal(circuitBlocked.safety.allowed, false);
+assert.ok(circuitBlocked.safety.reasons.includes('execution_failure_circuit_open'));
+
+const postCooldown = await runDeterministicCycleOnce({
+  tickNumber: 105,
+  tickId: 'tick-verify-cb-000005',
+  nowMs: 42_100,
+  logger,
+  executeAction: alwaysFailExecutor,
+  actionCooldownGuard: noCooldownGuard,
+  executionFailureCircuitBreaker: failureCircuitBreaker,
+  stateProvider: () => stateSnapshot
+});
+assert.equal(postCooldown.blocked, false);
+assert.equal(postCooldown.execution.status, 'failed');
+
 const jsonl = await fs.readFile(tempLogPath, 'utf8');
+const records = jsonl
+  .trim()
+  .split('\n')
+  .filter(Boolean)
+  .map((line) => JSON.parse(line));
+const circuitBlockedEvents = records
+  .filter((entry) => entry.payload.tickId === 'tick-verify-cb-000004')
+  .map((entry) => entry.eventType);
+assert.deepEqual(circuitBlockedEvents, ['tick_started', 'safety_evaluated', 'tick_blocked', 'tick_finished']);
+
 assert.ok(jsonl.includes('"eventType":"decision_made"'));
 assert.ok(jsonl.includes('"eventType":"action_executed"'));
 assert.ok(jsonl.includes('"reason":"action_cooldown_active"'));
+assert.ok(jsonl.includes('"reason":"execution_failure_circuit_open"'));
 assert.ok(jsonl.includes('"ruleId":"recover-energy-safe-window"'));
 assert.ok(!jsonl.includes('VERIFY_SUPER_SECRET'));
 assert.ok(!jsonl.includes('should-never-leak'));

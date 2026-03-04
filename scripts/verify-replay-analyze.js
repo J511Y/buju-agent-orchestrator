@@ -23,6 +23,7 @@ const validRecords = [
   makeRecord('tick_started', { tickId: 'tick-2', tickNumber: 2 }, 5),
   makeRecord('safety_evaluated', { tickId: 'tick-2', safety: { allowed: false, reasons: ['low_health'] } }, 6),
   makeRecord('tick_blocked', { tickId: 'tick-2', blocked: true, reasons: ['low_health'] }, 7),
+  makeRecord('tick_finished', { tickId: 'tick-2', executionStatus: 'skipped', reason: 'low_health' }, 8),
   makeRecord('tick_started', { tickId: 'tick-3', tickNumber: 3 }, 8),
   makeRecord('safety_evaluated', { tickId: 'tick-3', safety: { allowed: true, reasons: [] } }, 9),
   makeRecord('decision_made', { tickId: 'tick-3', decision: { fsmState: 'ATTACK' } }, 10),
