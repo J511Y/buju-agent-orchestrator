@@ -165,3 +165,9 @@
   - Wired `fetchActivityKpis` to pass the active endpoint config path into probe-summary generation, ensuring API probe candidates and summary streak analysis use the same endpoint universe.
   - Extended `scripts/verify-activity-probe-summary.js` with synthetic config allowlist + injected `data:` endpoint record; verified that non-allowlisted endpoint noise is excluded from summary output.
   - Verification executed: `npm run verify:activity-probe-summary`, `npm run verify:activity`, `npm run verify:activity-config` (all passed).
+- [2026-03-05 05:12 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression flat (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) remained `404`; `/api/status` stayed healthy (`200`). Probe summary now shows failure streak `2` for all history endpoints.
+  - Retry recommendation: keep `/api/status` as baseline; revalidate endpoint catalog against current Buju API spec and keep replay fallback until any history endpoint returns usable payload.
+- [2026-03-05 05:12 KST] Next 30-min actionable TODO: add `HISTORY_ENDPOINT_FAILOVER_STREAK` threshold (e.g., 3) in hourly feedback path to auto-tag history API as degraded and prioritize replay-derived signals in summaries.

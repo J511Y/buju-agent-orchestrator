@@ -54,3 +54,9 @@ Track A/B and policy experiments.
 - Metric(s): Non-production endpoint incidence in hourly summaries; operator false-positive anomaly notes per day.
 - Result: Baseline issue observed (non-production endpoint present in summary despite current probe targeting production endpoints).
 - Decision: Run allowlist-filter implementation/verification in next 30-minute cycle.
+- Date: 2026-03-05 05:12 KST
+- Hypothesis: Applying a fixed failure-streak threshold for history endpoints will reduce repeated manual anomaly triage and stabilize hourly feedback source selection.
+- Change: Observed rolling probe summary with consecutive history-endpoint failures at streak `2` while `/api/status` remains healthy.
+- Metric(s): Manual anomaly notes per 24h; percentage of cycles auto-classified as `history_api_degraded` with deterministic fallback.
+- Result: Baseline captured (history endpoints degraded, status endpoint healthy).
+- Decision: Implement threshold-based degraded tagging in next cycle and evaluate for 24h.
