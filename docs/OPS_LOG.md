@@ -147,3 +147,10 @@
   - Updated `src/client/action-executor.js` idempotency key generation to remove `tickId` from key material and use stable fingerprint: `battleId + (action.idempotencyKey|action.id|action.type) + targetId`.
   - Outcome: duplicate action suppression now remains effective across adjacent ticks within `idempotencyWindowMs` instead of only within the exact same tick ID.
   - Verification executed: `npm run verify:cycle` (passed), including new assertion that duplicate execution with different `tickId` is skipped and keeps same `actionKey`.
+- [2026-03-05 04:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API probe.
+  - Evidence (`npm run -s activity:fetch -- --hours 1` + `GET /api/status`): `source=fallback:local_replay`; Lv3, exp `34`, HP `129/130`, MP `43/66`, gold `184`, area `talking_island_field`.
+  - Last-hour gameplay signals: progression flat (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`) from this window.
+  - Resource trend: stable survivability (HP ~99%) and moderate MP (~65%); no immediate sustain risk detected.
+  - Anomaly/failure mode: activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all returned `404`; only `/api/status` returned `200`.
+  - Retry recommendation: keep `/api/status` as baseline and retry once endpoint catalog is validated against production docs; continue replay fallback until any history endpoint yields non-empty signal.
+- [2026-03-05 04:08 KST] Next 30-min actionable TODO: filter `activity_probe_summary` to configured production endpoint allowlist (exclude test-only `data:` endpoints) and add verifier coverage for allowlist enforcement.

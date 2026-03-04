@@ -48,3 +48,9 @@ Track A/B and policy experiments.
 - Metric(s): Consecutive failure streak per endpoint.
 - Result: Failure streak continues (all three endpoints failed again this cycle).
 - Decision: Pending implementation of streak tracker + fallback threshold.
+- Date: 2026-03-05 04:08 KST
+- Hypothesis: Restricting `activity_probe_summary` to configured production endpoint allowlist will reduce false anomaly noise from test artifacts and improve hourly feedback precision.
+- Change: This cycle observed valid live probe results but summary still contained a historical `data:` endpoint artifact from prior verification runs.
+- Metric(s): Non-production endpoint incidence in hourly summaries; operator false-positive anomaly notes per day.
+- Result: Baseline issue observed (non-production endpoint present in summary despite current probe targeting production endpoints).
+- Decision: Run allowlist-filter implementation/verification in next 30-minute cycle.
