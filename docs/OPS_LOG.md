@@ -51,3 +51,8 @@
   - Anomaly/failure mode: `GET /api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` all returned `404 Not Found`.
   - Retry recommendation: continue hourly `/api/status`; retry activity discovery after checking latest Buju docs for valid history endpoints; until then infer activity from local replay logs.
 - [2026-03-04 23:09 KST] Next 30-min actionable TODO: implement `scripts/fetch-activity.js` (API-first + local JSONL fallback) and emit a compact 1h KPI JSON (`progress_delta`, `action_status_counts`, `known_outcomes`).
+- [2026-03-04 23:39 KST] Replay/Ops observability improvement completed: hourly activity fetcher with deterministic fallback.
+  - Implemented `scripts/fetch-activity.js` and wired `npm run activity:fetch` for compact 1h KPI JSON output: `progress_delta`, `action_status_counts`, `known_outcomes`, `source`, `endpoint_statuses`.
+  - API-first path probes candidate `/api` recent-activity endpoints and captures per-endpoint status; when unavailable/insufficient, fallback deterministically analyzes local `logs/worker-events.jsonl` via replay analyzer.
+  - Security guardrail: API key is never printed; surfaced errors/status strings are sanitized/masked.
+  - Verification executed: `npm run verify:activity` (passed; temp JSONL fallback path validated).

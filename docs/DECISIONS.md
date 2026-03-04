@@ -19,3 +19,6 @@
 - Added in-process action cooldown guard (`ACTION_COOLDOWN_MS`, default `3000`) keyed by `action.type + action.targetId` to block repeated actions across ticks before execution.
 - Standardized cooldown-block path as replay-safe JSONL records with `action_executed.status=skipped` and explicit reason `action_cooldown_active` (plus cooldown metadata) followed by `tick_finished`.
 - Extended cycle verification (`npm run verify:cycle`) to assert second-tick cooldown blocking, no transport call on blocked tick, and persisted cooldown reason in JSONL.
+- Added `scripts/fetch-activity.js` (`npm run activity:fetch`) to produce compact 1h KPI JSON via API-first probing of candidate `/api` activity endpoints, with deterministic fallback to local replay logs (`logs/worker-events.jsonl`) using `analyzeReplayRecords`.
+- Standardized hourly activity output contract to `progress_delta`, `action_status_counts`, `known_outcomes`, `source`, `endpoint_statuses`; enforced API key non-disclosure by masking/sanitizing all surfaced strings.
+- Added fallback-path verification script (`npm run verify:activity`) with synthetic temp JSONL to lock 1h window filtering and replay-derived KPI correctness.
