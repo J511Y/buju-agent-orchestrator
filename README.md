@@ -50,6 +50,12 @@ npm run dev
 - 이슈 기반으로 작업 단위를 분리해 진행
 - 작은 PR, 명확한 커밋 메시지 권장
 
+## Worker Reliability
+- 워커/루프 신뢰성 최소 검증:
+  - `npm run verify:cycle`
+  - `npm run verify:worker`
+  - `npm run verify:replay`
+
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
 - 최소 검증:
