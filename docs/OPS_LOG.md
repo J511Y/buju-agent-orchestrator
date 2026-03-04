@@ -181,3 +181,9 @@
   - Impact: repeated transport failures cannot be accidentally diluted by intervening skipped ticks, leading to more reliable circuit-open protection.
   - Extended `scripts/verify-cycle.js` with explicit `failed -> skipped -> failed` threshold test to lock deterministic behavior.
   - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).
+- [2026-03-05 06:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling probe failure streak reached `3` for all history endpoints.
+  - Retry recommendation: mark history API path as degraded after this streak and keep replay-first summaries until endpoint list is refreshed from latest Buju API documentation.
+- [2026-03-05 06:08 KST] Next 30-min actionable TODO: implement deterministic degraded-state flag in `activity:fetch` output (e.g., `history_api_degraded=true` when streak>=3) and add verification for threshold crossing behavior.

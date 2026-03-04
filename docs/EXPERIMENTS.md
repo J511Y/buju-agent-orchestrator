@@ -60,3 +60,9 @@ Track A/B and policy experiments.
 - Metric(s): Manual anomaly notes per 24h; percentage of cycles auto-classified as `history_api_degraded` with deterministic fallback.
 - Result: Baseline captured (history endpoints degraded, status endpoint healthy).
 - Decision: Implement threshold-based degraded tagging in next cycle and evaluate for 24h.
+- Date: 2026-03-05 06:08 KST
+- Hypothesis: Explicitly emitting `history_api_degraded` at failure streak >=3 will reduce operator ambiguity and improve consistency of fallback-driven feedback.
+- Change: Current cycle confirms streak threshold condition (all history endpoints at consecutive failure streak `3`, while `/api/status` remains healthy).
+- Metric(s): Cycles with ambiguous anomaly wording; cycles auto-labeled degraded vs manual judgment.
+- Result: Trigger condition observed and documented.
+- Decision: Proceed with degraded-flag implementation + verifier in next cycle.
