@@ -143,3 +143,7 @@
   - Malformed probe-log lines are safely skipped; endpoint statuses are compact-normalized to avoid surfacing arbitrary sensitive text.
   - Added lookback override controls: env `ACTIVITY_PROBE_SUMMARY_LOOKBACK_HOURS`, CLI `--activity-probe-summary-lookback-hours`.
   - Verification executed: `npm run verify:activity-probe-summary`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity`, `npm run verify:activity-config` (all passed).
+- [2026-03-05 04:05 KST] Deterministic executor reliability fix completed: cross-tick idempotency dedupe.
+  - Updated `src/client/action-executor.js` idempotency key generation to remove `tickId` from key material and use stable fingerprint: `battleId + (action.idempotencyKey|action.id|action.type) + targetId`.
+  - Outcome: duplicate action suppression now remains effective across adjacent ticks within `idempotencyWindowMs` instead of only within the exact same tick ID.
+  - Verification executed: `npm run verify:cycle` (passed), including new assertion that duplicate execution with different `tickId` is skipped and keeps same `actionKey`.

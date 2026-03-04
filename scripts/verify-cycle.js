@@ -78,12 +78,13 @@ assert.equal(cooldownBlocked.execution.attempts, 0);
 assert.equal(attemptCount, 3);
 
 const duplicate = await executor({
-  tickId: 'tick-verify-000007',
+  tickId: 'tick-verify-000999',
   stateSnapshot,
   action: result.decision.action
 });
 assert.equal(duplicate.status, 'skipped');
 assert.equal(duplicate.reason, 'idempotent_duplicate');
+assert.equal(duplicate.actionKey, result.execution.actionKey);
 
 const lowEnergySafeState = {
   ...stateSnapshot,

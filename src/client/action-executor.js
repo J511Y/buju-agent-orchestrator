@@ -36,10 +36,10 @@ export function createActionExecutor(options = {}) {
   function makeActionKey(context) {
     const scope = context.stateSnapshot.battleId ?? 'global';
     const action = context.action;
+    const explicitIdempotencyKey = action.idempotencyKey ?? action.id ?? null;
     return [
       scope,
-      context.tickId,
-      action.type,
+      explicitIdempotencyKey ?? action.type,
       action.targetId ?? 'none'
     ].join(':');
   }

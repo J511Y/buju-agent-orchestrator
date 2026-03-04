@@ -26,6 +26,9 @@
 - Updated replay CLI summary formatting and verification coverage (`npm run verify:replay`) to keep these counters regression-safe without changing existing summary fields.
 
 ## 2026-03-05
+- Normalized action-executor idempotency key to battle/action fingerprint (`battleId + (idempotencyKey|id|action.type) + targetId`) instead of including `tickId`, so duplicate action suppression now works across adjacent ticks within the idempotency window.
+- Kept deterministic behavior by preferring explicit action-level idempotency identifiers when available, with stable fallback to action type + target.
+- Locked regression coverage in `npm run verify:cycle` by asserting a duplicate execute call with a different `tickId` is still skipped and reuses the original `actionKey`.
 - Externalized activity probe endpoint order into `config/activity-endpoints.json` and made API probe load this file by default for ops-time reconfiguration without code edits.
 - Locked deterministic fallback behavior to built-in endpoint candidates when endpoint config file is missing, unreadable, malformed JSON, empty, or schema-invalid.
 - Added dedicated verification (`npm run verify:activity-config`) with a deterministic `data:` endpoint config to assert CLI-provided endpoint config path is honored end-to-end.
