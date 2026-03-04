@@ -30,3 +30,9 @@ Track A/B and policy experiments.
 - Metric(s): Valid activity endpoint hit rate per cycle.
 - Result: 0% this cycle (0/3 valid).
 - Decision: Keep open; implement configurable endpoint list in next dev cycle.
+- Date: 2026-03-05 01:08 KST
+- Hypothesis: Persisting endpoint health telemetry each cycle will make API drift detectable faster than manual log review.
+- Change: Repeated probe run confirms unchanged 404 pattern across 3 activity endpoints.
+- Metric(s): Time-to-detect endpoint drift; activity endpoint success ratio over 24h.
+- Result: Baseline remains 0/3 success this cycle.
+- Decision: Pending telemetry implementation in next cycle.

@@ -87,3 +87,9 @@
 - [2026-03-05 01:06 KST] Commit/persist step blocked after low-energy recovery rule update.
   - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run commit from a runtime with `.git` write permission using message `feat: add deterministic low-energy recovery rule`, then push.
+- [2026-03-05 01:08 KST] Hourly gameplay feedback cycle executed with masked `.env` key and live Buju API probe.
+  - Evidence (`GET /api/status`): Lv3, exp `34/90`, HP `129/130`, MP `43/66`, gold `184`, area `talking_island_field`, combat `false`.
+  - Last-hour signals: no progression delta detected; no wins/defeats observable from current status payload; HP/MP trend remains stable.
+  - Anomaly/failure mode: recent-activity endpoints still failing (`/api/logs/recent`, `/api/activity/recent`, `/api/battle/logs/recent` -> 404).
+  - Retry recommendation: keep `/api/status` polling and retry discovery using docs-backed endpoint list once configurable probe is added.
+- [2026-03-05 01:08 KST] Next 30-min actionable TODO: implement `config/activity-endpoints.json` + loader in probe script, and record per-endpoint success/failure counts in `logs/activity-probe.jsonl`.
