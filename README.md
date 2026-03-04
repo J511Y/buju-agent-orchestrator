@@ -50,6 +50,10 @@ npm run dev
 - 이슈 기반으로 작업 단위를 분리해 진행
 - 작은 PR, 명확한 커밋 메시지 권장
 
+## Activity KPI Fetcher
+- 실행: `npm run activity:fetch`
+- 최소 검증: `npm run verify:activity`
+- 리팩토링/에러 경로/검증 상세: [`docs/ACTIVITY_FETCHER.md`](./docs/ACTIVITY_FETCHER.md)
 
 ## 도메인 컨텍스트
 - Buju 게임/운영 배경: [`docs/BUJU_GAME_CONTEXT.md`](./docs/BUJU_GAME_CONTEXT.md)
