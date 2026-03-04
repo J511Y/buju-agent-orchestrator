@@ -71,3 +71,6 @@
 - Rationale: prevents avoidable transport attempts/failures from malformed state snapshots and preserves loop stability for next tick decisions.
 - Kept circuit semantics stable: invalid-target path is treated as `skipped` (data quality block), not a transport failure.
 - Added regression coverage in `npm run verify:cycle` to assert attack decision with missing `enemyId` is blocked pre-transport (`attempts=0`).
+- Extended replay operational counters with `invalidActionTarget` to quantify pre-transport target-validation blocks (`reason=invalid_action_target`) introduced in worker safety gate.
+- Updated replay summary contract line to include `invalid_target_blocks` so operators can distinguish malformed-action data issues from cooldown/timeouts/circuit blocks.
+- Added replay verification coverage with a deterministic invalid-target skipped action record to lock counter and summary formatting behavior.

@@ -62,6 +62,7 @@ export function analyzeReplayRecords(records) {
   };
   const operationalBlockCounts = {
     actionCooldownActive: 0,
+    invalidActionTarget: 0,
     tickTimeout: 0,
     lockHeartbeatFailed: 0,
     executionFailureCircuitOpen: 0
@@ -193,6 +194,9 @@ export function analyzeReplayRecords(records) {
         if (data.payload.execution?.reason === 'action_cooldown_active') {
           operationalBlockCounts.actionCooldownActive += 1;
         }
+        if (data.payload.execution?.reason === 'invalid_action_target') {
+          operationalBlockCounts.invalidActionTarget += 1;
+        }
         countExecutionFailureCircuitOpenSkip({
           tickId,
           status,
@@ -302,7 +306,7 @@ export function formatReplaySummary(filePath, summary) {
     `Replay log: ${filePath}`,
     `ticks=${summary.ticks} blocked=${summary.blockedTicks} (${blockedPercent}%)`,
     `actions success=${summary.actionStatusCounts.success} fail=${summary.actionStatusCounts.failed} skipped=${summary.actionStatusCounts.skipped}`,
-    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0} execution_failure_circuit_blocks=${summary.operationalBlockCounts?.executionFailureCircuitOpen ?? 0}`,
+    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} invalid_target_blocks=${summary.operationalBlockCounts?.invalidActionTarget ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0} execution_failure_circuit_blocks=${summary.operationalBlockCounts?.executionFailureCircuitOpen ?? 0}`,
     `top_safety_reasons ${reasons}`,
     `top_decision_rules ${topRules}`
   ];

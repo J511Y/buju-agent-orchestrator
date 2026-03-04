@@ -95,19 +95,33 @@ const validRecords = [
       blockedBy: 'execution_failure_circuit_breaker'
     },
     34
-  )
+  ),
+  makeRecord('tick_started', { tickId: 'tick-9', tickNumber: 9 }, 35),
+  makeRecord('safety_evaluated', { tickId: 'tick-9', safety: { allowed: true, reasons: [] } }, 36),
+  makeRecord(
+    'decision_made',
+    { tickId: 'tick-9', decision: { fsmState: 'ATTACK', ruleId: 'attack-energy-window' } },
+    37
+  ),
+  makeRecord(
+    'action_executed',
+    { tickId: 'tick-9', execution: { status: 'skipped', reason: 'invalid_action_target' } },
+    38
+  ),
+  makeRecord('tick_finished', { tickId: 'tick-9', executionStatus: 'skipped', reason: 'invalid_action_target' }, 39)
 ];
 
 const validFilePath = path.join(os.tmpdir(), `buju-replay-valid-${Date.now()}.jsonl`);
 await fs.writeFile(validFilePath, validRecords.map((record) => JSON.stringify(record)).join('\n'), 'utf8');
 
 const summary = await analyzeReplayFile(validFilePath);
-assert.equal(summary.ticks, 8);
+assert.equal(summary.ticks, 9);
 assert.equal(summary.blockedTicks, 2);
 assert.equal(summary.actionStatusCounts.success, 1);
 assert.equal(summary.actionStatusCounts.failed, 1);
-assert.equal(summary.actionStatusCounts.skipped, 2);
+assert.equal(summary.actionStatusCounts.skipped, 3);
 assert.equal(summary.operationalBlockCounts.actionCooldownActive, 1);
+assert.equal(summary.operationalBlockCounts.invalidActionTarget, 1);
 assert.equal(summary.operationalBlockCounts.tickTimeout, 1);
 assert.equal(summary.operationalBlockCounts.lockHeartbeatFailed, 1);
 assert.equal(summary.operationalBlockCounts.executionFailureCircuitOpen, 1);
@@ -118,17 +132,17 @@ assert.equal(safetyReasonCounts.execution_failure_circuit_open, 1);
 const decisionRuleCounts = Object.fromEntries(
   summary.topDecisionRules.map((item) => [item.ruleId, item.count])
 );
-assert.equal(decisionRuleCounts['attack-energy-window'], 4);
+assert.equal(decisionRuleCounts['attack-energy-window'], 5);
 assert.equal(decisionRuleCounts['hold-default'], 1);
 assert.equal(decisionRuleCounts['attack-low-threat-efficient-window'], 1);
 assert.ok(
   formatReplaySummary(validFilePath, summary).includes(
-    'operational cooldown_blocks=1 tick_timeouts=1 lock_heartbeat_failures=1 execution_failure_circuit_blocks=1'
+    'operational cooldown_blocks=1 invalid_target_blocks=1 tick_timeouts=1 lock_heartbeat_failures=1 execution_failure_circuit_blocks=1'
   )
 );
 assert.ok(
   formatReplaySummary(validFilePath, summary).includes(
-    'top_decision_rules attack-energy-window=4, attack-low-threat-efficient-window=1, hold-default=1'
+    'top_decision_rules attack-energy-window=5, attack-low-threat-efficient-window=1, hold-default=1'
   )
 );
 

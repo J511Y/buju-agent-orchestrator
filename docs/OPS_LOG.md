@@ -219,3 +219,8 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `5` for all history endpoints.
   - Retry recommendation: continue replay-first summaries, treat history API as persistently degraded, and only re-enable history route after doc-validated endpoint update with one successful probe.
 - [2026-03-05 08:08 KST] Next 30-min actionable TODO: add `history_endpoint_recovery_gate` requiring at least 1 consecutive `ok` response before clearing degraded state in `activity:fetch` output.
+- [2026-03-05 08:42 KST] Replay observability hardening completed: invalid target block counter.
+  - Updated `src/ops/replay-analyzer.js` to count `execution.reason=invalid_action_target` into `operationalBlockCounts.invalidActionTarget`.
+  - Extended formatted replay summary operational line with `invalid_target_blocks` to separate target-validation safety blocks from other operational failure modes.
+  - Updated `scripts/verify-replay-analyze.js` fixture and assertions to include an invalid-target skipped execution tick and lock the new counter/output contract.
+  - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (all passed).
