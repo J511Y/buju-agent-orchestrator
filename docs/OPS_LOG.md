@@ -197,3 +197,9 @@
   - Expected impact: fewer idle HOLD ticks in safe combat states, improving action density and potential score gain while preserving safety-first rule precedence.
   - Extended `scripts/verify-cycle.js` with a dedicated assertion for `ATTACK_EFFICIENT` decision path.
   - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).
+- [2026-03-05 07:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `4` for all history endpoints.
+  - Retry recommendation: keep replay-first feedback mode and schedule endpoint-catalog refresh against current Buju API docs before attempting history-endpoint reactivation.
+- [2026-03-05 07:08 KST] Next 30-min actionable TODO: implement endpoint health-state persistence (`healthy|degraded|disabled`) driven by failure streak and expose it in `activity:fetch` output for deterministic ops routing.

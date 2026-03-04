@@ -66,3 +66,9 @@ Track A/B and policy experiments.
 - Metric(s): Cycles with ambiguous anomaly wording; cycles auto-labeled degraded vs manual judgment.
 - Result: Trigger condition observed and documented.
 - Decision: Proceed with degraded-flag implementation + verifier in next cycle.
+- Date: 2026-03-05 07:08 KST
+- Hypothesis: Persisting endpoint health state transitions (`healthy -> degraded -> disabled`) from failure streaks will improve operational clarity and reduce repetitive fallback diagnostics.
+- Change: Current cycle extends consecutive history-endpoint failure streak to `4` while `/api/status` remains consistently healthy.
+- Metric(s): Number of manual degraded-status notes/day; percentage of cycles with deterministic source-routing decision emitted.
+- Result: Baseline indicates stable degraded pattern suitable for state-machine routing.
+- Decision: Implement health-state persistence and evaluate over next 24h.
