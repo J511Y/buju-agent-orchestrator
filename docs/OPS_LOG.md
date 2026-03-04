@@ -124,3 +124,11 @@
 - [2026-03-05 02:21 KST] Commit/persist step blocked after execution-failure circuit breaker update.
   - Blocker: `git add ... && git commit -m "fix: add deterministic execution failure circuit breaker"` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run the same commit from a runtime with `.git` write permission, then push.
+- [2026-03-05 03:05 KST] Replay observability improvement completed: execution-failure circuit-open block counter.
+  - Extended `src/ops/replay-analyzer.js` summary with deterministic `executionFailureCircuitOpen` counting skipped action/tick outcomes where reason is `execution_failure_circuit_open` (tick-level dedup).
+  - Surfaced the counter in replay summary formatter output as `execution_failure_circuit_blocks` while keeping existing fields backward-compatible.
+  - Updated verification coverage in `scripts/verify-replay-analyze.js` and `scripts/verify-cycle.js` to lock the new counter.
+  - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (passed).
+- [2026-03-05 03:06 KST] Commit/persist step blocked after replay circuit-open counter update.
+  - Blocker: `git add ... && git commit -m "fix: add replay circuit-open block counter"` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run the same commit from a runtime with `.git` write permission, then push.

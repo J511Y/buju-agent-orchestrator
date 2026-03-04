@@ -50,27 +50,50 @@ const validRecords = [
   makeRecord('tick_started', { tickId: 'tick-7', tickNumber: 7 }, 27),
   makeRecord('safety_evaluated', { tickId: 'tick-7', safety: { allowed: true, reasons: [] } }, 28),
   makeRecord('decision_made', { tickId: 'tick-7', decision: { fsmState: 'ATTACK' } }, 29),
-  makeRecord('tick_error', { tickId: 'tick-7', message: 'lock heartbeat failed: EACCES', code: 'EACCES' }, 30)
+  makeRecord('tick_error', { tickId: 'tick-7', message: 'lock heartbeat failed: EACCES', code: 'EACCES' }, 30),
+  makeRecord('tick_started', { tickId: 'tick-8', tickNumber: 8 }, 31),
+  makeRecord(
+    'safety_evaluated',
+    { tickId: 'tick-8', safety: { allowed: false, reasons: ['execution_failure_circuit_open'] } },
+    32
+  ),
+  makeRecord(
+    'tick_blocked',
+    { tickId: 'tick-8', blocked: true, reasons: ['execution_failure_circuit_open'] },
+    33
+  ),
+  makeRecord(
+    'tick_finished',
+    {
+      tickId: 'tick-8',
+      executionStatus: 'skipped',
+      reason: 'execution_failure_circuit_open',
+      blockedBy: 'execution_failure_circuit_breaker'
+    },
+    34
+  )
 ];
 
 const validFilePath = path.join(os.tmpdir(), `buju-replay-valid-${Date.now()}.jsonl`);
 await fs.writeFile(validFilePath, validRecords.map((record) => JSON.stringify(record)).join('\n'), 'utf8');
 
 const summary = await analyzeReplayFile(validFilePath);
-assert.equal(summary.ticks, 7);
-assert.equal(summary.blockedTicks, 1);
+assert.equal(summary.ticks, 8);
+assert.equal(summary.blockedTicks, 2);
 assert.equal(summary.actionStatusCounts.success, 1);
 assert.equal(summary.actionStatusCounts.failed, 1);
 assert.equal(summary.actionStatusCounts.skipped, 2);
 assert.equal(summary.operationalBlockCounts.actionCooldownActive, 1);
 assert.equal(summary.operationalBlockCounts.tickTimeout, 1);
 assert.equal(summary.operationalBlockCounts.lockHeartbeatFailed, 1);
+assert.equal(summary.operationalBlockCounts.executionFailureCircuitOpen, 1);
 assert.equal(summary.validationErrors.length, 0);
-assert.equal(summary.topSafetyReasons[0]?.reason, 'low_health');
-assert.equal(summary.topSafetyReasons[0]?.count, 1);
+const safetyReasonCounts = Object.fromEntries(summary.topSafetyReasons.map((item) => [item.reason, item.count]));
+assert.equal(safetyReasonCounts.low_health, 1);
+assert.equal(safetyReasonCounts.execution_failure_circuit_open, 1);
 assert.ok(
   formatReplaySummary(validFilePath, summary).includes(
-    'operational cooldown_blocks=1 tick_timeouts=1 lock_heartbeat_failures=1'
+    'operational cooldown_blocks=1 tick_timeouts=1 lock_heartbeat_failures=1 execution_failure_circuit_blocks=1'
   )
 );
 

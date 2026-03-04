@@ -7,6 +7,7 @@ import { createActionExecutor } from '../src/client/action-executor.js';
 import { createInProcessActionCooldownGuard } from '../src/engine/action-cooldown-guard.js';
 import { createInProcessExecutionFailureCircuitBreaker } from '../src/engine/execution-failure-circuit-breaker.js';
 import { JsonlLogger } from '../src/ops/jsonl-logger.js';
+import { analyzeReplayRecords } from '../src/ops/replay-analyzer.js';
 import { runDeterministicCycleOnce } from '../src/worker/loop.js';
 
 const tempLogPath = path.join(os.tmpdir(), `buju-worker-verify-${Date.now()}.jsonl`);
@@ -176,6 +177,14 @@ const circuitBlockedEvents = records
   .filter((entry) => entry.payload.tickId === 'tick-verify-cb-000004')
   .map((entry) => entry.eventType);
 assert.deepEqual(circuitBlockedEvents, ['tick_started', 'safety_evaluated', 'tick_blocked', 'tick_finished']);
+
+const replaySummary = analyzeReplayRecords(
+  records.map((record, index) => ({
+    lineNumber: index + 1,
+    data: record
+  }))
+);
+assert.equal(replaySummary.operationalBlockCounts.executionFailureCircuitOpen, 1);
 
 assert.ok(jsonl.includes('"eventType":"decision_made"'));
 assert.ok(jsonl.includes('"eventType":"action_executed"'));

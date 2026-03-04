@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 
 const WORKER_EVENT_SCHEMA = 'buju.worker.event.v1';
+const EXECUTION_FAILURE_CIRCUIT_OPEN_REASON = 'execution_failure_circuit_open';
 const KNOWN_EVENTS = new Set([
   'tick_started',
   'safety_evaluated',
@@ -62,9 +63,22 @@ export function analyzeReplayRecords(records) {
   const operationalBlockCounts = {
     actionCooldownActive: 0,
     tickTimeout: 0,
-    lockHeartbeatFailed: 0
+    lockHeartbeatFailed: 0,
+    executionFailureCircuitOpen: 0
   };
+  const executionFailureCircuitOpenTickIds = new Set();
   const safetyReasonCounts = new Map();
+
+  function countExecutionFailureCircuitOpenSkip({ tickId, status, reason }) {
+    if (status !== 'skipped' || reason !== EXECUTION_FAILURE_CIRCUIT_OPEN_REASON) {
+      return;
+    }
+    if (executionFailureCircuitOpenTickIds.has(tickId)) {
+      return;
+    }
+    executionFailureCircuitOpenTickIds.add(tickId);
+    operationalBlockCounts.executionFailureCircuitOpen += 1;
+  }
 
   for (const entry of records) {
     const { lineNumber, data } = entry;
@@ -174,6 +188,11 @@ export function analyzeReplayRecords(records) {
         if (data.payload.execution?.reason === 'action_cooldown_active') {
           operationalBlockCounts.actionCooldownActive += 1;
         }
+        countExecutionFailureCircuitOpenSkip({
+          tickId,
+          status,
+          reason: data.payload.execution?.reason
+        });
 
         tickState.action = true;
         break;
@@ -189,6 +208,11 @@ export function analyzeReplayRecords(records) {
         if (tickState.finished) {
           recordError(validationErrors, lineNumber, `duplicate tick_finished for ${tickId}`);
         }
+        countExecutionFailureCircuitOpenSkip({
+          tickId,
+          status: data.payload.executionStatus,
+          reason: data.payload.reason
+        });
         tickState.finished = true;
         break;
       }
@@ -263,7 +287,7 @@ export function formatReplaySummary(filePath, summary) {
     `Replay log: ${filePath}`,
     `ticks=${summary.ticks} blocked=${summary.blockedTicks} (${blockedPercent}%)`,
     `actions success=${summary.actionStatusCounts.success} fail=${summary.actionStatusCounts.failed} skipped=${summary.actionStatusCounts.skipped}`,
-    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0}`,
+    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0} execution_failure_circuit_blocks=${summary.operationalBlockCounts?.executionFailureCircuitOpen ?? 0}`,
     `top_safety_reasons ${reasons}`
   ];
 
