@@ -80,3 +80,10 @@
 - [2026-03-05 00:34 KST] Commit/persist step blocked after endpoint-config implementation.
   - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
   - Next action: run the same commit from a runtime with `.git` write permission using message `feat: make activity probe endpoints configurable`, then push.
+- [2026-03-05 01:05 KST] Deterministic score-optimization rule update completed.
+  - Added explicit energy recovery path in `src/engine/fsm-rules.js`: when energy is low and health is safe, pick `RECOVER_ENERGY` with `REST` instead of `hold-default` (`WAIT`), while keeping `recover-low-health` and `defend-high-threat` precedence unchanged.
+  - Extended `scripts/verify-cycle.js` with minimal assertions for the new low-energy safe-state rule path.
+  - Verification executed: `npm run verify:cycle` (passed).
+- [2026-03-05 01:06 KST] Commit/persist step blocked after low-energy recovery rule update.
+  - Blocker: `git add ... && git commit ...` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`.
+  - Next action: run commit from a runtime with `.git` write permission using message `feat: add deterministic low-energy recovery rule`, then push.

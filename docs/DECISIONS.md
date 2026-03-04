@@ -29,3 +29,4 @@
 - Externalized activity probe endpoint order into `config/activity-endpoints.json` and made API probe load this file by default for ops-time reconfiguration without code edits.
 - Locked deterministic fallback behavior to built-in endpoint candidates when endpoint config file is missing, unreadable, malformed JSON, empty, or schema-invalid.
 - Added dedicated verification (`npm run verify:activity-config`) with a deterministic `data:` endpoint config to assert CLI-provided endpoint config path is honored end-to-end.
+- Added deterministic FSM rule `recover-energy-safe-window` so low-energy snapshots with safe health choose `REST` (`RECOVER_ENERGY`) before `hold-default`, preserving higher-priority survival/defense ordering and improving uptime for future attack windows.

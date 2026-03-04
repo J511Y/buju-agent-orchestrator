@@ -83,10 +83,32 @@ const duplicate = await executor({
 assert.equal(duplicate.status, 'skipped');
 assert.equal(duplicate.reason, 'idempotent_duplicate');
 
+const lowEnergySafeState = {
+  ...stateSnapshot,
+  enemyVisible: false,
+  healthPct: 92,
+  energy: 18,
+  enemyThreat: 10
+};
+const energyRecovery = await runDeterministicCycleOnce({
+  tickNumber: 9,
+  tickId: 'tick-verify-000009',
+  nowMs: 5_500,
+  logger,
+  actionCooldownGuard: cooldownGuard,
+  executeAction: executor,
+  stateProvider: () => lowEnergySafeState
+});
+assert.equal(energyRecovery.decision.fsmState, 'RECOVER_ENERGY');
+assert.equal(energyRecovery.decision.ruleId, 'recover-energy-safe-window');
+assert.equal(energyRecovery.decision.action.type, 'REST');
+assert.equal(energyRecovery.execution.status, 'success');
+
 const jsonl = await fs.readFile(tempLogPath, 'utf8');
 assert.ok(jsonl.includes('"eventType":"decision_made"'));
 assert.ok(jsonl.includes('"eventType":"action_executed"'));
 assert.ok(jsonl.includes('"reason":"action_cooldown_active"'));
+assert.ok(jsonl.includes('"ruleId":"recover-energy-safe-window"'));
 assert.ok(!jsonl.includes('VERIFY_SUPER_SECRET'));
 assert.ok(!jsonl.includes('should-never-leak'));
 assert.ok(jsonl.includes('[MASKED]'));
