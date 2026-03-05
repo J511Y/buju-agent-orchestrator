@@ -40,8 +40,9 @@ const CFG = {
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
   backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
-  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 27),
+  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 25),
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
+  sellBatchPerTick: Number(process.env.BUJU_SELL_BATCH_PER_TICK || 3),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
   buyCooldownTicks: Number(process.env.BUJU_BUY_COOLDOWN_TICKS || 6),
@@ -256,14 +257,20 @@ async function step() {
 
   // Priority 1: inventory full-risk guard.
   if (slotUsed >= CFG.invSellTriggerSlots && !shouldSkipAction('inventory_sell')) {
-    const target = chooseSellCandidate(inventory, equipped);
-    if (target) {
+    let sold = 0;
+    let workingInv = [...inventory];
+    for (let i = 0; i < CFG.sellBatchPerTick; i++) {
+      const target = chooseSellCandidate(workingInv, equipped);
+      if (!target) break;
       const s = await req('/shop/sell', { method: 'POST', body: JSON.stringify({ item_id: target.item_id, quantity: 1 }) });
       recordActionResult('inventory_sell', s.status);
-      if (s.status === 200) {
-        return { ok: true, action: 'sell_low_tier', item_id: target.item_id, slots_used: slotUsed, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
-      }
-      // Soft-fail on repeated 400; continue hunt path without stalling this tick.
+      if (s.status !== 200) break;
+      sold += 1;
+      const idx = workingInv.findIndex(x => x.item_id === target.item_id && x.type === 'equipment');
+      if (idx >= 0) workingInv.splice(idx, 1);
+    }
+    if (sold > 0) {
+      return { ok: true, action: 'sell_low_tier_batch', sold, slots_used: slotUsed, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }
 
