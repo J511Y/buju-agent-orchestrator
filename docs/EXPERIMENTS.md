@@ -84,3 +84,9 @@ Track A/B and policy experiments.
 - Metric(s): Degraded/healthy state transitions per day; false recovery transitions followed by immediate failure.
 - Result: Baseline supports stricter recovery gating.
 - Decision: Implement recovery streak threshold in next cycle and observe for 24h.
+- Date: 2026-03-05 10:08 KST
+- Hypothesis: Synthetic transition tests for degraded/recovery streak logic will prevent regression and reduce ambiguous routing during prolonged API-history outages.
+- Change: Current cycle shows continued failure streak `7` on all history endpoints with `/api/status` stable.
+- Metric(s): Regression incidents in degraded/recovery routing; % of cycles with deterministic routing state.
+- Result: Baseline outage pattern persists and is suitable for transition-test validation.
+- Decision: Implement synthetic transition verifier in next cycle.
