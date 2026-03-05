@@ -150,3 +150,9 @@ Track A/B and policy experiments.
 - Metric(s): Time to reconstruct endpoint-health timeline; number of manual edits per cycle.
 - Result: Baseline continues to support scripted dashboard output.
 - Decision: Implement dashboard writer in next cycle.
+- Date: 2026-03-05 21:08 KST
+- Hypothesis: Automating endpoint-health row appends via `ops:history-probe-dashboard` will reduce manual drift and improve incident timeline quality.
+- Change: This cycle again shows persistent history-endpoint outage (all `404`, rolling streak `7`) while `/api/status` remains healthy.
+- Metric(s): Manual edit count per cycle; completeness of endpoint-health timeline over 24h.
+- Result: Baseline continues to justify scripted dashboard row generation.
+- Decision: Implement dashboard append command in next cycle.
