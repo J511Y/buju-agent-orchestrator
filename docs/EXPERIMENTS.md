@@ -213,3 +213,10 @@ Track A/B and policy experiments.
 - Metric(s): % cycles with non-zero trend signal; consistency of derived deltas across consecutive hours.
 - Result: This cycle again had replay all-zero with meaningful live status movement and resource pressure, supporting snapshot-delta implementation.
 - Decision: Build snapshot helper in next 30-min cycle and observe for 24 hourly runs.
+
+- Date: 2026-03-06 07:09 KST
+- Hypothesis: Auto-generated status deltas (vs prior-hour snapshot) will improve hourly feedback usefulness despite repeated history-endpoint 404s.
+- Change: Prototype `hourly-feedback-from-status-delta` script that reads last snapshot and emits level/exp/gold/hp/mp/hunt deltas.
+- Metric(s): % cycles with actionable trend lines; operator-rated usefulness (binary) in OPS entries.
+- Result: Current cycle had replay zero-signal but live status showed clear progression state (Lv22, exp/gold moved), supporting delta automation.
+- Decision: Implement prototype and evaluate over next 12 hourly cycles.
