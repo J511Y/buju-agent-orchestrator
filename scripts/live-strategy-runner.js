@@ -23,7 +23,7 @@ const API_KEY = process.env.BUJU_API_KEY;
 if (!API_KEY) throw new Error('missing BUJU_API_KEY');
 
 const CFG = {
-  delayMs: Number(process.env.BUJU_BASE_DELAY_MS || 250),
+  delayMs: Number(process.env.BUJU_BASE_DELAY_MS || 1000),
   maxActions: Number(process.env.BUJU_MAX_ACTIONS_PER_CYCLE || 30),
   minHpPotionS: Number(process.env.BUJU_MIN_HP_POTION_S || 5),
   minMpPotionS: Number(process.env.BUJU_MIN_MP_POTION_S || 3),
@@ -40,14 +40,13 @@ const CFG = {
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
   backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
-  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 15),
+  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 27),
+  invSellTargetSlots: Number(process.env.BUJU_INV_SELL_TARGET_SLOTS || 24),
+  invSellMaxIterationsPerTick: Number(process.env.BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK || 3),
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
-  sellBatchPerTick: Number(process.env.BUJU_SELL_BATCH_PER_TICK || 10),
+  potionUseMaxQuantity: Number(process.env.BUJU_POTION_USE_MAX_QUANTITY || 3),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
-  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
-  buyCooldownTicks: Number(process.env.BUJU_BUY_COOLDOWN_TICKS || 6),
-  minBuyQty: Number(process.env.BUJU_MIN_BUY_QTY || 5),
-  maxPotionUseQty: Number(process.env.BUJU_MAX_POTION_USE_QTY || 3)
+  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8)
 };
 
 const stallState = new Map();
@@ -166,6 +165,59 @@ function chooseSellCandidate(inventory, equipped) {
   return candidates[0] || null;
 }
 
+function applyLocalSell(inventory, itemId, quantity) {
+  const idx = inventory.findIndex(i => i.item_id === itemId && i.type === 'equipment');
+  if (idx < 0) return;
+  inventory[idx].quantity = Math.max(0, (inventory[idx].quantity || 0) - quantity);
+  if (inventory[idx].quantity <= 0) inventory.splice(idx, 1);
+}
+
+async function liquidateInventoryRisk(inventory, equipped, initialSlots, character) {
+  if (initialSlots < CFG.invSellTriggerSlots) return null;
+  if (shouldSkipAction('inventory_sell')) return null;
+
+  let currentSlots = initialSlots;
+  let soldCount = 0;
+  const soldItems = [];
+
+  for (let i = 0; i < CFG.invSellMaxIterationsPerTick; i++) {
+    if (currentSlots <= CFG.invSellTargetSlots) break;
+    const target = chooseSellCandidate(inventory, equipped);
+    if (!target) break;
+
+    const sellQty = Math.max(1, Number(target.quantity || 1)); // batch-first when stack exists
+    const s = await req('/shop/sell', { method: 'POST', body: JSON.stringify({ item_id: target.item_id, quantity: sellQty }) });
+    recordActionResult('inventory_sell', s.status);
+
+    if (s.status !== 200) {
+      if (s.status === 400) continue;
+      break;
+    }
+
+    soldCount += sellQty;
+    soldItems.push(`${target.item_id}x${sellQty}`);
+    applyLocalSell(inventory, target.item_id, sellQty);
+    currentSlots = Math.max(0, currentSlots - 1);
+  }
+
+  if (soldCount > 0) {
+    return {
+      ok: true,
+      action: 'sell_low_tier_batch',
+      sold_items: soldItems.join(','),
+      sold_quantity_total: soldCount,
+      slots_used_before: initialSlots,
+      slots_used_after: currentSlots,
+      level: character.level,
+      exp: character.exp,
+      gold: character.gold,
+      code: 200
+    };
+  }
+
+  return null;
+}
+
 async function chooseBestEquip(inventory, equipped) {
   const eqItems = inventory.filter(i => i.type === 'equipment');
   const bySlot = new Map();
@@ -232,17 +284,30 @@ async function ensureMutationShield(c, inventory) {
     return { ok: buy.status === 200, action: 'buy_mutation_charm', qty: need, code: buy.status, softFail: buy.status === 400 };
   }
 
-  const use = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', action: 'use' }) });
+  const use = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', action: 'use', quantity: 1 }) });
   recordActionResult('mutation_shield', use.status);
   return { ok: use.status === 200, action: 'use_mutation_charm', code: use.status, softFail: use.status === 400 };
 }
 
-function chooseHpPotionId(inventory) {
-  return ['hp_potion_l', 'hp_potion_m', 'hp_potion_s'].find(id => qty(inventory, id) > 0) || null;
+function chooseHpPotionPlan(inventory, hpCurrent, hpMax) {
+  const hpDeficit = Math.max(0, hpMax - hpCurrent);
+  const options = [
+    { id: 'hp_potion_l', restore: 400, have: qty(inventory, 'hp_potion_l') },
+    { id: 'hp_potion_m', restore: 150, have: qty(inventory, 'hp_potion_m') },
+    { id: 'hp_potion_s', restore: 50, have: qty(inventory, 'hp_potion_s') }
+  ].filter(x => x.have > 0);
+  if (!options.length) return null;
+
+  options.sort((a, b) => b.restore - a.restore);
+  for (const p of options) {
+    const needed = Math.max(1, Math.ceil(hpDeficit / p.restore));
+    const quantity = Math.max(1, Math.min(p.have, needed, CFG.potionUseMaxQuantity));
+    if (quantity > 0) return { itemId: p.id, quantity };
+  }
+  return null;
 }
 
 let tickCounter = 0;
-let lastBuyTick = -9999;
 
 async function step() {
   tickCounter += 1;
@@ -256,37 +321,20 @@ async function step() {
   const equipped = invRes.status === 200 ? invRes.json.equipped || {} : {};
   const slotUsed = usedSlots(inventory, invRes.json);
 
-  // Priority 1: inventory full-risk guard.
-  if (slotUsed >= CFG.invSellTriggerSlots && !shouldSkipAction('inventory_sell')) {
-    let sold = 0;
-    let workingInv = [...inventory];
-    for (let i = 0; i < CFG.sellBatchPerTick; i++) {
-      const target = chooseSellCandidate(workingInv, equipped);
-      if (!target) break;
-      const s = await req('/shop/sell', { method: 'POST', body: JSON.stringify({ item_id: target.item_id, quantity: 1 }) });
-      recordActionResult('inventory_sell', s.status);
-      if (s.status !== 200) break;
-      sold += 1;
-      const idx = workingInv.findIndex(x => x.item_id === target.item_id && x.type === 'equipment');
-      if (idx >= 0) workingInv.splice(idx, 1);
-    }
-    if (sold > 0) {
-      return { ok: true, action: 'sell_low_tier_batch', sold, slots_used: slotUsed, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
-    }
-  }
+  // Priority 1: inventory full-risk guard (batch-first sell where possible).
+  const sellResult = await liquidateInventoryRisk(inventory, equipped, slotUsed, c);
+  if (sellResult) return sellResult;
 
   const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
 
-  // Priority 2: potion-over-rest economics.
+  // Priority 2: potion-over-rest economics (batch-first use where quantity is supported).
   if (hpRatio < CFG.lowHpPotionRatio) {
-    const hpPotionId = chooseHpPotionId(inventory);
-    if (hpPotionId && !shouldSkipAction('hp_potion_use')) {
-      const haveQty = qty(inventory, hpPotionId);
-      const useQty = Math.max(1, Math.min(haveQty, CFG.maxPotionUseQty));
-      const usePotion = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: hpPotionId, action: 'use', quantity: useQty }) });
+    const hpPlan = chooseHpPotionPlan(inventory, c.hp?.current || 0, c.hp?.max || 0);
+    if (hpPlan && !shouldSkipAction('hp_potion_use')) {
+      const usePotion = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: hpPlan.itemId, action: 'use', quantity: hpPlan.quantity }) });
       recordActionResult('hp_potion_use', usePotion.status);
       if (usePotion.status === 200) {
-        return { ok: true, action: 'use_hp_potion_batch', item_id: hpPotionId, quantity: useQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+        return { ok: true, action: 'use_hp_potion_batch', item_id: hpPlan.itemId, quantity: hpPlan.quantity, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
       }
       // 400 soft-fail => continue to rest/hunt path.
     }
@@ -315,22 +363,19 @@ async function step() {
 
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
-  const canBuyNow = (tickCounter - lastBuyTick) >= CFG.buyCooldownTicks;
-  if (canBuyNow && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
-    const buyQty = Math.max(CFG.minHpPotionS - hpS, CFG.minBuyQty);
+  if (hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
+    const buyQty = CFG.minHpPotionS - hpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_hp', r.status);
     if (r.status === 200) {
-      lastBuyTick = tickCounter;
       return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }
-  if (canBuyNow && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
-    const buyQty = Math.max(CFG.minMpPotionS - mpS, CFG.minBuyQty);
+  if (mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
+    const buyQty = CFG.minMpPotionS - mpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_mp', r.status);
     if (r.status === 200) {
-      lastBuyTick = tickCounter;
       return { ok: true, action: 'buy_mp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }

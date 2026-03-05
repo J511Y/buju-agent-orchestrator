@@ -93,3 +93,7 @@
 - Priority policy update: added anti-stall 400 downgrade layer with per-action streak tracking and cooldown skipping (`BUJU_STALL_400_THRESHOLD`, `BUJU_STALL_COOLDOWN_TICKS`), preventing repeated optional-action 400s from blocking hunt throughput.
 - Design intent: optional utility actions (sell/buy/equip/move/mutation prep) now soft-fail on 400 and execution proceeds to hunt path in the same tick to maximize continuous scoring actions.
 - Validation: one-cycle live smoke after update succeeded (`BUJU_MAX_ACTIONS_PER_CYCLE=1` => `lastAction=use_hp_potion`, HTTP 200).
+- Priority policy refinement: upgraded inventory-risk mitigation to batch-first liquidation mode. When inventory usage crosses trigger, runner now performs iterative sell attempts in the same tick toward a target slot watermark, preferring unequipped low-tier/common equipment and preserving equipped gear.
+- Priority policy refinement: upgraded potion-over-rest to batch consumption by leveraging `/api/item/use` `quantity` support for consumables; runner computes a bounded quantity plan from HP deficit and available potion tiers.
+- Added config knobs to keep batch behavior tunable without code edits: `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK`, `BUJU_POTION_USE_MAX_QUANTITY`.
+- Kept anti-stall semantics unchanged: repeated HTTP 400 on optional actions still triggers temporary downgrade/skip and immediate continuation to hunt path.

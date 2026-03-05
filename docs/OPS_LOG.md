@@ -365,3 +365,15 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
 - [2026-03-05 23:08 KST] Next 30-min actionable TODO: implement `scripts/ops-history-probe-dashboard.js` and `npm run ops:history-probe-dashboard` to append timestamped endpoint health rows from `activity_probe_summary`.
+- [2026-03-05 23:48 KST] 30-min STRATEGY DIRECTOR priority-update run completed (batch-first enforcement).
+  - KEEP (evidence): `/api/item/use` supports `quantity` for consumables; `/api/shop/sell` supports `quantity`; inventory slot risk remains based on `/api/inventory` (max 30).
+  - CHANGE: strengthened batch-first inventory liquidation in `scripts/live-strategy-runner.js`.
+    - Added batched sell routine when slots exceed trigger (`BUJU_INV_SELL_TRIGGER_SLOTS=27`) with iterative sell loop per tick (`BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK`).
+    - Uses full stack quantity for selected unequipped low-tier/common equipment item per sell call when available.
+    - Keeps equipped items excluded from sell candidates; targets down to `BUJU_INV_SELL_TARGET_SLOTS`.
+  - CHANGE: strengthened batch-first potion policy.
+    - Replaced single potion use with quantity-aware plan (`use_hp_potion_batch`) using `POST /api/item/use` + `quantity`.
+    - Added `BUJU_POTION_USE_MAX_QUANTITY` cap to avoid overconsumption while preserving potion-over-rest preference.
+  - KEEP: repeated-400 anti-stall downgrade remains active; optional actions soft-fail and flow continues to hunt path.
+  - CHANGE: normalized `config/strategy.env` keys to active runner config and reset sell trigger to hard-priority baseline (`27`).
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=12 exp=830 gold=187 code=200`.
