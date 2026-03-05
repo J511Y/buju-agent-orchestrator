@@ -267,7 +267,7 @@ function chooseMonster(monsters, level) {
   return pool[0]?.id || 'rabbit';
 }
 
-async function ensureMutationShield(c, inventory) {
+async function ensureMutationShield(c, inventory, inCombat) {
   if ((c.level || 1) < CFG.mutationLevel) return null;
   if (shouldSkipAction('mutation_shield')) return null;
 
@@ -276,6 +276,7 @@ async function ensureMutationShield(c, inventory) {
 
   const charmQty = qty(inventory, 'mutation_shield_charm');
   if (charmQty < CFG.mutationCharmStock) {
+    if (inCombat) return null; // v1.14+: shop buy blocked during combat
     const need = CFG.mutationCharmStock - charmQty;
     const estimatedCost = need * 300;
     if ((c.gold || 0) - estimatedCost < CFG.minGoldReserve) return null;
@@ -320,9 +321,10 @@ async function step() {
   const inventory = invRes.status === 200 ? invRes.json.inventory || [] : [];
   const equipped = invRes.status === 200 ? invRes.json.equipped || {} : {};
   const slotUsed = usedSlots(inventory, invRes.json);
+  const inCombat = !!(c.combat?.in_progress);
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
-  const sellResult = await liquidateInventoryRisk(inventory, equipped, slotUsed, c);
+  const sellResult = inCombat ? null : await liquidateInventoryRisk(inventory, equipped, slotUsed, c);
   if (sellResult) return sellResult;
 
   const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
@@ -346,13 +348,13 @@ async function step() {
     return { ok: r.status === 200, action: 'rest', level: c.level, exp: c.exp, gold: c.gold, code: r.status };
   }
 
-  const mutationPlan = await ensureMutationShield(c, inventory);
+  const mutationPlan = await ensureMutationShield(c, inventory, inCombat);
   if (mutationPlan && !mutationPlan.softFail) {
     return { ...mutationPlan, level: c.level, exp: c.exp, gold: c.gold };
   }
 
   const equipPlan = await chooseBestEquip(inventory, equipped);
-  if (equipPlan && !shouldSkipAction('equip')) {
+  if (!inCombat && equipPlan && !shouldSkipAction('equip')) {
     const r = await req('/item/use', { method: 'POST', body: JSON.stringify({ action: 'equip', item_id: equipPlan.itemId }) });
     recordActionResult('equip', r.status);
     if (r.status === 200) {
@@ -363,7 +365,7 @@ async function step() {
 
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
-  if (hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
+  if (!inCombat && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
     const buyQty = CFG.minHpPotionS - hpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_hp', r.status);
@@ -371,7 +373,7 @@ async function step() {
       return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }
-  if (mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
+  if (!inCombat && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
     const buyQty = CFG.minMpPotionS - mpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_mp', r.status);
@@ -381,7 +383,7 @@ async function step() {
   }
 
   const targetArea = pickArea(c.level || 1);
-  if (c.current_area !== targetArea && !shouldSkipAction('move')) {
+  if (!inCombat && c.current_area !== targetArea && !shouldSkipAction('move')) {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: targetArea }) });
     recordActionResult('move', r.status);
     if (r.status === 200) {

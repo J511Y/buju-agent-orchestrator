@@ -428,3 +428,11 @@
   - KEEP (batch-first): runner continues batch mode for quantity-capable actions (`/api/shop/sell`, `/api/item/use`, `/api/shop/buy` with `quantity`).
   - KEEP (policy status): inventory-risk auto-liquidation, potion-over-rest economics, and repeated-400 downgrade/continue-hunt controls remain active.
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=19 exp=930 gold=582 code=200`.
+- [2026-03-06 02:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, live-doc drift detected).
+  - CHANGE (drift): pinned spec is `1.11.1`, live `GET /api/skill-doc/download` reports `version: 1.14.0`.
+  - CHANGE (mechanics evidence): live doc now explicitly states in-combat blocking for shop buy/sell and equip/unequip (`IN_COMBAT`), while consumable use (`/api/item/use`, `action=use`) and hunt remain allowed.
+  - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - CHANGE (runner adaptation): updated `scripts/live-strategy-runner.js` to skip in-combat calls for sell/equip/buy/move and defer them out of combat; keeps hunt + consumable-use path active during combat to reduce avoidable 400s and improve throughput.
+  - KEEP (batch-first): quantity-capable actions remain batch-preferred (sell/use/buy with `quantity`).
+  - KEEP (stall prevention): repeated-400 downgrade still active and hunt path continuity preserved.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=20 exp=443 gold=2248 code=200`.

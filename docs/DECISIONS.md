@@ -97,3 +97,6 @@
 - Priority policy refinement: upgraded potion-over-rest to batch consumption by leveraging `/api/item/use` `quantity` support for consumables; runner computes a bounded quantity plan from HP deficit and available potion tiers.
 - Added config knobs to keep batch behavior tunable without code edits: `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK`, `BUJU_POTION_USE_MAX_QUANTITY`.
 - Kept anti-stall semantics unchanged: repeated HTTP 400 on optional actions still triggers temporary downgrade/skip and immediate continuation to hunt path.
+- Live spec drift detected (`1.11.1` pinned vs `1.14.0` live). Adopted compatibility-first runner update without relaxing configured hard constraints.
+- Added v1.14 combat-state gating in live runner: skip/defer in-combat actions that are now explicitly blocked (`shop buy/sell`, `equip/unequip`, and move), while continuing allowed combat-safe actions (hunt and consumable use).
+- Rationale: avoid predictable `IN_COMBAT` 400 responses on blocked endpoints, reduce wasted action budget, and preserve action throughput under batch-first policy.
