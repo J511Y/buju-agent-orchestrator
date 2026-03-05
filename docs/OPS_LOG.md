@@ -410,3 +410,9 @@
   - KEEP (batch-first policy): quantity-capable actions remain batch-preferred in runner (`/api/shop/sell`, `/api/item/use`, `/api/shop/buy` with `quantity`).
   - KEEP (inventory/potion/stall): inventory risk liquidation, potion-over-rest, and repeated-400 downgrade/continue-hunt controls remain active with no regressions observed.
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=16 exp=2525 gold=465 code=200`.
+- [2026-03-06 01:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned doc and live skill doc remain aligned at `version: 1.11.1`; no drift.
+  - KEEP (hard constraints): inventory sell controls preserved exactly (`BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`).
+  - KEEP (batch-first): quantity-capable actions remain batch-preferred in runner (`sell/use/buy` with `quantity`).
+  - KEEP (policy continuity): inventory-risk liquidation, potion-over-rest economics, and repeated-400 downgrade/continue-hunt path remain active without regression.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=use_hp_potion_batch level=18 exp=357 gold=465 code=200`.
