@@ -83,3 +83,8 @@
 - Tightened safety gate threshold for action queue saturation: `pendingActionCount >= maxPendingActions` now blocks tick execution (previously only `>` blocked).
 - Rationale: hitting configured queue capacity should be treated as saturated to prevent additional enqueue pressure and reduce cascading latency/failure risk.
 - Added cycle verification coverage for edge case equality (`pendingActionCount=2`, `maxPendingActions=2`) asserting deterministic block reason `action_queue_saturated`.
+- 30-min strategy director drift-check decision: keep pinned/live spec version at `1.11.1` (no document-version drift), but change live strategy runner behavior to align with newly revalidated official mechanics and endpoint usage.
+- Updated live runner to prioritize deterministic score throughput under current rules: cooldown-aware skill selection (`cooldown_remaining`/MP), EXP-first safe monster routing from `GET /api/areas/{area_id}/monsters`, and mutation-shield lifecycle management (`mutation_shield_charm` buy/use at Lv10+).
+- Replaced single-shot 429 retry with bounded retry policy honoring `Retry-After` when present, then exponential backoff cap; rationale: maintain near-limit throughput without burst-collisions on action limits (60/min endpoints).
+- Externalized new strategy risk controls in `config/strategy.env` (`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_MIN_GOLD_RESERVE`, mutation thresholds/stock, backoff windows) to keep future tuning parameter-only when possible.
+- Validation: one-cycle live smoke succeeded (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `hunt`, HTTP 200).

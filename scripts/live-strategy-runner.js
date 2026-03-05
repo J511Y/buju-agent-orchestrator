@@ -32,12 +32,18 @@ const CFG = {
   moveLv3: Number(process.env.BUJU_MOVE_LEVEL_3 || 20),
   area1: process.env.BUJU_AREA_LV1 || 'talking_island_field',
   area2: process.env.BUJU_AREA_LV2 || 'dark_forest',
-  area3: process.env.BUJU_AREA_LV3 || 'abandoned_mine'
+  area3: process.env.BUJU_AREA_LV3 || 'abandoned_mine',
+  maxSafeMonsterLevelGap: Number(process.env.BUJU_MAX_SAFE_MONSTER_LEVEL_GAP || 3),
+  minGoldReserve: Number(process.env.BUJU_MIN_GOLD_RESERVE || 300),
+  mutationLevel: Number(process.env.BUJU_MUTATION_PREP_LEVEL || 10),
+  mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
+  backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
+  backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000)
 };
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-async function req(p, opts = {}, retry = true) {
+async function req(p, opts = {}, retryCount = 0) {
   const res = await fetch(`${API_BASE}${p}`, {
     ...opts,
     headers: {
@@ -50,9 +56,13 @@ async function req(p, opts = {}, retry = true) {
   let json = null;
   try { json = JSON.parse(text); } catch { json = { raw: text }; }
 
-  if (res.status === 429 && retry) {
-    await sleep(1000);
-    return req(p, opts, false);
+  if (res.status === 429 && retryCount < 2) {
+    const retryAfterSec = Number(res.headers.get('retry-after') || 0);
+    const backoff = retryAfterSec > 0
+      ? retryAfterSec * 1000
+      : Math.min(CFG.backoffMaxMs, CFG.backoffBaseMs * Math.pow(2, retryCount));
+    await sleep(backoff);
+    return req(p, opts, retryCount + 1);
   }
   return { status: res.status, json };
 }
@@ -89,12 +99,57 @@ async function chooseBestEquip(inventory, equipped) {
   return null;
 }
 
+function chooseBestSkill(skills, currentMp) {
+  const available = (skills || []).filter(s => (s.cooldown_remaining || 0) === 0);
+  if (!available.length) return 'basic_attack';
+  const usable = available.filter(s => (s.mp_cost || 0) <= currentMp);
+  const pool = usable.length ? usable : available;
+  pool.sort((a, b) => {
+    const ap = (a.damage_multiplier || 1) - (a.mp_cost || 0) * 0.01;
+    const bp = (b.damage_multiplier || 1) - (b.mp_cost || 0) * 0.01;
+    return bp - ap;
+  });
+  return pool[0]?.skill_id || 'basic_attack';
+}
+
+function chooseMonster(monsters, level) {
+  if (!monsters.length) return 'rabbit';
+  const filtered = monsters.filter(m => (m.level || level) <= level + CFG.maxSafeMonsterLevelGap);
+  const pool = filtered.length ? filtered : monsters;
+  pool.sort((a, b) => {
+    const aExp = a.exp_reward ?? a.exp ?? 0;
+    const bExp = b.exp_reward ?? b.exp ?? 0;
+    const aRisk = (a.level || level) - level;
+    const bRisk = (b.level || level) - level;
+    return (bExp - aExp) || (aRisk - bRisk);
+  });
+  return pool[0]?.id || 'rabbit';
+}
+
+async function ensureMutationShield(c, inventory) {
+  if ((c.level || 1) < CFG.mutationLevel) return null;
+  const hasBuff = (c.active_buffs || []).some(b => (b.name || b.buff_id || '').includes('mutation_shield'));
+  if (hasBuff) return null;
+
+  const charmQty = qty(inventory, 'mutation_shield_charm');
+  if (charmQty < CFG.mutationCharmStock) {
+    const need = CFG.mutationCharmStock - charmQty;
+    const estimatedCost = need * 300;
+    if ((c.gold || 0) - estimatedCost < CFG.minGoldReserve) return null;
+    const buy = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', quantity: need }) });
+    return { ok: buy.status === 200, action: 'buy_mutation_charm', qty: need, code: buy.status };
+  }
+
+  const use = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', action: 'use' }) });
+  return { ok: use.status === 200, action: 'use_mutation_charm', code: use.status };
+}
+
 async function step() {
   const st = await req('/status');
   if (st.status !== 200) return { ok: false, reason: 'status_fail', code: st.status };
   const c = st.json.character;
 
-  const invRes = await req('/api/inventory'.replace('/api','')); // '/inventory'
+  const invRes = await req('/inventory');
   const inventory = invRes.status === 200 ? invRes.json.inventory || [] : [];
   const equipped = invRes.status === 200 ? invRes.json.equipped || {} : {};
 
@@ -102,6 +157,11 @@ async function step() {
   if (hpRatio < CFG.lowHpRatio) {
     const r = await req('/rest', { method: 'POST', body: '{}' });
     return { ok: r.status === 200, action: 'rest', level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+  }
+
+  const mutationPlan = await ensureMutationShield(c, inventory);
+  if (mutationPlan) {
+    return { ...mutationPlan, level: c.level, exp: c.exp, gold: c.gold };
   }
 
   const equipPlan = await chooseBestEquip(inventory, equipped);
@@ -130,12 +190,11 @@ async function step() {
   }
 
   const skills = await req('/skill/list');
-  const skillId = (skills.status === 200 ? skills.json.skills?.[0]?.skill_id : null) || 'basic_attack';
+  const skillId = chooseBestSkill(skills.status === 200 ? skills.json.skills : [], c.mp?.current || 0);
 
-  const area = await req(`/game-data/areas/${c.current_area}`);
-  const monsters = area.status === 200 ? area.json?.data?.monsters || [] : [];
-  monsters.sort((a,b)=>(b.exp||0)-(a.exp||0));
-  const monsterId = monsters[0]?.id || 'rabbit';
+  const areaMon = await req(`/areas/${c.current_area}/monsters`);
+  const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
+  const monsterId = chooseMonster(monsters, c.level || 1);
 
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
   return { ok: hunt.status === 200, action: 'hunt', monster_id: monsterId, skill_id: skillId, result: hunt.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: hunt.status };
@@ -143,14 +202,14 @@ async function step() {
 
 async function main() {
   const out = [];
-  for (let i=0;i<CFG.maxActions;i++) {
+  for (let i = 0; i < CFG.maxActions; i++) {
     const r = await step();
     out.push(r);
     await sleep(CFG.delayMs);
   }
-  const okCount = out.filter(x=>x.ok).length;
-  const last = out[out.length-1] || {};
-  console.log(`live-strategy ok=${okCount}/${out.length} lastAction=${last.action||'none'} level=${last.level||'?'} exp=${last.exp||'?'} gold=${last.gold||'?'}`);
+  const okCount = out.filter(x => x.ok).length;
+  const last = out[out.length - 1] || {};
+  console.log(`live-strategy ok=${okCount}/${out.length} lastAction=${last.action || 'none'} level=${last.level || '?'} exp=${last.exp || '?'} gold=${last.gold || '?'} code=${last.code || '?'}`);
 }
 
-main().catch(e=>{ console.log(`live-strategy error=${e.message}`); process.exit(1); });
+main().catch(e => { console.log(`live-strategy error=${e.message}`); process.exit(1); });

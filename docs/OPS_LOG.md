@@ -322,3 +322,14 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
 - [2026-03-05 22:08 KST] Next 30-min actionable TODO: implement `ops:history-probe-dashboard` with a tiny script that appends timestamped `endpoint,last_status,failure_streak` rows from `activity_probe_summary`.
+- [2026-03-05 22:24 KST] 30-min STRATEGY DIRECTOR cycle completed (spec drift check + live runner tuning).
+  - KEEP: pinned spec (`docs/GRINDQUEST_SKILL_DOC_v1.11.1.md`) and live schema (`/api/skill-doc/download`) are both `version: 1.11.1`; no version drift detected.
+  - KEEP (evidence): official core mechanics/endpoints/rates remain aligned with existing assumptions — `POST /api/hunt` requires `monster_id + skill_id`, action limits 60/min, mutation event at Lv10+ with 8% proc + 10m cooldown, and mutation shield charm (`mutation_shield_charm`) in shop docs.
+  - CHANGE: updated `scripts/live-strategy-runner.js` for score-throughput and survivability under current spec:
+    - switched monster source to `GET /api/areas/{area_id}/monsters` (official endpoint path),
+    - skill selection now respects `cooldown_remaining` + MP budget,
+    - added mutation shield prep/use path at Lv10+ (`buy/use mutation_shield_charm`),
+    - improved 429 handling with bounded retry + backoff (`Retry-After` aware),
+    - added safer hunt target selector (high EXP within configurable level-gap).
+  - CHANGE: updated `config/strategy.env` with tunables (`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_MIN_GOLD_RESERVE`, mutation stock/level, backoff base/max).
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=9 exp=207 gold=1770 code=200`.
