@@ -20,6 +20,9 @@ Before implementing any feature, read:
 - `docs/ARCHITECTURE.md`
 - `docs/RUNBOOK_AUTONOMY.md`
 
+At least once per day (or immediately after API schema-related failures), refresh source-of-truth schema from:
+- `GET https://bujuagent.com/api/skill-doc/download`
+
 Agent tasks must stay aligned with the Buju objective: maximize in-game score via autonomous, robust operation.
 
 ## 30-min Autonomous Cycle (Standard)
