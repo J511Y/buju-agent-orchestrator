@@ -102,3 +102,9 @@ Track A/B and policy experiments.
 - Metric(s): Routing-state regression count in CI; number of ambiguous fallback decisions per day.
 - Result: Baseline outage pattern remains stable for synthetic-transition test coverage.
 - Decision: Implement routing-transition verifier in next cycle.
+- Date: 2026-03-05 13:08 KST
+- Hypothesis: Verifying degraded-state persistence under continuous history-endpoint `http_fail` streaks will prevent accidental recovery regressions.
+- Change: This cycle again observed stable outage pattern (history endpoints 404 with rolling failure streak `6`) while `/api/status` remained healthy.
+- Metric(s): False degraded->healthy transitions in test runs; CI catches for routing-state regressions.
+- Result: Baseline supports adding persistence-focused routing verification.
+- Decision: Implement `verify:history-routing` coverage in next cycle.
