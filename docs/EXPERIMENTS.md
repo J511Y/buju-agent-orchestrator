@@ -220,3 +220,10 @@ Track A/B and policy experiments.
 - Metric(s): % cycles with actionable trend lines; operator-rated usefulness (binary) in OPS entries.
 - Result: Current cycle had replay zero-signal but live status showed clear progression state (Lv22, exp/gold moved), supporting delta automation.
 - Decision: Implement prototype and evaluate over next 12 hourly cycles.
+
+- Date: 2026-03-06 08:09 KST
+- Hypothesis: Automating status-delta extraction into OPS entries will reduce zero-signal cycles and improve operator actionability during persistent history-endpoint outages.
+- Change: Add npm alias for delta feedback generator and test one-shot append behavior against current cycle snapshot.
+- Metric(s): Ratio of cycles with non-zero trend line; time-to-triage from latest OPS entry.
+- Result: Replay/history remained zero/404 while live status reflected continued progression/resource movement, supporting delta automation.
+- Decision: Implement alias + one-cycle dry run in next 30-min slot, then monitor for 12 cycles.

@@ -555,3 +555,11 @@
   - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPIs after 2+ consecutive successful history probes.
   - Resource trend signal: hunt quota near exhausted (`1/30`), HP/MP `297/415` and `138/218`; bias next cycle toward recovery + efficient combat actions.
 - [2026-03-06 07:09 KST] Next 30-min actionable TODO: add `scripts/hourly-feedback-from-status-delta.js` to compare current `/api/status` with prior snapshot and auto-emit delta fields into OPS logging.
+
+- [2026-03-06 08:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv22, exp `4233`, gold `2278`, HP `291/415`, MP `138/218`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue to return `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak `7`.
+  - Retry recommendation: keep replay-first fallback, retry history endpoints hourly, and only restore history-derived KPIs after at least 2 consecutive successful history reads.
+  - Resource trend signal: hunt budget exhausted (`0/30`) with HP/MP at `291/415` and `138/218`; prioritize recovery-safe actions before next hunt reset.
+- [2026-03-06 08:09 KST] Next 30-min actionable TODO: wire `scripts/hourly-feedback-from-status-delta.js` into npm (`ops:feedback:delta`) and emit compact delta lines to `docs/OPS_LOG.md` automatically each cycle.
