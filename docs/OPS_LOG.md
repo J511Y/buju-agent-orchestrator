@@ -353,3 +353,9 @@
   - KEEP (potion economics evidence): runner prioritizes HP potion usage under `BUJU_LOW_HP_POTION_RATIO=0.55` before `/rest`, while maintaining potion stock floor buy policy (`BUJU_MIN_HP_POTION_S=5`, `BUJU_MIN_MP_POTION_S=3`).
   - KEEP (stall prevention evidence): runner tracks repeated 400s by action and temporarily downgrades/skips that action (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) then continues hunt path.
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=use_hp_potion level=10 exp=211 gold=2345 code=200`.
+- [2026-03-05 23:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
+  - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
+- [2026-03-05 23:08 KST] Next 30-min actionable TODO: implement `scripts/ops-history-probe-dashboard.js` and `npm run ops:history-probe-dashboard` to append timestamped endpoint health rows from `activity_probe_summary`.
