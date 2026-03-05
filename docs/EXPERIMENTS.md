@@ -199,3 +199,10 @@ Track A/B and policy experiments.
 - Metric(s): Non-zero hourly signal rate in feedback logs; number of cycles classified as 'no signal'; mismatch rate between replay and status-derived deltas.
 - Result: Baseline cycle showed replay zero-signal with healthy status endpoint and meaningful state values, supporting mixed-signal approach test.
 - Decision: Run 24h trial with mixed-signal feedback path before promoting to default behavior.
+
+- Date: 2026-03-06 05:09 KST
+- Hypothesis: Hourly status-snapshot deltas can provide reliable progression/resource trend signals when replay + history endpoints provide zero/404 signal.
+- Change: Introduce compact status snapshot persistence and delta computation in feedback pipeline.
+- Metric(s): Share of cycles with non-zero trend signal; false-positive delta rate caused by snapshot timing jitter.
+- Result: Current cycle had replay zero-signal with valid live status progression state (Lv21/exp/gold/hp/mp), supporting snapshot-delta path.
+- Decision: Implement snapshot capture in next dev slot and evaluate for 24 hourly cycles.
