@@ -70,6 +70,7 @@ npm run dev
   - v1.14 제약 반영: 전투 중 상점 구매를 스킵하고 헌팅 루프를 유지
   - `400` 반복 액션은 anti-stall 쿨다운으로 일시 스킵 후 헌팅 루프 지속
   - `429`는 설정 가능한 상한(`BUJU_RETRY_MAX_ATTEMPTS`)까지 백오프로 재시도
+  - `/api/status.rate_limits` 기반 사전 예산 체크로 잔여 호출 0인 액션은 선제 스킵(불필요한 429/400 감소)
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`

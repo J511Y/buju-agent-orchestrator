@@ -1,5 +1,18 @@
 # Ops Log
 
+## 2026-03-06
+- [2026-03-06 04:23 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - CHANGE (drift detection): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`, while live `GET /api/skill-doc/download` is `version: 1.14.0` (drift persists).
+  - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (batch-first policy): quantity-capable actions remain batch-first in runner (`/api/shop/sell`, `/api/item/use`, `/api/shop/buy` with `quantity`).
+  - CHANGE (strategy/code): added preflight rate-limit budget guard using `/api/status.rate_limits` in `scripts/live-strategy-runner.js`.
+    - Skips sell/use/rest/buy/move/hunt calls when remaining budget is `0`.
+    - Adds deterministic fallback action `wait_hunt_rate_limit` instead of forcing a doomed hunt call at exhausted budget.
+    - Keeps v1.14 in-combat constraints and anti-stall soft-fail path intact.
+  - CHANGE (docs): updated `docs/BUJU_GAME_CONTEXT.md` latest live version note to `v1.14.0` with pinned/local drift note; updated README live-policy bullet for rate-limit precheck.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=wait_hunt_rate_limit level=20 exp=3107 gold=788 code=200`.
+  - Runtime continuity evidence: live daemon remains active (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` observed via `pgrep`).
+
 ## 2026-03-03
 - Initialized autonomous 30-minute cron cycle.
 - GitHub repository creation via `gh repo create` failed due token scope (`createRepository` not accessible).

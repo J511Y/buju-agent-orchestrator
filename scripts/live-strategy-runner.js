@@ -120,6 +120,16 @@ function qty(inv, itemId) {
   return inv.find(i => i.item_id === itemId)?.quantity || 0;
 }
 
+function getRateLimitRemaining(rateLimits, key) {
+  const remaining = Number(rateLimits?.[key]?.remaining);
+  return Number.isFinite(remaining) ? remaining : null;
+}
+
+function hasRateBudget(rateLimits, key) {
+  const remaining = getRateLimitRemaining(rateLimits, key);
+  return remaining === null || remaining > 0;
+}
+
 function usedSlots(inventory, invResJson) {
   const count = Number(invResJson?.inventory_count);
   if (Number.isFinite(count) && count > 0) return count;
@@ -268,7 +278,7 @@ function chooseMonster(monsters, level) {
   return pool[0]?.id || 'rabbit';
 }
 
-async function ensureMutationShield(c, inventory, inCombat) {
+async function ensureMutationShield(c, inventory, inCombat, rateLimits) {
   if ((c.level || 1) < CFG.mutationLevel) return null;
   if (shouldSkipAction('mutation_shield')) return null;
 
@@ -278,6 +288,7 @@ async function ensureMutationShield(c, inventory, inCombat) {
   const charmQty = qty(inventory, 'mutation_shield_charm');
   if (charmQty < CFG.mutationCharmStock) {
     if (inCombat) return null; // v1.14+: shop buy blocked during combat
+    if (!hasRateBudget(rateLimits, 'buy')) return null;
     const need = CFG.mutationCharmStock - charmQty;
     const estimatedCost = need * 300;
     if ((c.gold || 0) - estimatedCost < CFG.minGoldReserve) return null;
@@ -286,6 +297,7 @@ async function ensureMutationShield(c, inventory, inCombat) {
     return { ok: buy.status === 200, action: 'buy_mutation_charm', qty: need, code: buy.status, softFail: buy.status === 400 };
   }
 
+  if (!hasRateBudget(rateLimits, 'use_item')) return null;
   const use = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', action: 'use', quantity: 1 }) });
   recordActionResult('mutation_shield', use.status);
   return { ok: use.status === 200, action: 'use_mutation_charm', code: use.status, softFail: use.status === 400 };
@@ -317,6 +329,7 @@ async function step() {
   const st = await req('/status');
   if (st.status !== 200) return { ok: false, reason: 'status_fail', code: st.status };
   const c = st.json.character;
+  const rateLimits = st.json.rate_limits || {};
 
   const invRes = await req('/inventory');
   const inventory = invRes.status === 200 ? invRes.json.inventory || [] : [];
@@ -325,7 +338,9 @@ async function step() {
   const inCombat = !!(c.combat?.in_progress);
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
-  const sellResult = inCombat ? null : await liquidateInventoryRisk(inventory, equipped, slotUsed, c);
+  const sellResult = (inCombat || !hasRateBudget(rateLimits, 'sell'))
+    ? null
+    : await liquidateInventoryRisk(inventory, equipped, slotUsed, c);
   if (sellResult) return sellResult;
 
   const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
@@ -333,7 +348,7 @@ async function step() {
   // Priority 2: potion-over-rest economics (batch-first use where quantity is supported).
   if (hpRatio < CFG.lowHpPotionRatio) {
     const hpPlan = chooseHpPotionPlan(inventory, c.hp?.current || 0, c.hp?.max || 0);
-    if (hpPlan && !shouldSkipAction('hp_potion_use')) {
+    if (hpPlan && !shouldSkipAction('hp_potion_use') && hasRateBudget(rateLimits, 'use_item')) {
       const usePotion = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: hpPlan.itemId, action: 'use', quantity: hpPlan.quantity }) });
       recordActionResult('hp_potion_use', usePotion.status);
       if (usePotion.status === 200) {
@@ -343,7 +358,7 @@ async function step() {
     }
   }
 
-  if (hpRatio < CFG.lowHpRatio) {
+  if (hpRatio < CFG.lowHpRatio && hasRateBudget(rateLimits, 'rest')) {
     const r = await req('/rest', { method: 'POST', body: '{}' });
     recordActionResult('rest', r.status);
     if (r.status === 200) {
@@ -352,13 +367,13 @@ async function step() {
     // soft-fail on 400 to avoid stall; continue to hunt path
   }
 
-  const mutationPlan = await ensureMutationShield(c, inventory, inCombat);
+  const mutationPlan = await ensureMutationShield(c, inventory, inCombat, rateLimits);
   if (mutationPlan && !mutationPlan.softFail) {
     return { ...mutationPlan, level: c.level, exp: c.exp, gold: c.gold };
   }
 
   const equipPlan = await chooseBestEquip(inventory, equipped);
-  if (!inCombat && equipPlan && !shouldSkipAction('equip')) {
+  if (!inCombat && equipPlan && !shouldSkipAction('equip') && hasRateBudget(rateLimits, 'use_item')) {
     const r = await req('/item/use', { method: 'POST', body: JSON.stringify({ action: 'equip', item_id: equipPlan.itemId }) });
     recordActionResult('equip', r.status);
     if (r.status === 200) {
@@ -369,7 +384,7 @@ async function step() {
 
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
-  if (!inCombat && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
+  if (!inCombat && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp') && hasRateBudget(rateLimits, 'buy')) {
     const buyQty = CFG.minHpPotionS - hpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_hp', r.status);
@@ -377,7 +392,7 @@ async function step() {
       return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }
-  if (!inCombat && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
+  if (!inCombat && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp') && hasRateBudget(rateLimits, 'buy')) {
     const buyQty = CFG.minMpPotionS - mpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_mp', r.status);
@@ -387,7 +402,7 @@ async function step() {
   }
 
   const targetArea = pickArea(c.level || 1);
-  if (!inCombat && c.current_area !== targetArea && !shouldSkipAction('move')) {
+  if (!inCombat && c.current_area !== targetArea && !shouldSkipAction('move') && hasRateBudget(rateLimits, 'move')) {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: targetArea }) });
     recordActionResult('move', r.status);
     if (r.status === 200) {
@@ -402,6 +417,10 @@ async function step() {
   const areaMon = await req(`/areas/${c.current_area}/monsters`);
   const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
   const monsterId = chooseMonster(monsters, c.level || 1);
+
+  if (!hasRateBudget(rateLimits, 'hunt')) {
+    return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+  }
 
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
   recordActionResult('hunt', hunt.status);
