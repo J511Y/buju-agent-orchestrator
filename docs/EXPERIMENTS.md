@@ -114,3 +114,9 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-identify failing endpoint set; manual log-read steps per cycle.
 - Result: Baseline supports adding a compact generated dashboard for triage.
 - Decision: Implement dashboard generator in next cycle and evaluate usability over several hourly runs.
+- Date: 2026-03-05 15:09 KST
+- Hypothesis: Auto-appending hourly probe summaries to a single dashboard file will improve outage visibility without increasing operator cognitive load.
+- Change: This cycle still shows persistent history-endpoint failure (all `404`, rolling streak `6`) while `/api/status` remains healthy.
+- Metric(s): Time-to-locate latest endpoint health state; number of files read per triage.
+- Result: Baseline suggests a single rolling dashboard would reduce navigation overhead.
+- Decision: Implement dashboard snapshot append flow in next cycle.
