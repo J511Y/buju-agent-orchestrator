@@ -353,6 +353,12 @@
   - KEEP (potion economics evidence): runner prioritizes HP potion usage under `BUJU_LOW_HP_POTION_RATIO=0.55` before `/rest`, while maintaining potion stock floor buy policy (`BUJU_MIN_HP_POTION_S=5`, `BUJU_MIN_MP_POTION_S=3`).
   - KEEP (stall prevention evidence): runner tracks repeated 400s by action and temporarily downgrades/skips that action (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) then continues hunt path.
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=use_hp_potion level=10 exp=211 gold=2345 code=200`.
+- [2026-03-05 23:20 KST] 30-min STRATEGY DIRECTOR priority-update run completed.
+  - KEEP: hard priorities #1~#3 remain enforced; no additional code/config changes required.
+  - KEEP (inventory risk evidence): `/api/inventory` slot monitoring active; sell trigger remains `>=27` via `BUJU_INV_SELL_TRIGGER_SLOTS`; liquidation path uses `/api/shop/sell` for unequipped low-tier/common equipment while preserving equipped gear.
+  - KEEP (potion economics evidence): potion-first recovery remains active (`BUJU_LOW_HP_POTION_RATIO=0.55`) with `/rest` as fallback; potion stock floor/buy policy unchanged (`BUJU_MIN_HP_POTION_S=5`, `BUJU_MIN_MP_POTION_S=3`).
+  - KEEP (stall prevention evidence): repeated 400 downgrade logic remains active (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) and continues hunt path when optional actions soft-fail.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=11 exp=333 gold=1260 code=200`.
 - [2026-03-05 23:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
   - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
   - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
