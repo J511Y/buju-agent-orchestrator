@@ -138,3 +138,9 @@ Track A/B and policy experiments.
 - Metric(s): Manual edits required per hourly report; consistency of endpoint-health presentation across cycles.
 - Result: Baseline continues to justify command-driven dashboard generation.
 - Decision: Implement `ops:history-probe-dashboard` in next cycle.
+- Date: 2026-03-05 19:14 KST
+- Hypothesis: Shipping a script-backed `ops:history-probe-dashboard` command will improve endpoint-health reporting consistency across hourly cycles.
+- Change: This cycle again shows persistent history-endpoint outage (all `404`, rolling streak `6`) with `/api/status` healthy.
+- Metric(s): Formatting variance across hourly reports; time to parse current endpoint-health status.
+- Result: Baseline remains favorable for command-driven dashboard generation.
+- Decision: Implement script + npm alias in next cycle.
