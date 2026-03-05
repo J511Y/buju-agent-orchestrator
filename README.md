@@ -55,7 +55,7 @@ npm run dev
   - `npm run verify:cycle`
   - `npm run verify:worker`
   - `npm run verify:replay`
-- `verify:replay` 요약은 결정 규칙 분포/서킷 차단 지표를 포함하며, 회귀 감지 기준으로 유지한다.
+- `verify:replay` 요약은 결정 규칙 분포/서킷 차단 지표와 운영 카운터(예: invalid target 차단, 재시도 후 성공)를 포함하며, 회귀 감지 기준으로 유지한다.
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`

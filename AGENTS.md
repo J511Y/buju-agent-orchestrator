@@ -36,7 +36,7 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
    - 로컬 실행 또는 최소 테스트
    - Activity 수집 경로 변경 시: `npm run verify:activity`, `npm run verify:activity-config`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity-probe-summary`
    - 워커 safety gate/실패 복구 로직 변경 시: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay`
-   - 리플레이 요약 계약(지표/필드) 변경 시 README의 Worker Reliability 섹션을 함께 갱신
+   - 리플레이 요약 계약(지표/필드) 변경 시 README의 Worker Reliability 섹션을 함께 갱신(결정 규칙 분포 + invalid target/재시도 성공 등 운영 카운터 반영)
 4. 문서화
    - 결정사항 `docs/DECISIONS.md`
    - 운영 이벤트 `docs/OPS_LOG.md`
