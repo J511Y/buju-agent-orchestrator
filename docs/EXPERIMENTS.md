@@ -206,3 +206,10 @@ Track A/B and policy experiments.
 - Metric(s): Share of cycles with non-zero trend signal; false-positive delta rate caused by snapshot timing jitter.
 - Result: Current cycle had replay zero-signal with valid live status progression state (Lv21/exp/gold/hp/mp), supporting snapshot-delta path.
 - Decision: Implement snapshot capture in next dev slot and evaluate for 24 hourly cycles.
+
+- Date: 2026-03-06 06:09 KST
+- Hypothesis: A persisted hourly status snapshot (before/after) will reveal actionable progression/resource trends even when replay/history reports all-zero KPIs.
+- Change: Add snapshot persistence + delta calculation for level/exp/gold/hp/mp/hunt remaining in hourly report path.
+- Metric(s): % cycles with non-zero trend signal; consistency of derived deltas across consecutive hours.
+- Result: This cycle again had replay all-zero with meaningful live status movement and resource pressure, supporting snapshot-delta implementation.
+- Decision: Build snapshot helper in next 30-min cycle and observe for 24 hourly runs.

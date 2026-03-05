@@ -511,3 +511,11 @@
   - Retry recommendation: continue replay-first KPI fallback; retry history probes hourly and re-enable history-derived KPIs only after 2+ consecutive successful history responses.
   - Resource trend signal: hunt allowance nearly exhausted (`1/30`), HP/MP at `303/400` and `133/210`; prioritize recovery-safe actions until next allowance refresh.
 - [2026-03-06 05:09 KST] Next 30-min actionable TODO: add `scripts/capture-status-snapshot.js` to persist hourly `/api/status` compact snapshots (level/exp/gold/hp/mp/hunt remaining) and compute previous-hour delta for OPS feedback.
+
+- [2026-03-06 06:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv21, exp `3523`, gold `1588`, HP `237/400`, MP `133/210`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: recent-history endpoints still `404` while `/api/status` remains healthy (`200`); rolling 6h failure streak `6`.
+  - Retry recommendation: maintain replay-first fallback and retry history probes hourly; promote history KPIs only after 2+ consecutive successful responses.
+  - Resource trend signal: hunt budget exhausted (`0/30`) with HP below max; short recovery window (rest/potion) should be preferred until allowance reset.
+- [2026-03-06 06:09 KST] Next 30-min actionable TODO: implement `scripts/capture-status-snapshot.js` and persist hourly compact status snapshots to compute reliable previous-hour deltas in feedback docs.
