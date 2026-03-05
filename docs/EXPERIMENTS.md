@@ -144,3 +144,9 @@ Track A/B and policy experiments.
 - Metric(s): Formatting variance across hourly reports; time to parse current endpoint-health status.
 - Result: Baseline remains favorable for command-driven dashboard generation.
 - Decision: Implement script + npm alias in next cycle.
+- Date: 2026-03-05 20:09 KST
+- Hypothesis: A timestamped dashboard writer for `activity_probe_summary` will improve cross-cycle continuity and reduce manual triage steps.
+- Change: This cycle again shows persistent history-endpoint outage (all `404`, rolling streak `6`) while `/api/status` remains healthy.
+- Metric(s): Time to reconstruct endpoint-health timeline; number of manual edits per cycle.
+- Result: Baseline continues to support scripted dashboard output.
+- Decision: Implement dashboard writer in next cycle.
