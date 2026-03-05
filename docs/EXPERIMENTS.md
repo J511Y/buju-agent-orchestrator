@@ -174,3 +174,9 @@ Track A/B and policy experiments.
 - Metric(s): Cross-day continuity of endpoint-health records; manual edits required per cycle.
 - Result: Baseline supports automated dashboard append approach.
 - Decision: Implement script + npm alias in next cycle.
+- Date: 2026-03-06 01:08 KST
+- Hypothesis: Persisting hourly probe snapshots into a dedicated dashboard file will improve long-run visibility of endpoint-health degradation trends.
+- Change: This cycle continues the same degraded history-endpoint pattern (all `404`, rolling streak `7`) while `/api/status` remains healthy.
+- Metric(s): Time to inspect endpoint-health history; number of files needed for outage trend analysis.
+- Result: Baseline continues to support dashboard snapshot persistence.
+- Decision: Implement dashboard file + append script in next cycle.
