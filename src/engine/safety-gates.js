@@ -16,7 +16,7 @@ export function evaluateSafetyGates(stateSnapshot, nowMs = Date.now()) {
     reasons.push('low_health');
   }
 
-  if ((stateSnapshot.pendingActionCount ?? 0) > maxPendingActions) {
+  if ((stateSnapshot.pendingActionCount ?? 0) >= maxPendingActions) {
     reasons.push('action_queue_saturated');
   }
 

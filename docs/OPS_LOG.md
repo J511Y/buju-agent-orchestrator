@@ -240,3 +240,7 @@
   - Extended formatted replay summary with `retried_success` metric to make retry recovery rate visible during ops triage.
   - Updated `scripts/verify-replay-analyze.js` fixture/assertions for retried success counting and output contract.
   - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (all passed).
+- [2026-03-05 10:06 KST] Safety gate refinement completed: queue saturation threshold made inclusive.
+  - Updated `src/engine/safety-gates.js` so `action_queue_saturated` triggers when `pendingActionCount >= maxPendingActions` (inclusive capacity guard).
+  - Extended `scripts/verify-cycle.js` with equality-threshold scenario to lock block behavior and reason contract.
+  - Verification executed: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay` (all passed).

@@ -177,6 +177,26 @@ assert.equal(invalidAttackTarget.execution.blockedBy, 'action_target_validation'
 assert.equal(invalidAttackTarget.execution.attempts, 0);
 assert.equal(attemptCount, attemptsBeforeInvalidTarget);
 
+const saturatedQueueState = {
+  ...stateSnapshot,
+  battleId: 'verify-battle-saturated-queue',
+  pendingActionCount: 2,
+  maxPendingActions: 2
+};
+const saturatedQueueBlocked = await runDeterministicCycleOnce({
+  tickNumber: 13,
+  tickId: 'tick-verify-000013',
+  nowMs: 19_500,
+  logger,
+  actionCooldownGuard: createInProcessActionCooldownGuard({ cooldownMs: 0 }),
+  executeAction: executor,
+  stateProvider: () => saturatedQueueState
+});
+assert.equal(saturatedQueueBlocked.blocked, true);
+assert.equal(saturatedQueueBlocked.execution.status, 'skipped');
+assert.equal(saturatedQueueBlocked.execution.reason, 'action_queue_saturated');
+assert.equal(saturatedQueueBlocked.execution.blockedBy, 'safety_gate');
+
 let httpRetryAttemptCount = 0;
 const httpRetryExecutor = createActionExecutor({
   transport: async () => {

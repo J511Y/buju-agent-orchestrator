@@ -80,3 +80,6 @@
 - Extended replay operational telemetry with `retriedSuccess` counter (successful `action_executed` where `attempts > 1`) to quantify transient transport instability that was recovered by retries.
 - Updated replay summary operational contract to include `retried_success`, enabling fast distinction between hard failures and recovered retry paths.
 - Added deterministic verification coverage in `npm run verify:replay` with explicit `attempts:2` success record and summary-line assertion.
+- Tightened safety gate threshold for action queue saturation: `pendingActionCount >= maxPendingActions` now blocks tick execution (previously only `>` blocked).
+- Rationale: hitting configured queue capacity should be treated as saturated to prevent additional enqueue pressure and reduce cascading latency/failure risk.
+- Added cycle verification coverage for edge case equality (`pendingActionCount=2`, `maxPendingActions=2`) asserting deterministic block reason `action_queue_saturated`.
