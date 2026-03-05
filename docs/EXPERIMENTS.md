@@ -186,3 +186,9 @@ Track A/B and policy experiments.
 - Metric(s): Time to review endpoint-health trend over 24h; number of files scanned during outage triage.
 - Result: Baseline continues to support dashboard persistence automation.
 - Decision: Implement dashboard-row append script + npm alias in next cycle.
+- Date: 2026-03-06 03:08 KST
+- Hypothesis: Appending hourly `activity_probe_summary` snapshots into one dashboard doc will improve outage trend readability and reduce per-cycle triage time.
+- Change: This cycle still shows degraded history endpoints (all `404`, rolling streak `6`) while `/api/status` remains healthy.
+- Metric(s): Time to identify current and prior-hour endpoint streaks; number of files opened during endpoint triage.
+- Result: Baseline continues to support dashboard snapshot automation.
+- Decision: Implement dashboard append script + npm alias in next cycle.

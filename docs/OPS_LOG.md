@@ -436,3 +436,9 @@
   - KEEP (batch-first): quantity-capable actions remain batch-preferred (sell/use/buy with `quantity`).
   - KEEP (stall prevention): repeated-400 downgrade still active and hunt path continuity preserved.
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=20 exp=443 gold=2248 code=200`.
+- [2026-03-06 03:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `6`.
+  - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
+- [2026-03-06 03:08 KST] Next 30-min actionable TODO: implement `ops:history-probe-dashboard` script to append hourly `activity_probe_summary` snapshots into a single dashboard doc for faster trend inspection.
