@@ -63,6 +63,10 @@ npm run dev
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
+- 현재 우선순위 정책:
+  - 인벤토리 위험 선차단(슬롯 임계값 도달 시 저티어 장비 batch 판매)
+  - 저체력 구간에서 potion 우선(가능 시 batch 사용), 이후 `rest`
+  - `400` 반복 액션은 anti-stall 쿨다운으로 일시 스킵 후 헌팅 루프 지속
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
