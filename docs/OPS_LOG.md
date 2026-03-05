@@ -250,3 +250,9 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `7` for all history endpoints.
   - Retry recommendation: keep history API in degraded mode, continue replay-first summaries, and retry history endpoints only after docs-validated endpoint refresh.
 - [2026-03-05 10:08 KST] Next 30-min actionable TODO: add a small verifier for `history_api_degraded` + `history_endpoint_recovery_streak` transitions using synthetic probe logs (fail xN -> degraded, success x2 -> recover).
+- [2026-03-05 11:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary keeps history-endpoint failure streak at `7`.
+  - Retry recommendation: continue replay-first summaries; perform docs-backed endpoint refresh and run targeted probe verification before attempting history-path recovery.
+- [2026-03-05 11:09 KST] Next 30-min actionable TODO: add a compact `history_endpoint_incident.md` runbook (degraded trigger, recovery conditions, verification commands) and link it from `docs/ACTIVITY_FETCHER.md`.

@@ -90,3 +90,9 @@ Track A/B and policy experiments.
 - Metric(s): Regression incidents in degraded/recovery routing; % of cycles with deterministic routing state.
 - Result: Baseline outage pattern persists and is suitable for transition-test validation.
 - Decision: Implement synthetic transition verifier in next cycle.
+- Date: 2026-03-05 11:09 KST
+- Hypothesis: A dedicated incident runbook for history-endpoint degradation/recovery will reduce operator response time and inconsistency during prolonged API-history outages.
+- Change: Current cycle confirms persistent degraded state (history endpoints 404; rolling failure streak remains `7`) with `/api/status` stable.
+- Metric(s): Time-to-triage for history endpoint incidents; variance in fallback/recovery handling across cycles.
+- Result: Baseline outage pattern remains stable enough to codify runbook-driven handling.
+- Decision: Draft and link incident runbook in next cycle.
