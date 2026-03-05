@@ -108,3 +108,9 @@ Track A/B and policy experiments.
 - Metric(s): False degraded->healthy transitions in test runs; CI catches for routing-state regressions.
 - Result: Baseline supports adding persistence-focused routing verification.
 - Decision: Implement `verify:history-routing` coverage in next cycle.
+- Date: 2026-03-05 14:08 KST
+- Hypothesis: A lightweight probe dashboard generated from `activity_probe_summary` will shorten incident triage time and reduce repetitive manual log scanning.
+- Change: This cycle again showed stable degraded history-endpoint pattern (all history endpoints `404`, streak `6`) with `/api/status` healthy.
+- Metric(s): Time-to-identify failing endpoint set; manual log-read steps per cycle.
+- Result: Baseline supports adding a compact generated dashboard for triage.
+- Decision: Implement dashboard generator in next cycle and evaluate usability over several hourly runs.
