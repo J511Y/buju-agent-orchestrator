@@ -452,3 +452,10 @@
   - Validation evidence:
     - pre-fix: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=0/1 lastAction=rest ... code=400`
     - post-fix: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt ... code=200`
+- [2026-03-06 03:47 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned doc remains `1.11.1`, live doc remains `1.14.0` (persistent drift, no new version change this cycle).
+  - KEEP (hard constraints): `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10` preserved unchanged.
+  - KEEP (batch-first): quantity-capable action paths remain batch-first (`sell/use/buy` with `quantity`).
+  - CHANGE: improved 429 resilience in `scripts/live-strategy-runner.js` by replacing fixed retry cap with configurable `BUJU_RETRY_MAX_ATTEMPTS` (default 4), preserving existing backoff policy.
+  - CHANGE (evidence): pre-change smoke observed hunt throttle failure (`ok=0/1 ... code=429`); post-change smoke recovered to success (`ok=1/1 ... code=200`).
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=20 exp=1459 gold=548 code=200`.

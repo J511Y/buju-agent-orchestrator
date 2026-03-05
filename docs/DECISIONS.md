@@ -102,3 +102,5 @@
 - Rationale: avoid predictable `IN_COMBAT` 400 responses on blocked endpoints, reduce wasted action budget, and preserve action throughput under batch-first policy.
 - Added anti-stall refinement for low-HP rest path: `POST /rest` now soft-fails on HTTP 400 and execution continues to hunt decision path in the same tick (while preserving immediate return on successful rest).
 - Rationale: under live rules/drift conditions, rest can intermittently return 400; treating it as terminal for the tick created avoidable throughput collapse (`ok=0/1`).
+- Added configurable 429 retry ceiling for live strategy requests (`BUJU_RETRY_MAX_ATTEMPTS`, default 4) to reduce false-negative failed ticks during short rate-limit bursts.
+- Rationale: a fixed low retry cap caused occasional terminal hunt 429 outcomes (`ok=0/1`) even when immediate subsequent retry windows succeeded.

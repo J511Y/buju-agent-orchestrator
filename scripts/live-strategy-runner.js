@@ -46,7 +46,8 @@ const CFG = {
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
   potionUseMaxQuantity: Number(process.env.BUJU_POTION_USE_MAX_QUANTITY || 3),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
-  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8)
+  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
+  retryMaxAttempts: Number(process.env.BUJU_RETRY_MAX_ATTEMPTS || 4)
 };
 
 const stallState = new Map();
@@ -98,7 +99,7 @@ async function req(p, opts = {}, retryCount = 0) {
   let json = null;
   try { json = JSON.parse(text); } catch { json = { raw: text }; }
 
-  if (res.status === 429 && retryCount < 2) {
+  if (res.status === 429 && retryCount < CFG.retryMaxAttempts) {
     const retryAfterSec = Number(res.headers.get('retry-after') || 0);
     const backoff = retryAfterSec > 0
       ? retryAfterSec * 1000
