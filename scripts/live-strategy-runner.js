@@ -126,8 +126,12 @@ function chooseMonster(monsters, level) {
   return pool[0]?.id || 'rabbit';
 }
 
+let mutationCharmUnavailable = false;
+
 async function ensureMutationShield(c, inventory) {
   if ((c.level || 1) < CFG.mutationLevel) return null;
+  if (mutationCharmUnavailable) return null;
+
   const hasBuff = (c.active_buffs || []).some(b => (b.name || b.buff_id || '').includes('mutation_shield'));
   if (hasBuff) return null;
 
@@ -137,11 +141,17 @@ async function ensureMutationShield(c, inventory) {
     const estimatedCost = need * 300;
     if ((c.gold || 0) - estimatedCost < CFG.minGoldReserve) return null;
     const buy = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', quantity: need }) });
-    return { ok: buy.status === 200, action: 'buy_mutation_charm', qty: need, code: buy.status };
+    if (buy.status === 200) {
+      return { ok: true, action: 'buy_mutation_charm', qty: need, code: buy.status };
+    }
+    if (buy.status === 400) mutationCharmUnavailable = true;
+    return null;
   }
 
   const use = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', action: 'use' }) });
-  return { ok: use.status === 200, action: 'use_mutation_charm', code: use.status };
+  if (use.status === 200) return { ok: true, action: 'use_mutation_charm', code: use.status };
+  if (use.status === 400) mutationCharmUnavailable = true;
+  return null;
 }
 
 async function step() {
@@ -186,7 +196,10 @@ async function step() {
   const targetArea = pickArea(c.level || 1);
   if (c.current_area !== targetArea) {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: targetArea }) });
-    return { ok: r.status === 200, action: 'move', area: targetArea, level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+    if (r.status === 200) {
+      return { ok: true, action: 'move', area: targetArea, level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+    }
+    // 이동 실패 시 전투를 계속 진행해 루프가 멈추지 않게 한다.
   }
 
   const skills = await req('/skill/list');
