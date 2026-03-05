@@ -404,3 +404,9 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
 - [2026-03-06 01:08 KST] Next 30-min actionable TODO: add `docs/history_endpoint_probe_dashboard.md` and wire a script to append timestamped endpoint status rows from `activity_probe_summary` each cycle.
+- [2026-03-06 01:19 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` and live `GET /api/skill-doc/download` both remain `version: 1.11.1`; no drift detected.
+  - KEEP (hard constraints): enforced values remain unchanged in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (batch-first policy): quantity-capable actions remain batch-preferred in runner (`/api/shop/sell`, `/api/item/use`, `/api/shop/buy` with `quantity`).
+  - KEEP (inventory/potion/stall): inventory risk liquidation, potion-over-rest, and repeated-400 downgrade/continue-hunt controls remain active with no regressions observed.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=16 exp=2525 gold=465 code=200`.
