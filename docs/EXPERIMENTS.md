@@ -126,3 +126,9 @@ Track A/B and policy experiments.
 - Metric(s): Continuity of endpoint-health timeline; operator time spent correlating streaks across cycles.
 - Result: Baseline remains suitable for dashboard timeline experiment.
 - Decision: Implement dashboard bootstrap + append flow in next cycle.
+- Date: 2026-03-05 17:09 KST
+- Hypothesis: Automating hourly dashboard snapshot appends from `activity_probe_summary` will improve trend visibility for endpoint-health incidents.
+- Change: Current cycle shows sustained history-endpoint outage (all `404`, rolling streak `7`) while `/api/status` remains healthy.
+- Metric(s): Time to identify failure-streak changes; operator effort to reconstruct outage timeline.
+- Result: Baseline indicates dashboard automation is still justified.
+- Decision: Implement snapshot-append script in next cycle.
