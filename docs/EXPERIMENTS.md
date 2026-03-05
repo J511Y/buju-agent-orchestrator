@@ -132,3 +132,9 @@ Track A/B and policy experiments.
 - Metric(s): Time to identify failure-streak changes; operator effort to reconstruct outage timeline.
 - Result: Baseline indicates dashboard automation is still justified.
 - Decision: Implement snapshot-append script in next cycle.
+- Date: 2026-03-05 18:09 KST
+- Hypothesis: A dedicated `ops:history-probe-dashboard` command will improve repeatability of endpoint-health reporting and reduce manual formatting drift.
+- Change: Current cycle still indicates persistent history-endpoint outage (all `404`, rolling streak `7`) with `/api/status` healthy.
+- Metric(s): Manual edits required per hourly report; consistency of endpoint-health presentation across cycles.
+- Result: Baseline continues to justify command-driven dashboard generation.
+- Decision: Implement `ops:history-probe-dashboard` in next cycle.

@@ -292,3 +292,9 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary now shows history-endpoint failure streak `7`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog is refreshed and recovery is confirmed by consecutive history-endpoint successes.
 - [2026-03-05 17:09 KST] Next 30-min actionable TODO: implement `scripts/append-history-probe-dashboard.js` to append hourly `activity_probe_summary` snapshots into `docs/history_endpoint_probe_dashboard.md`.
+- [2026-03-05 18:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary keeps history-endpoint failure streak at `7`.
+  - Retry recommendation: continue replay-first summaries and maintain degraded history route until endpoint-spec refresh plus confirmed consecutive history-endpoint recoveries.
+- [2026-03-05 18:09 KST] Next 30-min actionable TODO: add a minimal `npm run ops:history-probe-dashboard` command that writes the latest `activity_probe_summary` table to `docs/history_endpoint_probe_dashboard.md`.
