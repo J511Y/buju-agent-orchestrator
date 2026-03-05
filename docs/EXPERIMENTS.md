@@ -78,3 +78,9 @@ Track A/B and policy experiments.
 - Metric(s): Degraded-state flaps/day; mismatch rate between routing state and actual endpoint reliability.
 - Result: Baseline indicates prolonged degraded period suitable for gated recovery logic.
 - Decision: Implement recovery gate and track for next 24h.
+- Date: 2026-03-05 09:08 KST
+- Hypothesis: Requiring two consecutive successful history probes before clearing degraded state will reduce premature recovery and routing flaps.
+- Change: Current cycle confirms ongoing degraded pattern with history-endpoint failure streak `6` and stable `/api/status` health.
+- Metric(s): Degraded/healthy state transitions per day; false recovery transitions followed by immediate failure.
+- Result: Baseline supports stricter recovery gating.
+- Decision: Implement recovery streak threshold in next cycle and observe for 24h.

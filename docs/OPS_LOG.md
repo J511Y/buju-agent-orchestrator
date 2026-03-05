@@ -229,3 +229,9 @@
   - Expected impact: fewer terminal action failures from short-lived upstream gateway/server instability, improving deterministic cycle continuity.
   - Extended `scripts/verify-cycle.js` with explicit `code=502` first-attempt failure followed by success-on-retry assertion (`attempts=2`).
   - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).
+- [2026-03-05 09:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `6` for all history endpoints.
+  - Retry recommendation: maintain replay-first mode, keep history route marked degraded, and only clear degraded status after endpoint-spec refresh plus consecutive successful history probes.
+- [2026-03-05 09:08 KST] Next 30-min actionable TODO: implement `history_endpoint_recovery_streak` counter (default `2`) so degraded state clears only after two consecutive `ok` history probes.
