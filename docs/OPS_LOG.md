@@ -347,3 +347,9 @@
   - CHANGE: `config/strategy.env` updated with new policy knobs (`BUJU_LOW_HP_POTION_RATIO`, `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_MAX_SLOTS`, `BUJU_STALL_400_THRESHOLD`, `BUJU_STALL_COOLDOWN_TICKS`).
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=use_hp_potion level=10 exp=159 gold=2365 code=200`.
 - [2026-03-05 22:21:24 KST] Watchdog restarted scripts/live-runner-daemon.sh
+- [2026-03-05 22:47 KST] 30-min STRATEGY DIRECTOR priority-update follow-up run completed.
+  - KEEP: hard priorities #1~#3 already enforced in current runner and config; no additional code/config delta required this cycle.
+  - KEEP (inventory risk evidence): runner checks `/api/inventory` slot usage and triggers sell at `BUJU_INV_SELL_TRIGGER_SLOTS=27`, selling unequipped low-tier/common equipment through `POST /api/shop/sell` while excluding equipped items.
+  - KEEP (potion economics evidence): runner prioritizes HP potion usage under `BUJU_LOW_HP_POTION_RATIO=0.55` before `/rest`, while maintaining potion stock floor buy policy (`BUJU_MIN_HP_POTION_S=5`, `BUJU_MIN_MP_POTION_S=3`).
+  - KEEP (stall prevention evidence): runner tracks repeated 400s by action and temporarily downgrades/skips that action (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) then continues hunt path.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=use_hp_potion level=10 exp=211 gold=2345 code=200`.
