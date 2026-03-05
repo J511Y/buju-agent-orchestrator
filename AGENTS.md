@@ -40,7 +40,8 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
    - 로컬 실행 또는 최소 테스트
    - Activity 수집 경로 변경 시: `npm run verify:activity`, `npm run verify:activity-config`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity-probe-summary`
    - Live runner(`scripts/live-action-tick.js`, `scripts/live-strategy-runner.js`, `scripts/live-runner-daemon.sh`) 변경 시: dry-run 출력 확인 + 로그 경로(`logs/live-runner-daemon.log`) 및 hunt payload(`monster_id`,`skill_id`) 계약 유지 확인
-   - `config/strategy.env` 튜닝 변경 시: 인벤토리 임계값/포션 재고/anti-stall(`BUJU_STALL_*`) 의도와 README Live Strategy Runner 정책 설명을 함께 동기화
+   - `config/strategy.env` 튜닝 변경 시: 인벤토리 임계값/포션 재고/anti-stall(`BUJU_STALL_*`)/재시도 상한(`BUJU_RETRY_MAX_ATTEMPTS`) 의도와 README Live Strategy Runner 정책 설명을 함께 동기화
+   - 라이브 정책이 API 메커닉(v1.14+ 전투 중 상점 제한, `rest` 400 soft-fail 등)을 반영하도록 유지하고, 제약 변경 시 BUJU_GAME_CONTEXT/README 동시 갱신
    - 워커 safety gate/실패 복구 로직 변경 시: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay`
    - Safety Gate 용량 임계값(`pendingActionCount >= maxPendingActions`) 계약을 변경하면 README 반영 + `verify:cycle` 포화 경계 케이스를 갱신
    - 리플레이 요약 계약(지표/필드) 변경 시 README의 Worker Reliability 섹션을 함께 갱신(결정 규칙 분포 + invalid target/재시도 성공 등 운영 카운터 반영)

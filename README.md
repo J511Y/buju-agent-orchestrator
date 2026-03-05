@@ -63,10 +63,13 @@ npm run dev
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
+- 주요 튜닝 키: `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`
 - 현재 우선순위 정책:
   - 인벤토리 위험 선차단(슬롯 임계값 도달 시 저티어 장비 batch 판매)
-  - 저체력 구간에서 potion 우선(가능 시 batch 사용), 이후 `rest`
+  - 저체력 구간에서 potion 우선(가능 시 batch 사용), 이후 `rest` (`rest` 400은 soft-fail로 처리해 루프 정체 방지)
+  - v1.14 제약 반영: 전투 중 상점 구매를 스킵하고 헌팅 루프를 유지
   - `400` 반복 액션은 anti-stall 쿨다운으로 일시 스킵 후 헌팅 루프 지속
+  - `429`는 설정 가능한 상한(`BUJU_RETRY_MAX_ATTEMPTS`)까지 백오프로 재시도
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
