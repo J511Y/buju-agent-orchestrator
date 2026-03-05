@@ -44,7 +44,8 @@ const CFG = {
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
-  buyCooldownTicks: Number(process.env.BUJU_BUY_COOLDOWN_TICKS || 6)
+  buyCooldownTicks: Number(process.env.BUJU_BUY_COOLDOWN_TICKS || 6),
+  minBuyQty: Number(process.env.BUJU_MIN_BUY_QTY || 5)
 };
 
 const stallState = new Map();
@@ -306,7 +307,7 @@ async function step() {
   const mpS = qty(inventory, 'mp_potion_s');
   const canBuyNow = (tickCounter - lastBuyTick) >= CFG.buyCooldownTicks;
   if (canBuyNow && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
-    const buyQty = CFG.minHpPotionS - hpS;
+    const buyQty = Math.max(CFG.minHpPotionS - hpS, CFG.minBuyQty);
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_hp', r.status);
     if (r.status === 200) {
@@ -315,7 +316,7 @@ async function step() {
     }
   }
   if (canBuyNow && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
-    const buyQty = CFG.minMpPotionS - mpS;
+    const buyQty = Math.max(CFG.minMpPotionS - mpS, CFG.minBuyQty);
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_mp', r.status);
     if (r.status === 200) {
