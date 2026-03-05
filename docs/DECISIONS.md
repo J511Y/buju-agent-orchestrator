@@ -88,3 +88,8 @@
 - Replaced single-shot 429 retry with bounded retry policy honoring `Retry-After` when present, then exponential backoff cap; rationale: maintain near-limit throughput without burst-collisions on action limits (60/min endpoints).
 - Externalized new strategy risk controls in `config/strategy.env` (`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_MIN_GOLD_RESERVE`, mutation thresholds/stock, backoff windows) to keep future tuning parameter-only when possible.
 - Validation: one-cycle live smoke succeeded (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `hunt`, HTTP 200).
+- Priority policy update: added deterministic inventory full-risk liquidation in live runner when used slots approach cap (`>=27` by default), selling only unequipped low-tier/common equipment via `/api/shop/sell` while preserving equipped items.
+- Priority policy update: enforced potion-over-rest economics by introducing HP-potion-preferred recovery window (`BUJU_LOW_HP_POTION_RATIO`), so available potions are consumed before `/rest`; rest remains fallback for low-HP/no-potion states.
+- Priority policy update: added anti-stall 400 downgrade layer with per-action streak tracking and cooldown skipping (`BUJU_STALL_400_THRESHOLD`, `BUJU_STALL_COOLDOWN_TICKS`), preventing repeated optional-action 400s from blocking hunt throughput.
+- Design intent: optional utility actions (sell/buy/equip/move/mutation prep) now soft-fail on 400 and execution proceeds to hunt path in the same tick to maximize continuous scoring actions.
+- Validation: one-cycle live smoke after update succeeded (`BUJU_MAX_ACTIONS_PER_CYCLE=1` => `lastAction=use_hp_potion`, HTTP 200).

@@ -28,6 +28,7 @@ const CFG = {
   minHpPotionS: Number(process.env.BUJU_MIN_HP_POTION_S || 5),
   minMpPotionS: Number(process.env.BUJU_MIN_MP_POTION_S || 3),
   lowHpRatio: Number(process.env.BUJU_LOW_HP_RATIO || 0.35),
+  lowHpPotionRatio: Number(process.env.BUJU_LOW_HP_POTION_RATIO || 0.55),
   moveLv2: Number(process.env.BUJU_MOVE_LEVEL_2 || 10),
   moveLv3: Number(process.env.BUJU_MOVE_LEVEL_3 || 20),
   area1: process.env.BUJU_AREA_LV1 || 'talking_island_field',
@@ -38,10 +39,48 @@ const CFG = {
   mutationLevel: Number(process.env.BUJU_MUTATION_PREP_LEVEL || 10),
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
-  backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000)
+  backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
+  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 27),
+  invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
+  stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
+  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8)
 };
 
+const stallState = new Map();
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function normalizeActionKey(actionKey) {
+  return actionKey || 'unknown';
+}
+
+function shouldSkipAction(actionKey) {
+  const key = normalizeActionKey(actionKey);
+  const s = stallState.get(key);
+  return !!(s && s.untilTick && tickCounter <= s.untilTick);
+}
+
+function recordActionResult(actionKey, status) {
+  const key = normalizeActionKey(actionKey);
+  const prev = stallState.get(key) || { fails400: 0, untilTick: 0 };
+
+  if (status === 400) {
+    const fails400 = (prev.fails400 || 0) + 1;
+    if (fails400 >= CFG.stall400Threshold) {
+      stallState.set(key, { fails400, untilTick: tickCounter + CFG.stallCooldownTicks });
+    } else {
+      stallState.set(key, { fails400, untilTick: prev.untilTick || 0 });
+    }
+    return;
+  }
+
+  if (status >= 200 && status < 300) {
+    stallState.set(key, { fails400: 0, untilTick: 0 });
+    return;
+  }
+
+  stallState.set(key, prev);
+}
 
 async function req(p, opts = {}, retryCount = 0) {
   const res = await fetch(`${API_BASE}${p}`, {
@@ -75,6 +114,52 @@ function pickArea(level) {
 
 function qty(inv, itemId) {
   return inv.find(i => i.item_id === itemId)?.quantity || 0;
+}
+
+function usedSlots(inventory, invResJson) {
+  const count = Number(invResJson?.inventory_count);
+  if (Number.isFinite(count) && count > 0) return count;
+  return inventory.length;
+}
+
+function getEquippedItemIds(equipped) {
+  return new Set(
+    Object.values(equipped || {})
+      .map(v => (v && typeof v === 'object' ? v.item_id : null))
+      .filter(Boolean)
+  );
+}
+
+function rarityRank(rarity) {
+  const map = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
+  return map[String(rarity || '').toLowerCase()] ?? 0;
+}
+
+function lowTierHint(item) {
+  const n = String(item?.item_id || '').toLowerCase();
+  return n.includes('rusty') || n.includes('wooden') || n.includes('old') || n.includes('broken');
+}
+
+function chooseSellCandidate(inventory, equipped) {
+  const equippedIds = getEquippedItemIds(equipped);
+  const candidates = (inventory || []).filter(i =>
+    i.type === 'equipment' &&
+    !equippedIds.has(i.item_id)
+  );
+
+  if (!candidates.length) return null;
+
+  candidates.sort((a, b) => {
+    const aR = rarityRank(a.rarity);
+    const bR = rarityRank(b.rarity);
+    if (aR !== bR) return aR - bR;
+    const aLow = lowTierHint(a) ? 0 : 1;
+    const bLow = lowTierHint(b) ? 0 : 1;
+    if (aLow !== bLow) return aLow - bLow;
+    return String(a.item_id).localeCompare(String(b.item_id));
+  });
+
+  return candidates[0] || null;
 }
 
 async function chooseBestEquip(inventory, equipped) {
@@ -126,11 +211,9 @@ function chooseMonster(monsters, level) {
   return pool[0]?.id || 'rabbit';
 }
 
-let mutationCharmUnavailable = false;
-
 async function ensureMutationShield(c, inventory) {
   if ((c.level || 1) < CFG.mutationLevel) return null;
-  if (mutationCharmUnavailable) return null;
+  if (shouldSkipAction('mutation_shield')) return null;
 
   const hasBuff = (c.active_buffs || []).some(b => (b.name || b.buff_id || '').includes('mutation_shield'));
   if (hasBuff) return null;
@@ -141,20 +224,24 @@ async function ensureMutationShield(c, inventory) {
     const estimatedCost = need * 300;
     if ((c.gold || 0) - estimatedCost < CFG.minGoldReserve) return null;
     const buy = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', quantity: need }) });
-    if (buy.status === 200) {
-      return { ok: true, action: 'buy_mutation_charm', qty: need, code: buy.status };
-    }
-    if (buy.status === 400) mutationCharmUnavailable = true;
-    return null;
+    recordActionResult('mutation_shield', buy.status);
+    return { ok: buy.status === 200, action: 'buy_mutation_charm', qty: need, code: buy.status, softFail: buy.status === 400 };
   }
 
   const use = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', action: 'use' }) });
-  if (use.status === 200) return { ok: true, action: 'use_mutation_charm', code: use.status };
-  if (use.status === 400) mutationCharmUnavailable = true;
-  return null;
+  recordActionResult('mutation_shield', use.status);
+  return { ok: use.status === 200, action: 'use_mutation_charm', code: use.status, softFail: use.status === 400 };
 }
 
+function chooseHpPotionId(inventory) {
+  return ['hp_potion_l', 'hp_potion_m', 'hp_potion_s'].find(id => qty(inventory, id) > 0) || null;
+}
+
+let tickCounter = 0;
+
 async function step() {
+  tickCounter += 1;
+
   const st = await req('/status');
   if (st.status !== 200) return { ok: false, reason: 'status_fail', code: st.status };
   const c = st.json.character;
@@ -162,44 +249,84 @@ async function step() {
   const invRes = await req('/inventory');
   const inventory = invRes.status === 200 ? invRes.json.inventory || [] : [];
   const equipped = invRes.status === 200 ? invRes.json.equipped || {} : {};
+  const slotUsed = usedSlots(inventory, invRes.json);
+
+  // Priority 1: inventory full-risk guard.
+  if (slotUsed >= CFG.invSellTriggerSlots && !shouldSkipAction('inventory_sell')) {
+    const target = chooseSellCandidate(inventory, equipped);
+    if (target) {
+      const s = await req('/shop/sell', { method: 'POST', body: JSON.stringify({ item_id: target.item_id, quantity: 1 }) });
+      recordActionResult('inventory_sell', s.status);
+      if (s.status === 200) {
+        return { ok: true, action: 'sell_low_tier', item_id: target.item_id, slots_used: slotUsed, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
+      // Soft-fail on repeated 400; continue hunt path without stalling this tick.
+    }
+  }
 
   const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
+
+  // Priority 2: potion-over-rest economics.
+  if (hpRatio < CFG.lowHpPotionRatio) {
+    const hpPotionId = chooseHpPotionId(inventory);
+    if (hpPotionId && !shouldSkipAction('hp_potion_use')) {
+      const usePotion = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: hpPotionId, action: 'use' }) });
+      recordActionResult('hp_potion_use', usePotion.status);
+      if (usePotion.status === 200) {
+        return { ok: true, action: 'use_hp_potion', item_id: hpPotionId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
+      // 400 soft-fail => continue to rest/hunt path.
+    }
+  }
+
   if (hpRatio < CFG.lowHpRatio) {
     const r = await req('/rest', { method: 'POST', body: '{}' });
+    recordActionResult('rest', r.status);
     return { ok: r.status === 200, action: 'rest', level: c.level, exp: c.exp, gold: c.gold, code: r.status };
   }
 
   const mutationPlan = await ensureMutationShield(c, inventory);
-  if (mutationPlan) {
+  if (mutationPlan && !mutationPlan.softFail) {
     return { ...mutationPlan, level: c.level, exp: c.exp, gold: c.gold };
   }
 
   const equipPlan = await chooseBestEquip(inventory, equipped);
-  if (equipPlan) {
+  if (equipPlan && !shouldSkipAction('equip')) {
     const r = await req('/item/use', { method: 'POST', body: JSON.stringify({ action: 'equip', item_id: equipPlan.itemId }) });
-    return { ok: r.status === 200, action: 'equip', item_id: equipPlan.itemId, level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+    recordActionResult('equip', r.status);
+    if (r.status === 200) {
+      return { ok: true, action: 'equip', item_id: equipPlan.itemId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+    // 400 soft-fail => continue
   }
 
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
-  if (hpS < CFG.minHpPotionS) {
+  if (hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
     const buyQty = CFG.minHpPotionS - hpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
-    return { ok: r.status === 200, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+    recordActionResult('buy_hp', r.status);
+    if (r.status === 200) {
+      return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
   }
-  if (mpS < CFG.minMpPotionS) {
+  if (mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
     const buyQty = CFG.minMpPotionS - mpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
-    return { ok: r.status === 200, action: 'buy_mp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+    recordActionResult('buy_mp', r.status);
+    if (r.status === 200) {
+      return { ok: true, action: 'buy_mp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
   }
 
   const targetArea = pickArea(c.level || 1);
-  if (c.current_area !== targetArea) {
+  if (c.current_area !== targetArea && !shouldSkipAction('move')) {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: targetArea }) });
+    recordActionResult('move', r.status);
     if (r.status === 200) {
-      return { ok: true, action: 'move', area: targetArea, level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+      return { ok: true, action: 'move', area: targetArea, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
-    // 이동 실패 시 전투를 계속 진행해 루프가 멈추지 않게 한다.
+    // 400 soft-fail => continue hunting in current area.
   }
 
   const skills = await req('/skill/list');
@@ -210,6 +337,7 @@ async function step() {
   const monsterId = chooseMonster(monsters, c.level || 1);
 
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
+  recordActionResult('hunt', hunt.status);
   return { ok: hunt.status === 200, action: 'hunt', monster_id: monsterId, skill_id: skillId, result: hunt.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: hunt.status };
 }
 

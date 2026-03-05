@@ -333,3 +333,17 @@
     - added safer hunt target selector (high EXP within configurable level-gap).
   - CHANGE: updated `config/strategy.env` with tunables (`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_MIN_GOLD_RESERVE`, mutation stock/level, backoff base/max).
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=9 exp=207 gold=1770 code=200`.
+- [2026-03-05 22:46 KST] 30-min STRATEGY DIRECTOR priority-update run completed (inventory/potion/stall policy enforcement).
+  - KEEP (evidence): official shop sell endpoint supports `POST /api/shop/sell { item_id, quantity }`; inventory max 30 slots and `GET /api/inventory` remains canonical for slot risk checks.
+  - CHANGE: inventory full-risk guard implemented in `scripts/live-strategy-runner.js`.
+    - Added slot monitor from `/api/inventory` and trigger `BUJU_INV_SELL_TRIGGER_SLOTS` (default 27).
+    - If near full, auto-sell unequipped low-tier/common equipment first; equipped items are protected.
+  - CHANGE: potion-over-rest economics enforced.
+    - Added `BUJU_LOW_HP_POTION_RATIO` threshold (default 0.55) and HP potion usage priority over `/rest` when potion exists.
+    - Existing potion floor buy policy retained (`BUJU_MIN_HP_POTION_S`, `BUJU_MIN_MP_POTION_S`).
+  - CHANGE: anti-stall downgrade for repeated 400 responses.
+    - Added per-action 400 streak tracker with cooldown skip (`BUJU_STALL_400_THRESHOLD`, `BUJU_STALL_COOLDOWN_TICKS`).
+    - Optional actions (sell/buy/equip/move/mutation use) now soft-fail on 400 and continue hunt path instead of stalling.
+  - CHANGE: `config/strategy.env` updated with new policy knobs (`BUJU_LOW_HP_POTION_RATIO`, `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_MAX_SLOTS`, `BUJU_STALL_400_THRESHOLD`, `BUJU_STALL_COOLDOWN_TICKS`).
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=use_hp_potion level=10 exp=159 gold=2365 code=200`.
+- [2026-03-05 22:21:24 KST] Watchdog restarted scripts/live-runner-daemon.sh
