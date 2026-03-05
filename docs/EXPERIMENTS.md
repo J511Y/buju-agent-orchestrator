@@ -96,3 +96,9 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-triage for history endpoint incidents; variance in fallback/recovery handling across cycles.
 - Result: Baseline outage pattern remains stable enough to codify runbook-driven handling.
 - Decision: Draft and link incident runbook in next cycle.
+- Date: 2026-03-05 12:12 KST
+- Hypothesis: A dedicated routing-transition verifier for history endpoint degradation/recovery will reduce regressions during prolonged 404 conditions.
+- Change: Current cycle still shows history endpoints failing (rolling streak `6`) while `/api/status` remains healthy.
+- Metric(s): Routing-state regression count in CI; number of ambiguous fallback decisions per day.
+- Result: Baseline outage pattern remains stable for synthetic-transition test coverage.
+- Decision: Implement routing-transition verifier in next cycle.
