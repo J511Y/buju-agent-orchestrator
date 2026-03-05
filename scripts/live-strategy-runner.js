@@ -23,7 +23,7 @@ const API_KEY = process.env.BUJU_API_KEY;
 if (!API_KEY) throw new Error('missing BUJU_API_KEY');
 
 const CFG = {
-  delayMs: Number(process.env.BUJU_BASE_DELAY_MS || 1000),
+  delayMs: Number(process.env.BUJU_BASE_DELAY_MS || 250),
   maxActions: Number(process.env.BUJU_MAX_ACTIONS_PER_CYCLE || 30),
   minHpPotionS: Number(process.env.BUJU_MIN_HP_POTION_S || 5),
   minMpPotionS: Number(process.env.BUJU_MIN_MP_POTION_S || 3),
@@ -43,7 +43,8 @@ const CFG = {
   invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 27),
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
-  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8)
+  stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
+  buyCooldownTicks: Number(process.env.BUJU_BUY_COOLDOWN_TICKS || 6)
 };
 
 const stallState = new Map();
@@ -238,6 +239,7 @@ function chooseHpPotionId(inventory) {
 }
 
 let tickCounter = 0;
+let lastBuyTick = -9999;
 
 async function step() {
   tickCounter += 1;
@@ -302,19 +304,22 @@ async function step() {
 
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
-  if (hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
+  const canBuyNow = (tickCounter - lastBuyTick) >= CFG.buyCooldownTicks;
+  if (canBuyNow && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp')) {
     const buyQty = CFG.minHpPotionS - hpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_hp', r.status);
     if (r.status === 200) {
+      lastBuyTick = tickCounter;
       return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }
-  if (mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
+  if (canBuyNow && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp')) {
     const buyQty = CFG.minMpPotionS - mpS;
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_mp', r.status);
     if (r.status === 200) {
+      lastBuyTick = tickCounter;
       return { ok: true, action: 'buy_mp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
   }
