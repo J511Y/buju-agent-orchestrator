@@ -383,3 +383,10 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
 - [2026-03-06 00:08 KST] Next 30-min actionable TODO: implement `ops:history-probe-dashboard` script + npm alias to append timestamped endpoint `last_status/failure_streak` rows from `activity_probe_summary`.
+- [2026-03-06 00:17 KST] 30-min STRATEGY DIRECTOR priority-update run completed.
+  - KEEP: hard priorities #1~#4 remain enforced in current runner/config; no additional code/config delta required.
+  - KEEP (inventory risk evidence): `/api/inventory` slot monitor + trigger (`BUJU_INV_SELL_TRIGGER_SLOTS=27`) active; batch liquidation target/iterations (`BUJU_INV_SELL_TARGET_SLOTS=24`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=3`) active; sell candidates remain unequipped low-tier/common equipment via `/api/shop/sell` with equipped exclusion.
+  - KEEP (potion economics evidence): potion-first flow active with quantity-aware batch use (`/api/item/use` + `quantity`) and cap `BUJU_POTION_USE_MAX_QUANTITY=3`; `/rest` remains fallback; potion stock floor buy policy remains active.
+  - KEEP (batch-first policy evidence): quantity-supported actions prefer batch mode (sell/use/buy).
+  - KEEP (stall prevention evidence): repeated-400 downgrade/skip guard remains active (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) and runner continues hunt path on optional-action soft-fail.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=14 exp=886 gold=2423 code=200`.
