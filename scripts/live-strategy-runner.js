@@ -131,8 +131,10 @@ function hasRateBudget(rateLimits, key) {
 }
 
 function usedSlots(inventory, invResJson) {
+  const explicit = Number(invResJson?.slots?.used);
+  if (Number.isFinite(explicit) && explicit >= 0) return explicit;
   const count = Number(invResJson?.inventory_count);
-  if (Number.isFinite(count) && count > 0) return count;
+  if (Number.isFinite(count) && count >= 0) return count;
   return inventory.length;
 }
 
@@ -338,9 +340,26 @@ async function step() {
   const inCombat = !!(c.combat?.in_progress);
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
-  const sellResult = (inCombat || !hasRateBudget(rateLimits, 'sell'))
-    ? null
-    : await liquidateInventoryRisk(inventory, equipped, slotUsed, c);
+  // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
+  if (slotUsed >= CFG.invSellTriggerSlots && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
+    const surrender = await req('/combat/surrender', { method: 'POST', body: '{}' });
+    recordActionResult('surrender_inventory', surrender.status);
+    if (surrender.status === 200) {
+      const invAfter = await req('/inventory');
+      const inventoryAfter = invAfter.status === 200 ? invAfter.json.inventory || [] : inventory;
+      const equippedAfter = invAfter.status === 200 ? invAfter.json.equipped || {} : equipped;
+      const slotsAfter = usedSlots(inventoryAfter, invAfter.json || {});
+      const soldAfter = hasRateBudget(rateLimits, 'sell')
+        ? await liquidateInventoryRisk(inventoryAfter, equippedAfter, slotsAfter, c)
+        : null;
+      if (soldAfter) return { ...soldAfter, action: `surrender_then_${soldAfter.action}` };
+      return { ok: true, action: 'surrender_for_inventory_cleanup', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+  }
+
+  const sellResult = (!inCombat && hasRateBudget(rateLimits, 'sell'))
+    ? await liquidateInventoryRisk(inventory, equipped, slotUsed, c)
+    : null;
   if (sellResult) return sellResult;
 
   const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
