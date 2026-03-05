@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-06
+- [2026-03-06 04:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` stays `version: 1.11.1`; live `GET /api/skill-doc/download` stays `version: 1.14.0` (persistent drift, unchanged this cycle).
+  - KEEP (hard constraints): `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10` preserved unchanged in `config/strategy.env`.
+  - KEEP (batch-first): quantity-capable actions remain batch-preferred (`/api/shop/sell`, `/api/item/use`, `/api/shop/buy` with `quantity`).
+  - CHANGE (strategy/code): optimized hunt-rate-limit path in `scripts/live-strategy-runner.js` by moving `hunt` budget precheck before `/api/skill/list` and `/api/areas/{area}/monsters` calls.
+    - Effect: when hunt budget is exhausted, runner returns `wait_hunt_rate_limit` immediately and avoids unnecessary read calls.
+    - Safety: does not alter action ordering before hunt phase and preserves all existing combat/in-combat safeguards.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=21 exp=83 gold=988 code=200`.
+  - Runtime continuity evidence: live daemon remains active (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` observed via `pgrep`).
 - [2026-03-06 04:23 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
   - CHANGE (drift detection): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`, while live `GET /api/skill-doc/download` is `version: 1.14.0` (drift persists).
   - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.

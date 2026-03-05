@@ -411,16 +411,16 @@ async function step() {
     // 400 soft-fail => continue hunting in current area.
   }
 
+  if (!hasRateBudget(rateLimits, 'hunt')) {
+    return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+  }
+
   const skills = await req('/skill/list');
   const skillId = chooseBestSkill(skills.status === 200 ? skills.json.skills : [], c.mp?.current || 0);
 
   const areaMon = await req(`/areas/${c.current_area}/monsters`);
   const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
   const monsterId = chooseMonster(monsters, c.level || 1);
-
-  if (!hasRateBudget(rateLimits, 'hunt')) {
-    return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
-  }
 
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
   recordActionResult('hunt', hunt.status);
