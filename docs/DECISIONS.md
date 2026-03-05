@@ -74,3 +74,6 @@
 - Extended replay operational counters with `invalidActionTarget` to quantify pre-transport target-validation blocks (`reason=invalid_action_target`) introduced in worker safety gate.
 - Updated replay summary contract line to include `invalid_target_blocks` so operators can distinguish malformed-action data issues from cooldown/timeouts/circuit blocks.
 - Added replay verification coverage with a deterministic invalid-target skipped action record to lock counter and summary formatting behavior.
+- Expanded deterministic retryable transport codes in action executor to include transient HTTP failures (`408`, `500`, `502`, `504`) in addition to existing network/time-limit codes.
+- Rationale: short-lived upstream gateway/server failures should be retried automatically to preserve action throughput and reduce avoidable failed ticks.
+- Added verification coverage in `npm run verify:cycle` asserting `ok:false code=502` retries and succeeds on second attempt with bounded attempts.

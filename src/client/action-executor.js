@@ -2,8 +2,12 @@ const RETRYABLE_CODES = new Set([
   'ETIMEDOUT',
   'ECONNRESET',
   'EAI_AGAIN',
+  '408',
   '429',
-  '503'
+  '500',
+  '502',
+  '503',
+  '504'
 ]);
 
 function defaultSleep(delayMs) {

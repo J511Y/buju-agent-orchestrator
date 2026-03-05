@@ -177,6 +177,35 @@ assert.equal(invalidAttackTarget.execution.blockedBy, 'action_target_validation'
 assert.equal(invalidAttackTarget.execution.attempts, 0);
 assert.equal(attemptCount, attemptsBeforeInvalidTarget);
 
+let httpRetryAttemptCount = 0;
+const httpRetryExecutor = createActionExecutor({
+  transport: async () => {
+    httpRetryAttemptCount += 1;
+    if (httpRetryAttemptCount === 1) {
+      return {
+        ok: false,
+        retryable: false,
+        code: '502',
+        errorMessage: 'temporary upstream gateway issue'
+      };
+    }
+    return { ok: true, upstream: 'mock-gateway' };
+  },
+  maxAttempts: 2,
+  baseDelayMs: 1
+});
+const httpRetryResult = await httpRetryExecutor({
+  tickId: 'tick-verify-http-retry-000001',
+  stateSnapshot: {
+    ...stateSnapshot,
+    battleId: 'verify-battle-http-retry'
+  },
+  action: { type: 'BASIC_ATTACK', targetId: 'enemy-http-retry' }
+});
+assert.equal(httpRetryResult.status, 'success');
+assert.equal(httpRetryResult.attempts, 2);
+assert.equal(httpRetryAttemptCount, 2);
+
 const alwaysFailExecutor = createActionExecutor({
   transport: async () => ({
     ok: false,

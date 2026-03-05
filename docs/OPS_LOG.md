@@ -224,3 +224,8 @@
   - Extended formatted replay summary operational line with `invalid_target_blocks` to separate target-validation safety blocks from other operational failure modes.
   - Updated `scripts/verify-replay-analyze.js` fixture and assertions to include an invalid-target skipped execution tick and lock the new counter/output contract.
   - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (all passed).
+- [2026-03-05 09:06 KST] Retry robustness improvement completed: transient HTTP failure retry expansion.
+  - Updated `src/client/action-executor.js` retryable code set to include `408`, `500`, `502`, `504` (plus existing `429`, `503` and network timeout/reset codes).
+  - Expected impact: fewer terminal action failures from short-lived upstream gateway/server instability, improving deterministic cycle continuity.
+  - Extended `scripts/verify-cycle.js` with explicit `code=502` first-attempt failure followed by success-on-retry assertion (`attempts=2`).
+  - Verification executed: `npm run verify:cycle`, `npm run verify:replay` (all passed).
