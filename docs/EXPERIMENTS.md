@@ -120,3 +120,9 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-locate latest endpoint health state; number of files read per triage.
 - Result: Baseline suggests a single rolling dashboard would reduce navigation overhead.
 - Decision: Implement dashboard snapshot append flow in next cycle.
+- Date: 2026-03-05 16:09 KST
+- Hypothesis: Bootstrapping a dedicated probe dashboard file and append script will improve continuity of endpoint health tracking across hourly runs.
+- Change: Current cycle maintains stable degraded history-endpoint pattern (all `404`, rolling streak `6`) with `/api/status` healthy.
+- Metric(s): Continuity of endpoint-health timeline; operator time spent correlating streaks across cycles.
+- Result: Baseline remains suitable for dashboard timeline experiment.
+- Decision: Implement dashboard bootstrap + append flow in next cycle.
