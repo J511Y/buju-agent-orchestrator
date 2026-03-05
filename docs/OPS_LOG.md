@@ -390,3 +390,11 @@
   - KEEP (batch-first policy evidence): quantity-supported actions prefer batch mode (sell/use/buy).
   - KEEP (stall prevention evidence): repeated-400 downgrade/skip guard remains active (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) and runner continues hunt path on optional-action soft-fail.
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=14 exp=886 gold=2423 code=200`.
+- [2026-03-06 00:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned spec `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` and live `GET /api/skill-doc/download` both report `version: 1.11.1`; no doc-version drift detected.
+  - KEEP (hard constraints): `config/strategy.env` preserves required sell controls exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (batch-first evidence): quantity-capable actions are batch-preferred in runner (`/api/shop/sell` with `quantity`, `/api/item/use` with `quantity`, `/api/shop/buy` with `quantity`).
+  - KEEP (inventory risk evidence): runner monitors `/api/inventory` slots and auto-sells unequipped low-tier/common equipment first while excluding equipped items.
+  - KEEP (potion economics evidence): potion-over-rest path remains active with quantity-aware potion usage; rest remains fallback.
+  - KEEP (stall prevention evidence): repeated HTTP 400 handling remains active (`BUJU_STALL_400_THRESHOLD=2`, `BUJU_STALL_COOLDOWN_TICKS=8`) with continued hunt path on optional-action soft-fail.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=15 exp=2048 gold=1875 code=200`.
