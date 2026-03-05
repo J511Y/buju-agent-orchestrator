@@ -77,3 +77,6 @@
 - Expanded deterministic retryable transport codes in action executor to include transient HTTP failures (`408`, `500`, `502`, `504`) in addition to existing network/time-limit codes.
 - Rationale: short-lived upstream gateway/server failures should be retried automatically to preserve action throughput and reduce avoidable failed ticks.
 - Added verification coverage in `npm run verify:cycle` asserting `ok:false code=502` retries and succeeds on second attempt with bounded attempts.
+- Extended replay operational telemetry with `retriedSuccess` counter (successful `action_executed` where `attempts > 1`) to quantify transient transport instability that was recovered by retries.
+- Updated replay summary operational contract to include `retried_success`, enabling fast distinction between hard failures and recovered retry paths.
+- Added deterministic verification coverage in `npm run verify:replay` with explicit `attempts:2` success record and summary-line assertion.

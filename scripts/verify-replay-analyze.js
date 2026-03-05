@@ -22,7 +22,7 @@ const validRecords = [
     { tickId: 'tick-1', decision: { fsmState: 'ATTACK', ruleId: 'attack-energy-window' } },
     2
   ),
-  makeRecord('action_executed', { tickId: 'tick-1', execution: { status: 'success' } }, 3),
+  makeRecord('action_executed', { tickId: 'tick-1', execution: { status: 'success', attempts: 2 } }, 3),
   makeRecord('tick_finished', { tickId: 'tick-1', executionStatus: 'success' }, 4),
   makeRecord('tick_started', { tickId: 'tick-2', tickNumber: 2 }, 5),
   makeRecord('safety_evaluated', { tickId: 'tick-2', safety: { allowed: false, reasons: ['low_health'] } }, 6),
@@ -122,6 +122,7 @@ assert.equal(summary.actionStatusCounts.failed, 1);
 assert.equal(summary.actionStatusCounts.skipped, 3);
 assert.equal(summary.operationalBlockCounts.actionCooldownActive, 1);
 assert.equal(summary.operationalBlockCounts.invalidActionTarget, 1);
+assert.equal(summary.operationalBlockCounts.retriedSuccess, 1);
 assert.equal(summary.operationalBlockCounts.tickTimeout, 1);
 assert.equal(summary.operationalBlockCounts.lockHeartbeatFailed, 1);
 assert.equal(summary.operationalBlockCounts.executionFailureCircuitOpen, 1);
@@ -137,7 +138,7 @@ assert.equal(decisionRuleCounts['hold-default'], 1);
 assert.equal(decisionRuleCounts['attack-low-threat-efficient-window'], 1);
 assert.ok(
   formatReplaySummary(validFilePath, summary).includes(
-    'operational cooldown_blocks=1 invalid_target_blocks=1 tick_timeouts=1 lock_heartbeat_failures=1 execution_failure_circuit_blocks=1'
+    'operational cooldown_blocks=1 invalid_target_blocks=1 retried_success=1 tick_timeouts=1 lock_heartbeat_failures=1 execution_failure_circuit_blocks=1'
   )
 );
 assert.ok(

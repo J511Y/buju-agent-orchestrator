@@ -235,3 +235,8 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling failure streak increased to `6` for all history endpoints.
   - Retry recommendation: maintain replay-first mode, keep history route marked degraded, and only clear degraded status after endpoint-spec refresh plus consecutive successful history probes.
 - [2026-03-05 09:08 KST] Next 30-min actionable TODO: implement `history_endpoint_recovery_streak` counter (default `2`) so degraded state clears only after two consecutive `ok` history probes.
+- [2026-03-05 09:36 KST] Replay observability enhancement completed: recovered retry visibility.
+  - Updated `src/ops/replay-analyzer.js` to count successful retried executions (`status=success` and `attempts>1`) as `operationalBlockCounts.retriedSuccess`.
+  - Extended formatted replay summary with `retried_success` metric to make retry recovery rate visible during ops triage.
+  - Updated `scripts/verify-replay-analyze.js` fixture/assertions for retried success counting and output contract.
+  - Verification executed: `npm run verify:replay`, `npm run verify:cycle` (all passed).

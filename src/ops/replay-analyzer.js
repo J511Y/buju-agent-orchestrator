@@ -65,7 +65,8 @@ export function analyzeReplayRecords(records) {
     invalidActionTarget: 0,
     tickTimeout: 0,
     lockHeartbeatFailed: 0,
-    executionFailureCircuitOpen: 0
+    executionFailureCircuitOpen: 0,
+    retriedSuccess: 0
   };
   const executionFailureCircuitOpenTickIds = new Set();
   const safetyReasonCounts = new Map();
@@ -191,6 +192,9 @@ export function analyzeReplayRecords(records) {
         } else {
           recordError(validationErrors, lineNumber, `unknown execution.status: ${String(status)}`);
         }
+        if (status === 'success' && Number(data.payload.execution?.attempts) > 1) {
+          operationalBlockCounts.retriedSuccess += 1;
+        }
         if (data.payload.execution?.reason === 'action_cooldown_active') {
           operationalBlockCounts.actionCooldownActive += 1;
         }
@@ -306,7 +310,7 @@ export function formatReplaySummary(filePath, summary) {
     `Replay log: ${filePath}`,
     `ticks=${summary.ticks} blocked=${summary.blockedTicks} (${blockedPercent}%)`,
     `actions success=${summary.actionStatusCounts.success} fail=${summary.actionStatusCounts.failed} skipped=${summary.actionStatusCounts.skipped}`,
-    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} invalid_target_blocks=${summary.operationalBlockCounts?.invalidActionTarget ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0} execution_failure_circuit_blocks=${summary.operationalBlockCounts?.executionFailureCircuitOpen ?? 0}`,
+    `operational cooldown_blocks=${summary.operationalBlockCounts?.actionCooldownActive ?? 0} invalid_target_blocks=${summary.operationalBlockCounts?.invalidActionTarget ?? 0} retried_success=${summary.operationalBlockCounts?.retriedSuccess ?? 0} tick_timeouts=${summary.operationalBlockCounts?.tickTimeout ?? 0} lock_heartbeat_failures=${summary.operationalBlockCounts?.lockHeartbeatFailed ?? 0} execution_failure_circuit_blocks=${summary.operationalBlockCounts?.executionFailureCircuitOpen ?? 0}`,
     `top_safety_reasons ${reasons}`,
     `top_decision_rules ${topRules}`
   ];
