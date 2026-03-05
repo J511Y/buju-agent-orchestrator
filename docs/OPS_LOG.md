@@ -422,3 +422,9 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
 - [2026-03-06 02:08 KST] Next 30-min actionable TODO: add `ops:history-probe-dashboard` implementation to persist hourly `activity_probe_summary` rows (timestamp, endpoint, last_status, failure_streak) in one dashboard file.
+- [2026-03-06 02:17 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned vs live skill docs still aligned at `version: 1.11.1`; no drift.
+  - KEEP (hard constraints): `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10` preserved unchanged.
+  - KEEP (batch-first): runner continues batch mode for quantity-capable actions (`/api/shop/sell`, `/api/item/use`, `/api/shop/buy` with `quantity`).
+  - KEEP (policy status): inventory-risk auto-liquidation, potion-over-rest economics, and repeated-400 downgrade/continue-hunt controls remain active.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=19 exp=930 gold=582 code=200`.
