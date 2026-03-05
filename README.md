@@ -58,6 +58,12 @@ npm run dev
 - `verify:replay` 요약은 결정 규칙 분포/서킷 차단 지표와 운영 카운터(예: invalid target 차단, 재시도 후 성공)를 포함하며, 회귀 감지 기준으로 유지한다.
 - Safety Gate의 큐 포화 기준은 `pendingActionCount >= maxPendingActions`이며, 용량 도달 시 즉시 `action_queue_saturated`로 차단한다.
 
+## Live Strategy Runner (Rule-based)
+- 단발 틱 실행(기본 2틱): `node scripts/live-action-tick.js [ticks]`
+- 연속 전략 실행: `node scripts/live-strategy-runner.js`
+- 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
+- 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
+
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
 - 최소 검증:
