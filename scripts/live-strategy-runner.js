@@ -345,7 +345,10 @@ async function step() {
   if (hpRatio < CFG.lowHpRatio) {
     const r = await req('/rest', { method: 'POST', body: '{}' });
     recordActionResult('rest', r.status);
-    return { ok: r.status === 200, action: 'rest', level: c.level, exp: c.exp, gold: c.gold, code: r.status };
+    if (r.status === 200) {
+      return { ok: true, action: 'rest', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+    // soft-fail on 400 to avoid stall; continue to hunt path
   }
 
   const mutationPlan = await ensureMutationShield(c, inventory, inCombat);

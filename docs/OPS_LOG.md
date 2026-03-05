@@ -442,3 +442,13 @@
   - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `6`.
   - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
 - [2026-03-06 03:08 KST] Next 30-min actionable TODO: implement `ops:history-probe-dashboard` script to append hourly `activity_probe_summary` snapshots into a single dashboard doc for faster trend inspection.
+- [2026-03-06 03:17 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned doc remains `1.11.1`; live doc remains `1.14.0` (known drift persists, no additional version change this cycle).
+  - KEEP (hard constraints): `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10` preserved unchanged.
+  - KEEP (batch-first): quantity-capable sell/use/buy actions remain batch-first.
+  - CHANGE: reduced stall risk on low-HP recovery path in `scripts/live-strategy-runner.js`.
+    - Before: `/rest` returned immediately on non-200, causing `ok=0/1` dead-end on 400.
+    - After: `/rest` keeps success short-circuit on 200, but soft-fails on 400 and continues to hunt path in the same tick.
+  - Validation evidence:
+    - pre-fix: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=0/1 lastAction=rest ... code=400`
+    - post-fix: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt ... code=200`

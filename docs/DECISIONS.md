@@ -100,3 +100,5 @@
 - Live spec drift detected (`1.11.1` pinned vs `1.14.0` live). Adopted compatibility-first runner update without relaxing configured hard constraints.
 - Added v1.14 combat-state gating in live runner: skip/defer in-combat actions that are now explicitly blocked (`shop buy/sell`, `equip/unequip`, and move), while continuing allowed combat-safe actions (hunt and consumable use).
 - Rationale: avoid predictable `IN_COMBAT` 400 responses on blocked endpoints, reduce wasted action budget, and preserve action throughput under batch-first policy.
+- Added anti-stall refinement for low-HP rest path: `POST /rest` now soft-fails on HTTP 400 and execution continues to hunt decision path in the same tick (while preserving immediate return on successful rest).
+- Rationale: under live rules/drift conditions, rest can intermittently return 400; treating it as terminal for the tick created avoidable throughput collapse (`ok=0/1`).
