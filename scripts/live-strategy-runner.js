@@ -40,13 +40,14 @@ const CFG = {
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
   backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
-  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 25),
+  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 15),
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
-  sellBatchPerTick: Number(process.env.BUJU_SELL_BATCH_PER_TICK || 3),
+  sellBatchPerTick: Number(process.env.BUJU_SELL_BATCH_PER_TICK || 10),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
   buyCooldownTicks: Number(process.env.BUJU_BUY_COOLDOWN_TICKS || 6),
-  minBuyQty: Number(process.env.BUJU_MIN_BUY_QTY || 5)
+  minBuyQty: Number(process.env.BUJU_MIN_BUY_QTY || 5),
+  maxPotionUseQty: Number(process.env.BUJU_MAX_POTION_USE_QTY || 3)
 };
 
 const stallState = new Map();
@@ -280,10 +281,12 @@ async function step() {
   if (hpRatio < CFG.lowHpPotionRatio) {
     const hpPotionId = chooseHpPotionId(inventory);
     if (hpPotionId && !shouldSkipAction('hp_potion_use')) {
-      const usePotion = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: hpPotionId, action: 'use' }) });
+      const haveQty = qty(inventory, hpPotionId);
+      const useQty = Math.max(1, Math.min(haveQty, CFG.maxPotionUseQty));
+      const usePotion = await req('/item/use', { method: 'POST', body: JSON.stringify({ item_id: hpPotionId, action: 'use', quantity: useQty }) });
       recordActionResult('hp_potion_use', usePotion.status);
       if (usePotion.status === 200) {
-        return { ok: true, action: 'use_hp_potion', item_id: hpPotionId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+        return { ok: true, action: 'use_hp_potion_batch', item_id: hpPotionId, quantity: useQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
       }
       // 400 soft-fail => continue to rest/hunt path.
     }
