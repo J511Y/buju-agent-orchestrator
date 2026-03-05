@@ -459,3 +459,11 @@
   - CHANGE: improved 429 resilience in `scripts/live-strategy-runner.js` by replacing fixed retry cap with configurable `BUJU_RETRY_MAX_ATTEMPTS` (default 4), preserving existing backoff policy.
   - CHANGE (evidence): pre-change smoke observed hunt throttle failure (`ok=0/1 ... code=429`); post-change smoke recovered to success (`ok=1/1 ... code=200`).
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=20 exp=1459 gold=548 code=200`.
+
+- [2026-03-06 04:10 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv20, exp `2435`, gold `788`, HP `248/385`, MP `202/202`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still unavailable (`404`) while `/api/status` is healthy; rolling 6h failure streak at `6`.
+  - Retry recommendation: keep replay-first summaries; retry hourly after endpoint-catalog refresh, and switch back to API-history KPIs only after 2+ consecutive successful history probes.
+  - Resource trend signal (status snapshot): hunt budget saturated this window (`remaining 0/30`) with HP below full and MP capped; risk favors brief recovery + non-hunt actions until hunt allowance refreshes.
+- [2026-03-06 04:10 KST] Next 30-min actionable TODO: implement `scripts/ops-history-probe-dashboard.js` + `npm run ops:history-probe-dashboard` to append one-line hourly probe rows (timestamp, endpoint, last_status, failure_streak) into `docs/OPS_LOG.md` automatically.

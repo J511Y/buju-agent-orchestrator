@@ -192,3 +192,10 @@ Track A/B and policy experiments.
 - Metric(s): Time to identify current and prior-hour endpoint streaks; number of files opened during endpoint triage.
 - Result: Baseline continues to support dashboard snapshot automation.
 - Decision: Implement dashboard append script + npm alias in next cycle.
+
+- Date: 2026-03-06 04:10 KST
+- Hypothesis: Combining live `/api/status` snapshot deltas with fallback replay output will recover actionable progression/resource signals even while history endpoints return 404.
+- Change: Add a lightweight status-snapshot cache (hourly before/after) and compute delta fields (level/exp/gold/hp/mp/hunt remaining) for feedback generation.
+- Metric(s): Non-zero hourly signal rate in feedback logs; number of cycles classified as 'no signal'; mismatch rate between replay and status-derived deltas.
+- Result: Baseline cycle showed replay zero-signal with healthy status endpoint and meaningful state values, supporting mixed-signal approach test.
+- Decision: Run 24h trial with mixed-signal feedback path before promoting to default behavior.
