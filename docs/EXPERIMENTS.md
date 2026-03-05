@@ -168,3 +168,9 @@ Track A/B and policy experiments.
 - Metric(s): Manual edit count per cycle; consistency of endpoint-health timeline entries across hourly runs.
 - Result: Baseline continues to support scripted dashboard appends.
 - Decision: Implement dashboard append script + npm alias in next cycle.
+- Date: 2026-03-06 00:08 KST
+- Hypothesis: A scripted `ops:history-probe-dashboard` append workflow will keep endpoint-health timelines consistent across day boundaries.
+- Change: This cycle continues the same degraded history-endpoint pattern (all `404`, rolling streak `7`) while `/api/status` remains healthy.
+- Metric(s): Cross-day continuity of endpoint-health records; manual edits required per cycle.
+- Result: Baseline supports automated dashboard append approach.
+- Decision: Implement script + npm alias in next cycle.

@@ -377,3 +377,9 @@
   - KEEP: repeated-400 anti-stall downgrade remains active; optional actions soft-fail and flow continues to hunt path.
   - CHANGE: normalized `config/strategy.env` keys to active runner config and reset sell trigger to hard-priority baseline (`27`).
   - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=12 exp=830 gold=187 code=200`.
+- [2026-03-06 00:08 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; Lv3, exp `34`, gold `184`, HP `129/130` (99.2%), MP `43/66` (65.2%), area `talking_island_field`.
+  - Last-hour gameplay signals: progression unchanged (`level/exp/gold delta = 0/0/0`), wins/defeats unavailable (`0/0`, unknown `0`), action outcomes unavailable (`success/failed/skipped = 0/0/0`).
+  - Anomaly: history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; `/api/status` healthy (`200`). Rolling 6h summary shows history-endpoint failure streak `7`.
+  - Retry recommendation: keep replay-first summaries and maintain degraded history route until endpoint catalog refresh and consecutive successful history probes are confirmed.
+- [2026-03-06 00:08 KST] Next 30-min actionable TODO: implement `ops:history-probe-dashboard` script + npm alias to append timestamped endpoint `last_status/failure_streak` rows from `activity_probe_summary`.
