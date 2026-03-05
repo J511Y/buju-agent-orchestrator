@@ -19,6 +19,7 @@ Before implementing any feature, read:
 - `docs/BUJU_GAME_CONTEXT.md`
 - `docs/ARCHITECTURE.md`
 - `docs/RUNBOOK_AUTONOMY.md`
+- `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` (pinned)
 
 At least once per day (or immediately after API schema-related failures), refresh source-of-truth schema from:
 - `GET https://bujuagent.com/api/skill-doc/download`
