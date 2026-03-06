@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-06
+- [2026-03-06 22:49 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.15.0` (persistent drift, unchanged this cycle).
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - KEEP (batch-first/conservative): quantity-capable actions remain batch-capable (sell/use/buy with `quantity`); potion spending remains conservative via max quantity 1.
+  - KEEP (strategy/code): no additional safe high-impact code delta identified this cycle after smoke validation.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=28 exp=1427 gold=29858 code=200`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-06 22:23 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.15.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
