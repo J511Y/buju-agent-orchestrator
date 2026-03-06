@@ -23,6 +23,7 @@
 - `POST /api/hunt` (requires JSON body: `monster_id`, `skill_id`)
 - `POST /api/rest`
 - `POST /api/move`
+- `POST /api/combat/surrender` (전투 중 인벤토리 정리/리커버리 루트)
 - `GET /api/skill-doc/download` (for schema/rate-limit updates)
 
 ## Gameplay policy anchors

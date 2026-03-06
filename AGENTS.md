@@ -40,6 +40,7 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
    - 로컬 실행 또는 최소 테스트
    - Activity 수집 경로 변경 시: `npm run verify:activity`, `npm run verify:activity-config`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity-probe-summary`
    - Live runner(`scripts/live-action-tick.js`, `scripts/live-strategy-runner.js`, `scripts/live-runner-daemon.sh`) 변경 시: dry-run 출력 확인 + 로그 경로(`logs/live-runner-daemon.log`) 및 hunt payload(`monster_id`,`skill_id`) 계약 유지 확인
+   - 인벤토리 정리/슬롯 판단 로직 변경 시: `inventory.slots.used` 우선 사용 계약과 폴백(`inventory_count`/목록 길이), 전투 중 판매 불가 시 surrender 경유 정리 경로를 README 정책과 동기화
    - `config/strategy.env` 튜닝 변경 시: 인벤토리 임계값/포션 재고/anti-stall(`BUJU_STALL_*`)/재시도 상한(`BUJU_RETRY_MAX_ATTEMPTS`) 의도와 README Live Strategy Runner 정책 설명을 함께 동기화
    - 라이브 정책이 API 메커닉(v1.14+ 전투 중 상점 제한, `rest` 400 soft-fail 등)을 반영하도록 유지하고, 제약 변경 시 BUJU_GAME_CONTEXT/README 동시 갱신
    - 워커 safety gate/실패 복구 로직 변경 시: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay`
