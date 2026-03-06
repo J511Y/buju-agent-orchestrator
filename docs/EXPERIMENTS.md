@@ -227,3 +227,10 @@ Track A/B and policy experiments.
 - Metric(s): Ratio of cycles with non-zero trend line; time-to-triage from latest OPS entry.
 - Result: Replay/history remained zero/404 while live status reflected continued progression/resource movement, supporting delta automation.
 - Decision: Implement alias + one-cycle dry run in next 30-min slot, then monitor for 12 cycles.
+
+- Date: 2026-03-06 09:09 KST
+- Hypothesis: Persisted status snapshots with auto-delta computation will convert repeated zero-signal fallback hours into actionable progression/resource trend summaries.
+- Change: Implement `status-snapshot-delta` helper that stores latest status and compares against previous snapshot in hourly cycle.
+- Metric(s): % hourly runs with non-zero trend fields; triage time from latest OPS entry.
+- Result: Replay/history remained zero/404 while live status indicated progression state and resource pressure, supporting snapshot-delta automation.
+- Decision: Implement helper + dry-run append in next 30-min dev cycle.
