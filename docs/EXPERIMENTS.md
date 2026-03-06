@@ -304,3 +304,10 @@ Track A/B and policy experiments.
 - Metric(s): Non-zero delta coverage rate; trend interpretation time from latest OPS entry; missed level-up events.
 - Result: Current cycle shows large gold accumulation and near-level-up state while replay/history remains zero/404, supporting delta instrumentation.
 - Decision: Implement delta instrumentation in next 30-min cycle and monitor for 8 hourly runs.
+
+- Date: 2026-03-06 20:09 KST
+- Hypothesis: Deterministic cached status-delta output (`Δlevel/Δexp/Δgold/Δexp_to_next`) will materially improve hourly feedback actionability during persistent history API outages.
+- Change: Add previous-status cache compare step and delta-line render in OPS feedback path.
+- Metric(s): Non-zero delta coverage; trend-readability score (binary actionable/not-actionable); missed level-up detection count.
+- Result: Current cycle shows level-up and large gold reserve while history endpoints remain 404 and replay KPIs remain zero, supporting delta instrumentation.
+- Decision: Implement delta step next cycle and evaluate over 8 hourly runs.
