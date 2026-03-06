@@ -65,7 +65,8 @@ npm run dev
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
 - 주요 튜닝 키: `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_BUY_QTY`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`
 - 현재 우선순위 정책:
-  - 인벤토리 위험 선차단(슬롯 임계값 도달 시 현재 장착 대비 열위 장비 전량 우선 매각, 이후 필요 시 저티어 장비 batch 판매)
+  - 인벤토리 위험 선차단(기본 10→8 슬롯 정리 모드): 현재 장착 대비 열위 장비 전량 우선 매각, 이후 필요 시 저티어 장비 batch 판매
+  - 매각 시 장착본 보전 규칙 적용: 장착 중인 item_id와 겹치는 스택은 장착 수량만큼 예약해 오매각 방지
   - 인벤토리 사용 슬롯은 `inventory.slots.used`를 우선 사용하고, 미제공 시 `inventory_count`/목록 길이로 안전 폴백
   - 전투 중 슬롯 압박 + 판매 필요 시 `POST /combat/surrender`로 전투 종료 후 인벤토리 정리를 재시도
   - 저체력 운영은 rest-first 경제 모드(임계 이하에서 즉시 `rest`), 극저체력 구간에서만 potion 보조 사용 (`rest` 400은 soft-fail로 처리해 루프 정체 방지)
