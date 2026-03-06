@@ -381,3 +381,10 @@ Track A/B and policy experiments.
 - Metric(s): False-positive risk alert rate, agreement with manual review labels, follow-up intervention count per 24h.
 - Result: Second consecutive cycle shows strong EXP gain (`+2928`) with large gold drawdown (`-4460`) and HP recovery, supporting contextual classification over threshold-only alerting.
 - Decision: Implement in next 30-min cycle and evaluate for 8 hourly runs.
+
+- Date: 2026-03-07 07:09 KST
+- Hypothesis: A composite `risk_state_tag` (using `Δgold`, `Δexp`, HP delta, shield-turn delta, hunt quota remaining) will reduce ambiguous operator interpretation versus single-threshold alerts.
+- Change: Add deterministic triage labels in hourly feedback: `productive` (high exp gain with stable risk), `watch` (mixed signal), `degrading` (high spend + declining survivability/throughput).
+- Metric(s): Alert precision/recall for manually judged risk windows, intervention timing improvement, repeated-alert noise rate.
+- Result: Current cycle shows strong EXP gain (`+2880`) with large gold drawdown (`-4550`), HP decline, shield burn, and hunt quota exhaustion, supporting composite state tagging.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

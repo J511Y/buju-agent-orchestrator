@@ -1100,3 +1100,12 @@
   - Resource trend signal (vs prior 05:09 status snapshot): no level change (`30→30`), `Δexp=+2928`, `Δgold=-4460`, HP recovered (`184→284`), mutation shield turns increased (`38→43`), use-item quota consumed by 1 (`19→18`).
   - Development feedback: repeated high negative `Δgold` with positive `Δexp` now appears in consecutive cycles, indicating likely productive spend but requiring explicit classification logic to prevent noisy risk alerts.
 - [2026-03-07 06:09 KST] Next 30-min actionable TODO: implement `gold_spend_classification` rule (`productive_spend` vs `risk_spend`) using joint conditions on `Δexp`, HP trend, and quota consumption.
+
+- [2026-03-07 07:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv30, exp `8265`, gold `4968`, HP `186/535`, MP `282/282`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak still `7`.
+  - Retry recommendation: maintain replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 06:09 status snapshot): `Δexp=+2880`, `Δgold=-4550`, HP declined (`284→186`), mutation shield turns decreased (`43→22`), hunt quota exhausted (`1→0`).
+  - Development feedback: high spend + shield depletion + hunt quota exhaustion now co-occur, so hourly feedback should emit an explicit risk-state tag to distinguish productive progression from approaching stall/risk window.
+- [2026-03-07 07:09 KST] Next 30-min actionable TODO: add `risk_state_tag` derivation (`productive`, `watch`, `degrading`) from combined `Δgold`, `Δexp`, HP trend, shield-turn trend, and hunt quota remaining.
