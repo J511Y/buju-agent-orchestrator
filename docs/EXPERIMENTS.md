@@ -269,3 +269,10 @@ Track A/B and policy experiments.
 - Metric(s): emergency-hit count/hour; recovery success on next cycle; stall incidence after emergency hits.
 - Result: Current cycle shows HP at 98/445 with hunt quota 0 and replay/history zero-signal, supporting emergency telemetry experiment.
 - Decision: Implement telemetry and capture one-cycle evidence in next 30-min run.
+
+- Date: 2026-03-06 15:13 KST
+- Hypothesis: Previous-snapshot delta emission in OPS feedback will reduce repeated no-signal reports and improve trend readability during history-endpoint outages.
+- Change: Add lightweight previous-status cache and derive `Δlevel/Δexp/Δgold` each hourly cycle.
+- Metric(s): % cycles with non-zero trend fields; time-to-understand trend from latest OPS entry.
+- Result: Replay/history remains zero/404 while live status shows meaningful progression state, supporting status-delta experiment.
+- Decision: Implement cache + one-cycle validation in next 30-min block.
