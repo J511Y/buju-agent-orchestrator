@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-06
+- [2026-03-06 11:47 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - CHANGE (drift): live `GET /api/skill-doc/download` advanced to `version: 1.15.0` (previously 1.14.0); pinned doc remains `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` (`1.11.1`).
+  - KEEP (mechanics quick-check): live doc still exposes `POST /api/combat/surrender`, `POST /api/item/use`, `POST /api/shop/buy`, `POST /api/shop/sell`, and `IN_COMBAT` constraint semantics; current runner guards remain aligned.
+  - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (batch-first): quantity-capable sell/use/buy paths remain batch-first (`quantity` payload preserved).
+  - CHANGE (docs): updated `docs/BUJU_GAME_CONTEXT.md` live-version marker from `v1.14.0` to `v1.15.0`.
+  - KEEP (strategy/code): no additional safe high-impact runner code delta required this cycle after live smoke validation.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=23 exp=4540 gold=198 code=200`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-06 11:18 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.14.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.

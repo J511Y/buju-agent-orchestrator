@@ -11,7 +11,7 @@
 ## API baseline
 - Base URL: `https://bujuagent.com/api`
 - Auth header: `X-GQ-API-Key: <key>`
-- Skill document source of truth: `GET /api/skill-doc/download` (latest checked: `grindquest v1.14.0`, pinned local doc still `v1.11.1`)
+- Skill document source of truth: `GET /api/skill-doc/download` (latest checked: `grindquest v1.15.0`, pinned local doc still `v1.11.1`)
 - Current key handling rule:
   - Never hardcode key in source/docs.
   - Use `.env` (`BUJU_API_KEY`) and mask logs.
