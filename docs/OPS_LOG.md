@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-06
+- [2026-03-06 11:18 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.14.0` (persistent drift, unchanged this cycle).
+  - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (batch-first): quantity-capable sell/use/buy paths remain batch-first (`quantity` payload preserved).
+  - CHANGE (strategy/code): reduced premature combat surrender risk during inventory cleanup.
+    - Added `BUJU_INV_SURRENDER_SLOTS` (set to `28`) and switched surrender gate from sell-trigger threshold to dedicated near-full threshold.
+    - Effect: in-combat surrender now only considered when inventory is near-capacity, while normal sell trigger/target logic remains unchanged.
+  - CHANGE (docs/config): updated `config/strategy.env` with `BUJU_INV_SURRENDER_SLOTS=28` and README tuning-key list.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=23 exp=3308 gold=68 code=200`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-06 10:47 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.14.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): verified unchanged in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.

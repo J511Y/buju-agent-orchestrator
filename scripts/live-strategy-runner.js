@@ -44,6 +44,7 @@ const CFG = {
   invSellTargetSlots: Number(process.env.BUJU_INV_SELL_TARGET_SLOTS || 24),
   invSellMaxIterationsPerTick: Number(process.env.BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK || 3),
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
+  invSurrenderSlots: Number(process.env.BUJU_INV_SURRENDER_SLOTS || 28),
   potionUseMaxQuantity: Number(process.env.BUJU_POTION_USE_MAX_QUANTITY || 3),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
@@ -341,7 +342,7 @@ async function step() {
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
   // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
-  if (slotUsed >= CFG.invSellTriggerSlots && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
+  if (slotUsed >= CFG.invSurrenderSlots && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
     const surrender = await req('/combat/surrender', { method: 'POST', body: '{}' });
     recordActionResult('surrender_inventory', surrender.status);
     if (surrender.status === 200) {

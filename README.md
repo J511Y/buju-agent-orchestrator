@@ -63,7 +63,7 @@ npm run dev
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
-- 주요 튜닝 키: `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`
+- 주요 튜닝 키: `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`
 - 현재 우선순위 정책:
   - 인벤토리 위험 선차단(슬롯 임계값 도달 시 저티어 장비 batch 판매)
   - 인벤토리 사용 슬롯은 `inventory.slots.used`를 우선 사용하고, 미제공 시 `inventory_count`/목록 길이로 안전 폴백
