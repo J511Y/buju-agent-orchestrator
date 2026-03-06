@@ -255,3 +255,10 @@ Track A/B and policy experiments.
 - Metric(s): low-gold suppression count per hour; gold floor breach duration; hunt continuity.
 - Result: Current cycle shows level-up state with tight gold reserve and continued history endpoint outage, supporting guardrail telemetry experiment.
 - Decision: Implement telemetry and verify one-cycle log output in next 30-min block.
+
+- Date: 2026-03-06 13:09 KST
+- Hypothesis: Auto-computed status deltas from previous snapshot will make hourly feedback actionable despite persistent history-endpoint 404s.
+- Change: Implement minimal previous-status cache + delta line emission in hourly feedback routine.
+- Metric(s): Non-zero hourly delta coverage; cycles labeled no-signal; time to identify trend direction.
+- Result: Current cycle still shows replay/history zero-signal with meaningful live status values, supporting snapshot-delta rollout.
+- Decision: Implement delta cache helper and validate over next 6 hourly cycles.
