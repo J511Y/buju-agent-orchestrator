@@ -1050,3 +1050,12 @@
   - Resource trend signal (vs prior 03:09 status snapshot): `Δexp=+2800`, `Δgold=-5000`, HP recovered (`139→283`), mutation shield turns reduced (`47→20`), hunt quota still constrained (`1/30`).
   - Development feedback: progression is still strong despite history blackout, but net gold drawdown + shield burn suggest economy/risk controls need explicit guardrails in hourly output.
 - [2026-03-07 04:09 KST] Next 30-min actionable TODO: implement an OPS delta-alert line when `Δgold < -3000` with companion context (`Δexp`, potion/rest quota usage, shield-turn delta) to distinguish healthy reinvestment from destabilizing spend.
+
+- [2026-03-07 05:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv30, exp `2457`, gold `13978`, HP `184/535`, MP `282/282`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue returning `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7` across recent endpoint variants.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 04:09 status snapshot): level-up detected (`29→30`), `Δgold=-4480`, HP shifted (`283→184`, max `520→535`), mutation shield turns increased (`20→38`) indicating shield refresh/renewal despite economy drawdown.
+  - Development feedback: level transition now masks raw exp comparability (`8083→2457` after level-up), so hourly feedback should emit normalized progression (pre/post-level baseline) to avoid false regression interpretation.
+- [2026-03-07 05:09 KST] Next 30-min actionable TODO: add `level_transition_normalized_delta` output (with `level_up_detected` gate) so exp trend remains interpretable when levels roll over.

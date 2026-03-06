@@ -367,3 +367,10 @@ Track A/B and policy experiments.
 - Metric(s): Alert precision vs manual review, false-positive rate during level-up windows, time-to-action after large negative gold swings.
 - Result: Current cycle shows `Δexp=+2800` with `Δgold=-5000` and shield-turn burn (`47→20`) while history endpoints remain 404, supporting the need for contextual drawdown alerting.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 05:09 KST
+- Hypothesis: Adding `level_transition_normalized_delta` (only when `level_up_detected=true`) will reduce false negative progression interpretation caused by EXP rollover after level-up.
+- Change: Extend hourly status-delta renderer to compute normalized EXP gain across level boundaries and show both raw and normalized values.
+- Metric(s): Misclassification rate of post-level-up cycles (regression vs progression), operator interpretation latency, alert correction edits per day.
+- Result: Current cycle shows `Lv29→Lv30` with raw EXP drop (`8083→2457`) and continued combat state, demonstrating rollover ambiguity in existing logs.
+- Decision: Implement in next 30-min cycle and validate over next 6 hourly runs.
