@@ -318,3 +318,10 @@ Track A/B and policy experiments.
 - Metric(s): Non-zero delta coverage rate; operator trend-clarity (binary); missed progression-event count.
 - Result: Current cycle again shows meaningful live progression/economy state while replay/history remain zero/404, supporting delta implementation.
 - Decision: Build and smoke-test delta renderer in next 30-min cycle.
+
+- Date: 2026-03-06 22:09 KST
+- Hypothesis: Automatic status-cache delta output in OPS logs will materially improve trend readability while history endpoints continue returning 404.
+- Change: Add previous-status cache read/write and deterministic delta line (`Δlevel/Δexp/Δgold/Δexp_to_next`) in hourly feedback path.
+- Metric(s): Non-zero delta-line coverage; trend interpretation time; missed progression jump count.
+- Result: Current cycle shows high gold + near-level-up state while replay/history remains zero/404, supporting delta-cache instrumentation.
+- Decision: Implement delta-cache path in next 30-min cycle and monitor over next 8 runs.
