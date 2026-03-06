@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-06
+- [2026-03-06 14:46 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live `GET /api/skill-doc/download` is `version: 1.15.0` (persistent drift, unchanged this cycle).
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; rest-first knobs also preserved (`LOW_HP=0.50`, `LOW_HP_POTION=0.15`, `MIN_HP=6`, `MIN_MP=4`, `MIN_BUY_QTY=3`, `POTION_USE_MAX_QUANTITY=1`).
+  - KEEP (batch-first/conservative): sell/use/buy keep quantity-capable batch path; potion use remains conservative via `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - CHANGE (strategy/code): wired `BUJU_MIN_BUY_QTY` into runner buy path (previously configured but not applied).
+    - `scripts/live-strategy-runner.js` now sets `CFG.minBuyQty` and applies `buyQty=max(deficit, minBuyQty)` for HP/MP buys.
+    - Effect: fewer tiny refill buys, better batch efficiency while respecting conservative potion-spend policy.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=24 exp=5663 gold=528 code=200`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-06 14:16 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.15.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): verified unchanged in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=15`, `BUJU_INV_SELL_TARGET_SLOTS=12`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.

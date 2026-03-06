@@ -27,6 +27,7 @@ const CFG = {
   maxActions: Number(process.env.BUJU_MAX_ACTIONS_PER_CYCLE || 30),
   minHpPotionS: Number(process.env.BUJU_MIN_HP_POTION_S || 5),
   minMpPotionS: Number(process.env.BUJU_MIN_MP_POTION_S || 3),
+  minBuyQty: Number(process.env.BUJU_MIN_BUY_QTY || 1),
   lowHpRatio: Number(process.env.BUJU_LOW_HP_RATIO || 0.35),
   lowHpPotionRatio: Number(process.env.BUJU_LOW_HP_POTION_RATIO || 0.55),
   moveLv2: Number(process.env.BUJU_MOVE_LEVEL_2 || 10),
@@ -406,7 +407,8 @@ async function step() {
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
   if (!inCombat && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp') && hasRateBudget(rateLimits, 'buy')) {
-    const buyQty = CFG.minHpPotionS - hpS;
+    const deficit = CFG.minHpPotionS - hpS;
+    const buyQty = Math.max(1, Math.max(CFG.minBuyQty, deficit));
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_hp', r.status);
     if (r.status === 200) {
@@ -414,7 +416,8 @@ async function step() {
     }
   }
   if (!inCombat && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp') && hasRateBudget(rateLimits, 'buy')) {
-    const buyQty = CFG.minMpPotionS - mpS;
+    const deficit = CFG.minMpPotionS - mpS;
+    const buyQty = Math.max(1, Math.max(CFG.minBuyQty, deficit));
     const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
     recordActionResult('buy_mp', r.status);
     if (r.status === 200) {
