@@ -917,3 +917,11 @@
   - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
   - Resource trend signal: level advanced to Lv28 and gold climbed to `31538` while hunt quota is exhausted (`0/30`); preserve gains via low-risk recovery and quota-aware action pacing.
 - [2026-03-06 23:14 KST] Next 30-min actionable TODO: implement status-cache delta emission (`Δlevel/Δexp/Δgold/Δexp_to_next`) directly in hourly OPS pipeline and verify with one smoke cycle.
+
+- [2026-03-07 00:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv28, exp `5027`, gold `36608`, HP `302/505`, MP `266/266`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak `6`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal: continued progression momentum (`exp 5027/7840`) with strong gold buffer (`36608`) and low hunt headroom (`1/30`); keep efficient hunt-first pacing.
+- [2026-03-07 00:09 KST] Next 30-min actionable TODO: implement hourly cached status delta output (`Δlevel/Δexp/Δgold/Δexp_to_next`) in OPS feedback generator to reduce fallback no-signal ambiguity.

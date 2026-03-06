@@ -332,3 +332,10 @@ Track A/B and policy experiments.
 - Metric(s): Delta-line coverage rate; trend interpretation speed; missed progression jumps under history 404 conditions.
 - Result: Current cycle shows level-up and strong economy growth while replay/history remain zero/404, reinforcing need for delta instrumentation.
 - Decision: Implement in next 30-min slot and observe for next 8 hourly cycles.
+
+- Date: 2026-03-07 00:09 KST
+- Hypothesis: Cached status-delta rendering in OPS entries will improve trend clarity and decision speed when activity-history endpoints are unavailable.
+- Change: Add previous `/api/status` snapshot cache and deterministic delta line in hourly feedback routine.
+- Metric(s): Delta-line presence rate; operator trend-readability; missed progression-event count under history 404 mode.
+- Result: This cycle again shows strong live progression/economy while replay/history remains zero/404, supporting delta-cache implementation.
+- Decision: Implement next cycle and monitor for 8 hourly runs.
