@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-07
+- [2026-03-07 05:18 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift, unchanged this cycle).
+  - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (priority sell rule): when `slots >= 10`, runner keeps worst-than-equipped unequipped equipment liquidation as highest-priority path before fallback cleanup.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - KEEP (strategy/code): no additional safe high-impact code/config delta identified this cycle; prior reserve-guard and anti-stall behavior remain stable.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=wait_hunt_rate_limit level=30 exp=2905 gold=13318 code=200`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-07 04:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
