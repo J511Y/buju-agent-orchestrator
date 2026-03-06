@@ -244,13 +244,34 @@ async function liquidateInventoryRisk(inventory, equipped, initialSlots, charact
   const soldItems = [];
 
   for (let i = 0; i < CFG.invSellMaxIterationsPerTick; i++) {
-    if (currentSlots <= CFG.invSellTargetSlots) break;
-
-    // 최우선: 현재 장착 장비보다 성능이 낮은 장비는 전량 매각
+    // 하드 제약: slots >= trigger 이면 '장착 대비 열위 장비 전량 매각'을 최우선으로 소진한다.
     const worse = await chooseWorseThanEquippedCandidate(inventory, equipped);
-    const target = worse
-      ? { item_id: worse.itemId, quantity: worse.quantity }
-      : chooseSellCandidate(inventory, equipped);
+    if (worse) {
+      const target = { item_id: worse.itemId, quantity: worse.quantity };
+
+      const reserveById = getEquippedItemReserveMap(equipped);
+      const reserved = reserveById.get(target.item_id) || 0;
+      const sellableQty = Math.max(0, Number(target.quantity || 1) - reserved);
+      if (sellableQty <= 0) continue;
+      const sellQty = Math.max(1, sellableQty);
+      const s = await req('/shop/sell', { method: 'POST', body: JSON.stringify({ item_id: target.item_id, quantity: sellQty }) });
+      recordActionResult('inventory_sell', s.status);
+
+      if (s.status !== 200) {
+        if (s.status === 400) continue;
+        break;
+      }
+
+      soldCount += sellQty;
+      soldItems.push(`${target.item_id}x${sellQty}`);
+      applyLocalSell(inventory, target.item_id, sellQty);
+      currentSlots = Math.max(0, currentSlots - 1);
+      continue;
+    }
+
+    // 열위 장비 정리가 끝났다면 target 슬롯까지 일반 저티어 정리를 이어간다.
+    if (currentSlots <= CFG.invSellTargetSlots) break;
+    const target = chooseSellCandidate(inventory, equipped);
     if (!target) break;
 
     const reserveById = getEquippedItemReserveMap(equipped);
@@ -275,7 +296,7 @@ async function liquidateInventoryRisk(inventory, equipped, initialSlots, charact
   if (soldCount > 0) {
     return {
       ok: true,
-      action: 'sell_low_tier_batch',
+      action: 'sell_inventory_cleanup_batch',
       sold_items: soldItems.join(','),
       sold_quantity_total: soldCount,
       slots_used_before: initialSlots,
