@@ -1075,3 +1075,12 @@
   - Resource trend signal (vs prior 04:09 status snapshot): level-up detected (`29→30`), `Δgold=-4480`, HP shifted (`283→184`, max `520→535`), mutation shield turns increased (`20→38`) indicating shield refresh/renewal despite economy drawdown.
   - Development feedback: level transition now masks raw exp comparability (`8083→2457` after level-up), so hourly feedback should emit normalized progression (pre/post-level baseline) to avoid false regression interpretation.
 - [2026-03-07 05:09 KST] Next 30-min actionable TODO: add `level_transition_normalized_delta` output (with `level_up_detected` gate) so exp trend remains interpretable when levels roll over.
+
+- [2026-03-07 06:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv30, exp `5385`, gold `9518`, HP `284/535`, MP `282/282`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still return `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 05:09 status snapshot): no level change (`30→30`), `Δexp=+2928`, `Δgold=-4460`, HP recovered (`184→284`), mutation shield turns increased (`38→43`), use-item quota consumed by 1 (`19→18`).
+  - Development feedback: repeated high negative `Δgold` with positive `Δexp` now appears in consecutive cycles, indicating likely productive spend but requiring explicit classification logic to prevent noisy risk alerts.
+- [2026-03-07 06:09 KST] Next 30-min actionable TODO: implement `gold_spend_classification` rule (`productive_spend` vs `risk_spend`) using joint conditions on `Δexp`, HP trend, and quota consumption.

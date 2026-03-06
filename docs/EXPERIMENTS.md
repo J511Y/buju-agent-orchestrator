@@ -374,3 +374,10 @@ Track A/B and policy experiments.
 - Metric(s): Misclassification rate of post-level-up cycles (regression vs progression), operator interpretation latency, alert correction edits per day.
 - Result: Current cycle shows `Lv29→Lv30` with raw EXP drop (`8083→2457`) and continued combat state, demonstrating rollover ambiguity in existing logs.
 - Decision: Implement in next 30-min cycle and validate over next 6 hourly runs.
+
+- Date: 2026-03-07 06:09 KST
+- Hypothesis: A `gold_spend_classification` rule that labels large negative `Δgold` as `productive_spend` when accompanied by positive `Δexp` and stable/recovering HP will reduce false risk alerts during normal progression loops.
+- Change: Add classification step to hourly feedback with evidence fields (`Δgold`, `Δexp`, HP delta, use-item/rest quota deltas, shield-turn delta).
+- Metric(s): False-positive risk alert rate, agreement with manual review labels, follow-up intervention count per 24h.
+- Result: Second consecutive cycle shows strong EXP gain (`+2928`) with large gold drawdown (`-4460`) and HP recovery, supporting contextual classification over threshold-only alerting.
+- Decision: Implement in next 30-min cycle and evaluate for 8 hourly runs.
