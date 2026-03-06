@@ -311,3 +311,10 @@ Track A/B and policy experiments.
 - Metric(s): Non-zero delta coverage; trend-readability score (binary actionable/not-actionable); missed level-up detection count.
 - Result: Current cycle shows level-up and large gold reserve while history endpoints remain 404 and replay KPIs remain zero, supporting delta instrumentation.
 - Decision: Implement delta step next cycle and evaluate over 8 hourly runs.
+
+- Date: 2026-03-06 21:09 KST
+- Hypothesis: Explicit cached status-delta output in OPS entries will increase trend clarity and reduce repeated no-signal ambiguity under persistent history endpoint 404s.
+- Change: Implement previous-status cache compare and delta-line renderer for `Δlevel/Δexp/Δgold/Δexp_to_next`.
+- Metric(s): Non-zero delta coverage rate; operator trend-clarity (binary); missed progression-event count.
+- Result: Current cycle again shows meaningful live progression/economy state while replay/history remain zero/404, supporting delta implementation.
+- Decision: Build and smoke-test delta renderer in next 30-min cycle.
