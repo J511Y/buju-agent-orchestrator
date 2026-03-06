@@ -339,3 +339,10 @@ Track A/B and policy experiments.
 - Metric(s): Delta-line presence rate; operator trend-readability; missed progression-event count under history 404 mode.
 - Result: This cycle again shows strong live progression/economy while replay/history remains zero/404, supporting delta-cache implementation.
 - Decision: Implement next cycle and monitor for 8 hourly runs.
+
+- Date: 2026-03-07 01:09 KST
+- Hypothesis: Including status deltas plus mutation-shield remaining-turn trend in OPS feedback will improve tactical timing decisions during history API outages.
+- Change: Extend cached status compare output with `mutation_shield_remaining_turns` delta and standard progression/economy deltas.
+- Metric(s): Delta-line coverage; shield-window utilization quality; missed near-level-up opportunity count.
+- Result: Current cycle shows near-level-up progression with active mutation shield while history endpoints remain unavailable (404), supporting richer delta instrumentation.
+- Decision: Implement and validate in next 30-min cycle.

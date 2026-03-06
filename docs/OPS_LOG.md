@@ -947,3 +947,11 @@
   - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
   - Resource trend signal: continued progression momentum (`exp 5027/7840`) with strong gold buffer (`36608`) and low hunt headroom (`1/30`); keep efficient hunt-first pacing.
 - [2026-03-07 00:09 KST] Next 30-min actionable TODO: implement hourly cached status delta output (`Δlevel/Δexp/Δgold/Δexp_to_next`) in OPS feedback generator to reduce fallback no-signal ambiguity.
+
+- [2026-03-07 01:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv28, exp `7747`, gold `33058`, HP `316/505`, MP `266/266`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPI summaries only after >=2 consecutive successful history reads.
+  - Resource trend signal: near-level-up state (`exp 7747/7840`), strong gold reserve (`33058`), and active mutation shield (`remaining_turns=12`); prioritize efficient hunt windows while shield persists.
+- [2026-03-07 01:09 KST] Next 30-min actionable TODO: add deterministic status-delta block (`Δlevel/Δexp/Δgold/Δexp_to_next`) to OPS generator and include `mutation_shield_remaining_turns` trend line.
