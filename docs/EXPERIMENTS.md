@@ -353,3 +353,10 @@ Track A/B and policy experiments.
 - Metric(s): Shield-expiry alerts captured; delayed-refresh incidents; post-expiry HP volatility.
 - Result: Current cycle shows shield at 1 turn remaining with history endpoints still 404, providing direct evidence for alert instrumentation.
 - Decision: Implement alert rule in next 30-min dev cycle and validate over 6 hourly runs.
+
+- Date: 2026-03-07 03:09 KST
+- Hypothesis: A deterministic low-HP alert line in hourly feedback (`hp_ratio < 0.30`) will reduce missed recovery windows and improve survivability decisions during history-endpoint outages.
+- Change: Add low-HP condition evaluation and explicit recovery-first recommendation text in OPS generator.
+- Metric(s): low-HP alert hit count; next-cycle HP recovery rate; combat-failure incidents after alerts.
+- Result: Current cycle shows HP at 139/520 with history endpoints still unavailable, supporting low-HP alert instrumentation.
+- Decision: Implement alert rule in next 30-min cycle and observe for 6 hourly runs.

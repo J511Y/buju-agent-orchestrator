@@ -999,3 +999,11 @@
   - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPI summaries only after >=2 consecutive successful history reads.
   - Resource trend signal: level advanced to Lv29 with strong economy (`gold=28178`) and mutation shield near expiry (`remaining_turns=1`); prepare shield refresh logic while maintaining quota-aware hunt pacing (`hunt 0/30`).
 - [2026-03-07 02:09 KST] Next 30-min actionable TODO: add mutation-shield expiry alert (`remaining_turns <= 2`) in OPS feedback and trigger explicit recommendation to refresh shield or switch to lower-risk behavior.
+
+- [2026-03-07 03:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv29, exp `5283`, gold `23458`, HP `139/520`, MP `274/274`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal: low HP pressure (`139/520`) with active mutation shield (`remaining_turns=47`) and limited hunt headroom (`1/30`); prioritize safe recovery before high-risk combat chains.
+- [2026-03-07 03:09 KST] Next 30-min actionable TODO: implement low-HP alert rule (`hp_ratio < 0.30`) in hourly OPS feedback to force explicit recovery-first recommendation output.
