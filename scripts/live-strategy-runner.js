@@ -342,7 +342,8 @@ async function step() {
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
   // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
-  if (slotUsed >= CFG.invSurrenderSlots && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
+  const hasSellCandidateNow = !!chooseSellCandidate(inventory, equipped);
+  if (slotUsed >= CFG.invSurrenderSlots && hasSellCandidateNow && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
     const surrender = await req('/combat/surrender', { method: 'POST', body: '{}' });
     recordActionResult('surrender_inventory', surrender.status);
     if (surrender.status === 200) {
@@ -354,7 +355,7 @@ async function step() {
         ? await liquidateInventoryRisk(inventoryAfter, equippedAfter, slotsAfter, c)
         : null;
       if (soldAfter) return { ...soldAfter, action: `surrender_then_${soldAfter.action}` };
-      return { ok: true, action: 'surrender_for_inventory_cleanup', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      // 매각 대상이 없으면 항복 반복하지 않고 전투/사냥 루프로 복귀
     }
   }
 
