@@ -693,3 +693,11 @@
   - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-based KPIs only after >=2 consecutive successful history responses.
   - Resource trend signal: hunt quota depleted (`0/30`) with steady HP/MP (`345/445`, `148/234`); continue recovery-safe, low-risk action mix until quota refresh.
 - [2026-03-06 13:09 KST] Next 30-min actionable TODO: add a tiny status-delta cache file (`tmp/status-prev.json`) and emit computed hourly level/exp/gold deltas into OPS entries automatically.
+
+- [2026-03-06 14:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv24, exp `4244`, gold `108`, HP `98/445`, MP `234/234`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and only re-enable history-derived KPI summaries after >=2 consecutive successful history probes.
+  - Resource trend signal: critical HP/economy pressure (`HP=98/445`, `gold=108`) with hunt quota exhausted (`0/30`); prioritize immediate recovery and suspend optional spend actions.
+- [2026-03-06 14:09 KST] Next 30-min actionable TODO: add emergency low-HP branch telemetry (`hp_ratio<0.30`) with per-cycle counter and verify it triggers under current live conditions.

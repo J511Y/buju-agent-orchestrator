@@ -262,3 +262,10 @@ Track A/B and policy experiments.
 - Metric(s): Non-zero hourly delta coverage; cycles labeled no-signal; time to identify trend direction.
 - Result: Current cycle still shows replay/history zero-signal with meaningful live status values, supporting snapshot-delta rollout.
 - Decision: Implement delta cache helper and validate over next 6 hourly cycles.
+
+- Date: 2026-03-06 14:09 KST
+- Hypothesis: Explicit low-HP emergency-branch telemetry will improve detection of survival-risk cycles and prevent hidden stalls under depleted hunt quota.
+- Change: Emit `emergency_low_hp_hits` and `recovery_action_selected` fields when HP ratio drops below 0.30.
+- Metric(s): emergency-hit count/hour; recovery success on next cycle; stall incidence after emergency hits.
+- Result: Current cycle shows HP at 98/445 with hunt quota 0 and replay/history zero-signal, supporting emergency telemetry experiment.
+- Decision: Implement telemetry and capture one-cycle evidence in next 30-min run.
