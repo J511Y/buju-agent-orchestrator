@@ -41,7 +41,7 @@ const CFG = {
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
   backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
-  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 27),
+  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 10),
   invSellTargetSlots: Number(process.env.BUJU_INV_SELL_TARGET_SLOTS || 24),
   invSellMaxIterationsPerTick: Number(process.env.BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK || 3),
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
@@ -140,12 +140,14 @@ function usedSlots(inventory, invResJson) {
   return inventory.length;
 }
 
-function getEquippedItemIds(equipped) {
-  return new Set(
-    Object.values(equipped || {})
-      .map(v => (v && typeof v === 'object' ? v.item_id : null))
-      .filter(Boolean)
-  );
+function getEquippedItemReserveMap(equipped) {
+  const m = new Map();
+  for (const v of Object.values(equipped || {})) {
+    const id = (v && typeof v === 'object') ? v.item_id : null;
+    if (!id) continue;
+    m.set(id, (m.get(id) || 0) + 1);
+  }
+  return m;
 }
 
 function rarityRank(rarity) {
@@ -159,11 +161,12 @@ function lowTierHint(item) {
 }
 
 function chooseSellCandidate(inventory, equipped) {
-  const equippedIds = getEquippedItemIds(equipped);
-  const candidates = (inventory || []).filter(i =>
-    i.type === 'equipment' &&
-    !equippedIds.has(i.item_id)
-  );
+  const reserveById = getEquippedItemReserveMap(equipped);
+  const candidates = (inventory || []).filter(i => {
+    if (i.type !== 'equipment') return false;
+    const reserve = reserveById.get(i.item_id) || 0;
+    return Number(i.quantity || 0) > reserve;
+  });
 
   if (!candidates.length) return null;
 
@@ -187,6 +190,51 @@ function applyLocalSell(inventory, itemId, quantity) {
   if (inventory[idx].quantity <= 0) inventory.splice(idx, 1);
 }
 
+const itemMetaCache = new Map();
+
+async function getItemMeta(itemId) {
+  if (itemMetaCache.has(itemId)) return itemMetaCache.get(itemId);
+  const d = await req(`/game-data/items/${itemId}`);
+  const data = d.status === 200 ? (d.json?.data || null) : null;
+  itemMetaCache.set(itemId, data);
+  return data;
+}
+
+function equipmentScore(meta) {
+  if (!meta) return 0;
+  return Number(meta.maxDamage || 0) + Number(meta.defBonus || 0);
+}
+
+async function chooseWorseThanEquippedCandidate(inventory, equipped) {
+  const equippedBySlot = new Map();
+  for (const v of Object.values(equipped || {})) {
+    if (v && typeof v === 'object' && v.item_id) {
+      const m = await getItemMeta(v.item_id);
+      const slot = m?.equipSlot;
+      if (!slot) continue;
+      equippedBySlot.set(slot, { itemId: v.item_id, score: equipmentScore(m) });
+    }
+  }
+
+  const candidates = [];
+  for (const item of (inventory || [])) {
+    if (item.type !== 'equipment') continue;
+    const meta = await getItemMeta(item.item_id);
+    const slot = meta?.equipSlot;
+    if (!slot) continue;
+    const eq = equippedBySlot.get(slot);
+    if (!eq) continue;
+    if (item.item_id === eq.itemId) continue;
+    const score = equipmentScore(meta);
+    if (score < eq.score) {
+      candidates.push({ itemId: item.item_id, quantity: Number(item.quantity || 1), score, eqScore: eq.score });
+    }
+  }
+
+  candidates.sort((a, b) => (a.score - b.score) || (a.eqScore - b.eqScore) || a.itemId.localeCompare(b.itemId));
+  return candidates[0] || null;
+}
+
 async function liquidateInventoryRisk(inventory, equipped, initialSlots, character) {
   if (initialSlots < CFG.invSellTriggerSlots) return null;
   if (shouldSkipAction('inventory_sell')) return null;
@@ -197,10 +245,19 @@ async function liquidateInventoryRisk(inventory, equipped, initialSlots, charact
 
   for (let i = 0; i < CFG.invSellMaxIterationsPerTick; i++) {
     if (currentSlots <= CFG.invSellTargetSlots) break;
-    const target = chooseSellCandidate(inventory, equipped);
+
+    // 최우선: 현재 장착 장비보다 성능이 낮은 장비는 전량 매각
+    const worse = await chooseWorseThanEquippedCandidate(inventory, equipped);
+    const target = worse
+      ? { item_id: worse.itemId, quantity: worse.quantity }
+      : chooseSellCandidate(inventory, equipped);
     if (!target) break;
 
-    const sellQty = Math.max(1, Number(target.quantity || 1)); // batch-first when stack exists
+    const reserveById = getEquippedItemReserveMap(equipped);
+    const reserved = reserveById.get(target.item_id) || 0;
+    const sellableQty = Math.max(0, Number(target.quantity || 1) - reserved);
+    if (sellableQty <= 0) break;
+    const sellQty = Math.max(1, sellableQty); // batch-first when stack exists
     const s = await req('/shop/sell', { method: 'POST', body: JSON.stringify({ item_id: target.item_id, quantity: sellQty }) });
     recordActionResult('inventory_sell', s.status);
 
