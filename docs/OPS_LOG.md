@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-07
+- [2026-03-07 04:24 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` remains `version: 1.14.0`.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (priority sell rule): when `slots >= 10`, runner still liquidates all unequipped equipment worse than currently equipped gear first, then low-tier fallback cleanup.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - CHANGE (strategy/code): added strict `BUJU_MIN_GOLD_RESERVE` guard to routine HP/MP potion floor buys (`hp_potion_s`, `mp_potion_s`) to prevent reserve breach during low-gold windows; no impact to hard-constraint thresholds.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=30 exp=153 gold=17808 code=200`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-07 03:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live `GET /api/skill-doc/download` remains `version: 1.15.0`.
   - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.

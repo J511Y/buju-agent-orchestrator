@@ -487,19 +487,25 @@ async function step() {
   if (!inCombat && hpS < CFG.minHpPotionS && !shouldSkipAction('buy_hp') && hasRateBudget(rateLimits, 'buy')) {
     const deficit = CFG.minHpPotionS - hpS;
     const buyQty = Math.max(1, Math.max(CFG.minBuyQty, deficit));
-    const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
-    recordActionResult('buy_hp', r.status);
-    if (r.status === 200) {
-      return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    const estimatedCost = buyQty * 10; // hp_potion_s unit price
+    if ((c.gold || 0) - estimatedCost >= CFG.minGoldReserve) {
+      const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'hp_potion_s', quantity: buyQty }) });
+      recordActionResult('buy_hp', r.status);
+      if (r.status === 200) {
+        return { ok: true, action: 'buy_hp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
     }
   }
   if (!inCombat && mpS < CFG.minMpPotionS && !shouldSkipAction('buy_mp') && hasRateBudget(rateLimits, 'buy')) {
     const deficit = CFG.minMpPotionS - mpS;
     const buyQty = Math.max(1, Math.max(CFG.minBuyQty, deficit));
-    const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
-    recordActionResult('buy_mp', r.status);
-    if (r.status === 200) {
-      return { ok: true, action: 'buy_mp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    const estimatedCost = buyQty * 10; // mp_potion_s unit price
+    if ((c.gold || 0) - estimatedCost >= CFG.minGoldReserve) {
+      const r = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mp_potion_s', quantity: buyQty }) });
+      recordActionResult('buy_mp', r.status);
+      if (r.status === 200) {
+        return { ok: true, action: 'buy_mp', qty: buyQty, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
     }
   }
 
