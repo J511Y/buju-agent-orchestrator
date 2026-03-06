@@ -241,3 +241,10 @@ Track A/B and policy experiments.
 - Metric(s): Gold reserve violation count; cycles with forced rest due to low resources; hunt success continuity.
 - Result: Current cycle shows low gold (`68`) under active combat with history KPIs unavailable, making economic guardrail evidence-worthy.
 - Decision: Implement and run one-cycle smoke check in next 30-min block.
+
+- Date: 2026-03-06 11:09 KST
+- Hypothesis: Logging `minGoldReserve` guardrail hit counts per cycle will expose economic pressure patterns and reduce regressions where optional buys starve combat recovery.
+- Change: Emit structured counters for buy suppression/skip reasons when gold is at or below reserve threshold.
+- Metric(s): buy-suppression hit count; low-gold streak length; hunt success continuity under low-gold windows.
+- Result: Current cycle shows persistent low-gold state (`68`) with replay/history zero-signal and supports guardrail telemetry experiment.
+- Decision: Implement telemetry and capture one-cycle evidence in next 30-min dev slot.
