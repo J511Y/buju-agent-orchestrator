@@ -276,3 +276,10 @@ Track A/B and policy experiments.
 - Metric(s): % cycles with non-zero trend fields; time-to-understand trend from latest OPS entry.
 - Result: Replay/history remains zero/404 while live status shows meaningful progression state, supporting status-delta experiment.
 - Decision: Implement cache + one-cycle validation in next 30-min block.
+
+- Date: 2026-03-06 16:14 KST
+- Hypothesis: A deterministic OPS alert condition (`hp_ratio < 0.45 && hunt_remaining == 0`) will reduce missed recovery-risk cycles and improve operator response consistency.
+- Change: Add alert-condition evaluation and explicit recommendation text emission in hourly feedback generator.
+- Metric(s): Count of risk cycles with alert line present; time-to-recovery after risk detection; false-positive alert rate.
+- Result: Current cycle satisfies high-risk pattern (low HP + exhausted hunt quota + history 404), supporting alert-rule experiment.
+- Decision: Implement rule and observe for next 8 hourly cycles.

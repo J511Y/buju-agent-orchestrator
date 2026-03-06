@@ -725,3 +725,11 @@
   - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI flow only after >=2 consecutive successful history responses.
   - Resource trend signal: level-up state now at Lv25 with hunt quota depleted (`0/30`) and mid HP (`241/460`); keep recovery-safe, low-risk action path between quota resets.
 - [2026-03-06 15:13 KST] Next 30-min actionable TODO: add hourly status-delta line (`Δlevel/Δexp/Δgold`) by persisting previous `/api/status` snapshot and auto-append to OPS feedback.
+
+- [2026-03-06 16:14 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv25, exp `3711`, gold `368`, HP `189/460`, MP `242/242`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak `6`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI path only after >=2 consecutive successful history responses.
+  - Resource trend signal: hunt quota exhausted (`0/30`), HP is below half (`189/460`), and mutation shield buff remains active (`remaining_turns=28`); prioritize recovery-safe actions and avoid optional risk.
+- [2026-03-06 16:14 KST] Next 30-min actionable TODO: add hourly alert rule in OPS feedback when `hp_ratio < 0.45 && hunt_remaining == 0` to force explicit recovery-first recommendation text.
