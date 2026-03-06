@@ -325,3 +325,10 @@ Track A/B and policy experiments.
 - Metric(s): Non-zero delta-line coverage; trend interpretation time; missed progression jump count.
 - Result: Current cycle shows high gold + near-level-up state while replay/history remains zero/404, supporting delta-cache instrumentation.
 - Decision: Implement delta-cache path in next 30-min cycle and monitor over next 8 runs.
+
+- Date: 2026-03-06 23:14 KST
+- Hypothesis: Built-in status-cache delta emission will make progression/economy trend direction explicit and reduce ambiguity from fallback-only zero KPI summaries.
+- Change: Add previous-status cache compare step to hourly feedback path and append deterministic delta line.
+- Metric(s): Delta-line coverage rate; trend interpretation speed; missed progression jumps under history 404 conditions.
+- Result: Current cycle shows level-up and strong economy growth while replay/history remain zero/404, reinforcing need for delta instrumentation.
+- Decision: Implement in next 30-min slot and observe for next 8 hourly cycles.
