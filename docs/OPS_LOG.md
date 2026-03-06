@@ -973,3 +973,11 @@
   - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPI summaries only after >=2 consecutive successful history reads.
   - Resource trend signal: near-level-up state (`exp 7747/7840`), strong gold reserve (`33058`), and active mutation shield (`remaining_turns=12`); prioritize efficient hunt windows while shield persists.
 - [2026-03-07 01:09 KST] Next 30-min actionable TODO: add deterministic status-delta block (`Δlevel/Δexp/Δgold/Δexp_to_next`) to OPS generator and include `mutation_shield_remaining_turns` trend line.
+
+- [2026-03-07 02:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv29, exp `2611`, gold `28178`, HP `263/520`, MP `274/274`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` stays healthy (`200`); rolling 6h history failure streak `6`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPI summaries only after >=2 consecutive successful history reads.
+  - Resource trend signal: level advanced to Lv29 with strong economy (`gold=28178`) and mutation shield near expiry (`remaining_turns=1`); prepare shield refresh logic while maintaining quota-aware hunt pacing (`hunt 0/30`).
+- [2026-03-07 02:09 KST] Next 30-min actionable TODO: add mutation-shield expiry alert (`remaining_turns <= 2`) in OPS feedback and trigger explicit recommendation to refresh shield or switch to lower-risk behavior.

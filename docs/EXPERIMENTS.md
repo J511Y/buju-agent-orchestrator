@@ -346,3 +346,10 @@ Track A/B and policy experiments.
 - Metric(s): Delta-line coverage; shield-window utilization quality; missed near-level-up opportunity count.
 - Result: Current cycle shows near-level-up progression with active mutation shield while history endpoints remain unavailable (404), supporting richer delta instrumentation.
 - Decision: Implement and validate in next 30-min cycle.
+
+- Date: 2026-03-07 02:09 KST
+- Hypothesis: Adding a mutation-shield expiry alert (`remaining_turns <= 2`) to hourly feedback will reduce missed protection windows and smooth combat risk during endpoint outages.
+- Change: Extend status-derived feedback with shield-expiry condition + recommendation text, alongside cached progression/economy deltas.
+- Metric(s): Shield-expiry alerts captured; delayed-refresh incidents; post-expiry HP volatility.
+- Result: Current cycle shows shield at 1 turn remaining with history endpoints still 404, providing direct evidence for alert instrumentation.
+- Decision: Implement alert rule in next 30-min dev cycle and validate over 6 hourly runs.
