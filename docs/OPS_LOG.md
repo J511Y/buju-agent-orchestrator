@@ -599,3 +599,11 @@
   - Retry recommendation: keep replay-first fallback and retry history probes hourly; restore history-based KPIs only after >=2 consecutive successful history responses.
   - Resource trend signal: hunt budget near floor (`1/30`), HP/MP `339/430` and `143/226`; keep recovery-safe path prioritized until hunt quota refresh.
 - [2026-03-06 09:09 KST] Next 30-min actionable TODO: add `scripts/status-snapshot-delta.js` to write one compact hourly snapshot file and append computed deltas directly into `docs/OPS_LOG.md`.
+
+- [2026-03-06 10:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv23, exp `3308`, gold `68`, HP `216/430`, MP `226/226`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: recent-history endpoints still `404` while `/api/status` stays healthy (`200`); rolling 6h failure streak `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI path only after >=2 consecutive successful history responses.
+  - Resource trend signal: hunt quota exhausted (`0/30`), gold reserve compressed (`68`), and HP below half (`216/430`); prioritize low-cost recovery and avoid non-essential spending actions.
+- [2026-03-06 10:09 KST] Next 30-min actionable TODO: implement low-gold guardrail in live runner (`minGoldReserve` breach -> suppress optional buy calls) and record one-cycle validation evidence in OPS log.

@@ -234,3 +234,10 @@ Track A/B and policy experiments.
 - Metric(s): % hourly runs with non-zero trend fields; triage time from latest OPS entry.
 - Result: Replay/history remained zero/404 while live status indicated progression state and resource pressure, supporting snapshot-delta automation.
 - Decision: Implement helper + dry-run append in next 30-min dev cycle.
+
+- Date: 2026-03-06 10:09 KST
+- Hypothesis: Enforcing stricter low-gold buy suppression when gold is near reserve floor will reduce economic stalls without lowering hunt throughput.
+- Change: Add explicit optional-buy suppression branch on `gold <= minGoldReserve` and log branch-hit count per cycle.
+- Metric(s): Gold reserve violation count; cycles with forced rest due to low resources; hunt success continuity.
+- Result: Current cycle shows low gold (`68`) under active combat with history KPIs unavailable, making economic guardrail evidence-worthy.
+- Decision: Implement and run one-cycle smoke check in next 30-min block.
