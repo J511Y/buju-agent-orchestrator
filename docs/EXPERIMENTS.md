@@ -283,3 +283,10 @@ Track A/B and policy experiments.
 - Metric(s): Count of risk cycles with alert line present; time-to-recovery after risk detection; false-positive alert rate.
 - Result: Current cycle satisfies high-risk pattern (low HP + exhausted hunt quota + history 404), supporting alert-rule experiment.
 - Decision: Implement rule and observe for next 8 hourly cycles.
+
+- Date: 2026-03-06 17:09 KST
+- Hypothesis: Emitting `exp_to_next` hourly deltas will improve progression visibility during history-endpoint outages and make leveling pace actionable.
+- Change: Extend status-delta output to include `Δexp_to_next` and `level_up_detected` boolean in OPS feedback.
+- Metric(s): % cycles with interpretable progression trend; level-up detection precision vs raw status snapshot.
+- Result: Current cycle shows near-level-up state with fallback zero-signal from history sources, supporting exp-to-next delta instrumentation.
+- Decision: Implement delta field extension in next 30-min dev cycle.
