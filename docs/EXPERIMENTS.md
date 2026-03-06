@@ -360,3 +360,10 @@ Track A/B and policy experiments.
 - Metric(s): low-HP alert hit count; next-cycle HP recovery rate; combat-failure incidents after alerts.
 - Result: Current cycle shows HP at 139/520 with history endpoints still unavailable, supporting low-HP alert instrumentation.
 - Decision: Implement alert rule in next 30-min cycle and observe for 6 hourly runs.
+
+- Date: 2026-03-07 04:09 KST
+- Hypothesis: A deterministic `gold_drawdown_alert` (trigger: hourly `Δgold < -3000` while `Δexp > 0`) will improve interpretation of whether spend is productive progression investment or a destabilizing economy leak during history-endpoint outages.
+- Change: Add status-cache delta rule to hourly feedback with contextual fields (`Δexp`, HP delta, mutation-shield delta, potion/rest quota deltas).
+- Metric(s): Alert precision vs manual review, false-positive rate during level-up windows, time-to-action after large negative gold swings.
+- Result: Current cycle shows `Δexp=+2800` with `Δgold=-5000` and shield-turn burn (`47→20`) while history endpoints remain 404, supporting the need for contextual drawdown alerting.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

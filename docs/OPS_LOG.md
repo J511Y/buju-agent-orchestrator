@@ -1025,3 +1025,12 @@
   - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and re-enable history-derived KPI summaries only after >=2 consecutive successful history responses.
   - Resource trend signal: low HP pressure (`139/520`) with active mutation shield (`remaining_turns=47`) and limited hunt headroom (`1/30`); prioritize safe recovery before high-risk combat chains.
 - [2026-03-07 03:09 KST] Next 30-min actionable TODO: implement low-HP alert rule (`hp_ratio < 0.30`) in hourly OPS feedback to force explicit recovery-first recommendation output.
+
+- [2026-03-07 04:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv29, exp `8083`, gold `18458`, HP `283/520`, MP `274/274`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak `6-7` depending on endpoint variant.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 03:09 status snapshot): `Δexp=+2800`, `Δgold=-5000`, HP recovered (`139→283`), mutation shield turns reduced (`47→20`), hunt quota still constrained (`1/30`).
+  - Development feedback: progression is still strong despite history blackout, but net gold drawdown + shield burn suggest economy/risk controls need explicit guardrails in hourly output.
+- [2026-03-07 04:09 KST] Next 30-min actionable TODO: implement an OPS delta-alert line when `Δgold < -3000` with companion context (`Δexp`, potion/rest quota usage, shield-turn delta) to distinguish healthy reinvestment from destabilizing spend.
