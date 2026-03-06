@@ -248,3 +248,10 @@ Track A/B and policy experiments.
 - Metric(s): buy-suppression hit count; low-gold streak length; hunt success continuity under low-gold windows.
 - Result: Current cycle shows persistent low-gold state (`68`) with replay/history zero-signal and supports guardrail telemetry experiment.
 - Decision: Implement telemetry and capture one-cycle evidence in next 30-min dev slot.
+
+- Date: 2026-03-06 12:09 KST
+- Hypothesis: Tracking skip-buy telemetry under `minGoldReserve` will reduce unnoticed economy regressions after level-up transitions.
+- Change: Add structured counter fields for `buy_suppressed_low_gold` and `buy_suppressed_optional` in runner cycle logs.
+- Metric(s): low-gold suppression count per hour; gold floor breach duration; hunt continuity.
+- Result: Current cycle shows level-up state with tight gold reserve and continued history endpoint outage, supporting guardrail telemetry experiment.
+- Decision: Implement telemetry and verify one-cycle log output in next 30-min block.

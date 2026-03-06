@@ -649,3 +649,11 @@
   - Retry recommendation: continue replay-first fallback, retry history probes hourly, and re-enable history-derived KPIs after at least 2 consecutive successful history responses.
   - Resource trend signal: critical economy/health pressure (`gold=68`, `HP=166/430`) with low hunt headroom (`1/30`); prioritize no-cost recovery and suppress optional spend actions.
 - [2026-03-06 11:09 KST] Next 30-min actionable TODO: add explicit telemetry for `minGoldReserve` guardrail hits (count + skipped buy reasons) and verify in one live smoke cycle.
+
+- [2026-03-06 12:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv24, exp `146`, gold `318`, HP `273/445`, MP `148/234`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: recent-history endpoints still `404` while `/api/status` is healthy (`200`); rolling 6h failure streak `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history probes hourly, and restore history-derived KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal: level advanced to `24` while gold remains near reserve (`318`) and hunt headroom low (`1/30`); prioritize conservative spend and sustained combat uptime.
+- [2026-03-06 12:09 KST] Next 30-min actionable TODO: implement and smoke-test `minGoldReserve` branch telemetry (skip-buy counters + reason tags) in live runner logs.
