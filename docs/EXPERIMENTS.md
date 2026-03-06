@@ -297,3 +297,10 @@ Track A/B and policy experiments.
 - Metric(s): % cycles with non-zero delta fields; number of major progression events missed in fallback-only mode.
 - Result: Current cycle shows a strong gold increase and level advance while history endpoints remain 404, supporting delta instrumentation.
 - Decision: Implement delta extension in next 30-min cycle and validate over 6 hourly runs.
+
+- Date: 2026-03-06 19:14 KST
+- Hypothesis: Adding cached status deltas (`Δgold`, `Δexp`, `Δexp_to_next`, level-up flag) will make hourly progression/economy trends actionable despite persistent history endpoint failures.
+- Change: Extend hourly feedback pipeline with previous-status cache compare and deterministic delta-line emission.
+- Metric(s): Non-zero delta coverage rate; trend interpretation time from latest OPS entry; missed level-up events.
+- Result: Current cycle shows large gold accumulation and near-level-up state while replay/history remains zero/404, supporting delta instrumentation.
+- Decision: Implement delta instrumentation in next 30-min cycle and monitor for 8 hourly runs.

@@ -797,3 +797,11 @@
   - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI flow only after >=2 consecutive successful history responses.
   - Resource trend signal: significant economy recovery (`gold=5888`) with level-up to Lv26 while hunt quota is exhausted (`0/30`); maintain low-risk loop until quota refresh to preserve gains.
 - [2026-03-06 18:11 KST] Next 30-min actionable TODO: add OPS status-delta line for `Δgold` and `Δlevel` from previous snapshot to explicitly capture economic/progression jumps during history API outages.
+
+- [2026-03-06 19:14 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv26, exp `5429`, gold `11108`, HP `214/475`, MP `250/250`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` stays healthy (`200`); rolling 6h history failure streak `6`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and switch back to history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal: strong economy growth (`gold=11108`) and near-level-up momentum (`exp 5429/6760`) with hunt quota exhausted (`0/30`); preserve gains with low-risk recovery loop until quota refresh.
+- [2026-03-06 19:14 KST] Next 30-min actionable TODO: implement cached status delta output (`Δgold`, `Δexp`, `Δexp_to_next`, `level_up_detected`) in hourly OPS entry generation.
