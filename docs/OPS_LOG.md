@@ -1125,3 +1125,12 @@
   - Resource trend signal (vs prior 06:09 status snapshot): `Δexp=+2880`, `Δgold=-4550`, HP declined (`284→186`), mutation shield turns decreased (`43→22`), hunt quota exhausted (`1→0`).
   - Development feedback: high spend + shield depletion + hunt quota exhaustion now co-occur, so hourly feedback should emit an explicit risk-state tag to distinguish productive progression from approaching stall/risk window.
 - [2026-03-07 07:09 KST] Next 30-min actionable TODO: add `risk_state_tag` derivation (`productive`, `watch`, `degrading`) from combined `Δgold`, `Δexp`, HP trend, shield-turn trend, and hunt quota remaining.
+
+- [2026-03-07 08:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv31, exp `2193`, gold `458`, HP `263/550`, MP `290/290`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 07:09 status snapshot): level-up (`30→31`), raw exp rollover (`8265→2193`), `Δgold=-4510` to low reserve (`458`), HP improved (`186→263`), mutation shield refreshed (`22→39`), hunt quota recovered (`0→1`).
+  - Development feedback: progression remains positive but gold reserve is now near floor; hourly feedback should emit explicit low-gold risk when `gold < min reserve` even if EXP trend is positive.
+- [2026-03-07 08:09 KST] Next 30-min actionable TODO: add `low_gold_reserve_alert` (`current_gold < BUJU_MIN_GOLD_RESERVE`) with severity escalation when paired with consecutive negative `Δgold` cycles.

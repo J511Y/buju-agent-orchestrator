@@ -388,3 +388,10 @@ Track A/B and policy experiments.
 - Metric(s): Alert precision/recall for manually judged risk windows, intervention timing improvement, repeated-alert noise rate.
 - Result: Current cycle shows strong EXP gain (`+2880`) with large gold drawdown (`-4550`), HP decline, shield burn, and hunt quota exhaustion, supporting composite state tagging.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 08:09 KST
+- Hypothesis: A dedicated `low_gold_reserve_alert` (trigger: `current_gold < BUJU_MIN_GOLD_RESERVE`) will catch economy-collapse risk earlier than delta-only alerts during rapid level-up spend windows.
+- Change: Add reserve-aware economy rule with escalation when consecutive `Δgold < 0` cycles occur.
+- Metric(s): Early-detection rate for low-gold stalls, false-positive alerts during healthy reinvestment, recovery time back above reserve.
+- Result: Current cycle reached Lv31 with strong progression but dropped to `gold=458` after another large negative gold delta, supporting reserve-threshold alerting.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
