@@ -465,3 +465,10 @@ Track A/B and policy experiments.
 - Metric(s): Detection rate of quota-locked growth cycles, next-cycle reserve recovery, false-positive rate when quota resets naturally resolve risk.
 - Result: Current cycle leveled up (`33→34`) while hunt quota stayed exhausted and reserve remained below threshold, supporting quota-locked progression tagging.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 19:09 KST
+- Hypothesis: A `critical_shield_window_alert` (`shield_turns <= 5` + `hunt_remaining=0` + `gold < BUJU_MIN_GOLD_RESERVE`) will better predict imminent instability than generic transition-risk tagging.
+- Change: Add strict low-turn shield condition to hourly feedback classifier with defense-first recommendation.
+- Metric(s): Preemptive mitigation before shield expiry, next-cycle HP volatility after alert, false-positive alert rate.
+- Result: Current cycle shows shield down to `4` turns with quota lock and low reserve while progression continues, supporting critical-window alert instrumentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
