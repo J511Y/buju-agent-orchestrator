@@ -514,3 +514,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-intervention, incorrect intervention rate, consistency of operator response to similar cycles.
 - Result: Current cycle shows high throughput readiness but stability gaps (notably HP drop and low reserve), supporting reason-code instrumentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 02:09 KST
+- Hypothesis: A 3-cycle `recovery_velocity` metric (rolling `Δgold` + `Δhp`) will distinguish genuine stabilization from noisy one-cycle rebounds in low-reserve states.
+- Change: Extend hourly feedback with short rolling recovery velocity and direction labels (`accelerating`, `flat`, `reversing`).
+- Metric(s): Accuracy of next-cycle recovery direction prediction, false optimism rate after single positive cycles, time-to-reserve-recovery.
+- Result: Current cycle shows continued positive `Δgold`/`Δhp` but persistent reserve breach and shield absence, supporting trend-velocity instrumentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

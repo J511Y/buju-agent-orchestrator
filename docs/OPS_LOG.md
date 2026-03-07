@@ -1643,3 +1643,12 @@
   - Resource trend signal (vs prior 00:09 status snapshot): no level change (`35→35`), `Δexp=+1280`, `Δgold=0` (still below reserve floor), HP declined (`419→239`), mutation shield improved from critical window (`2→9 turns`), hunt quota increased (`17→18`).
   - Development feedback: throughput headroom is high and shield is no longer critical, but HP drop under persistent low reserve indicates stability readiness is still incomplete.
 - [2026-03-08 01:09 KST] Next 30-min actionable TODO: add `stability_readiness_reason_codes` output (e.g., `low_reserve`, `low_hp_ratio`) so the blocked readiness dimension is explicit and machine-actionable.
+
+- [2026-03-08 02:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `5221`, gold `598`, HP `265/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 01:09 status snapshot): no level change (`35→35`), `Δexp=+1200`, `Δgold=+150` (still below reserve floor), HP improved slightly (`239→265`), mutation shield expired (`9→none`), hunt quota increased (`18→19`).
+  - Development feedback: economy is recovering slowly with stable progression and quota headroom, but stability readiness remains blocked by shield absence and sub-threshold reserve.
+- [2026-03-08 02:09 KST] Next 30-min actionable TODO: add `recovery_velocity` metric (rolling `Δgold` and `Δhp` over 3 cycles) to quantify whether low-reserve recovery is accelerating or stalling.
