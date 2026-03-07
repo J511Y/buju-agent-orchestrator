@@ -1509,3 +1509,12 @@
   - Resource trend signal (vs prior 20:09 status snapshot): no level change (`34→34`), `Δexp=+2912` (near level-up), `Δgold=+60` (still below reserve), HP increased (`263→293`), mutation shield expired (`48→none`), hunt quota recovered (`0→1`).
   - Development feedback: short-term economy and HP rebound is positive, but reserve remains sub-threshold and shield dropped, so recovery appears partial rather than stable.
 - [2026-03-07 21:09 KST] Next 30-min actionable TODO: add `partial_recovery_gate` label when trend rebounds (`Δgold>0`, `Δhp>0`) but hard safety constraints (`gold<reserve` or shield absent) remain unmet.
+
+- [2026-03-07 22:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv34, exp `11373`, gold `408`, HP `251/595`, MP `314/314`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` stays healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 21:09 status snapshot): no level change (`34→34`), `Δexp=+2064` (near level-up at `11373/11560`), `Δgold=-80` (still below reserve), HP declined (`293→251`), mutation shield restored (`none→15`), hunt quota recovered significantly (`1→14`).
+  - Development feedback: action headroom recovered via hunt quota reset, but low reserve and HP softness persist; feedback should separate throughput readiness from economy/survivability readiness.
+- [2026-03-07 22:09 KST] Next 30-min actionable TODO: add dual readiness indicators (`throughput_ready` from quota, `stability_ready` from gold+HP+shield) to prevent overestimating safe aggressiveness after quota resets.

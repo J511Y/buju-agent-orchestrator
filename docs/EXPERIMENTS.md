@@ -486,3 +486,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stability rate after rebound cycles, time-to-true-stability, operator intervention quality.
 - Result: Current cycle shows positive gold/HP rebound with continued low reserve and no shield, supporting partial-recovery gating.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 22:09 KST
+- Hypothesis: Splitting readiness into `throughput_ready` (action quota availability) and `stability_ready` (reserve/HP/shield health) will reduce aggressive-policy misfires after quota resets.
+- Change: Add dual-readiness classification in hourly feedback and gate recommendations on both states instead of quota alone.
+- Metric(s): Post-reset over-aggression incidents, HP drawdown after high-quota cycles, recovery speed to reserve-safe state.
+- Result: Current cycle shows hunt quota recovery (`1→14`) with continued low reserve and HP decline, supporting dual-readiness instrumentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
