@@ -143,3 +143,6 @@
 - Adaptive step-13 (2026-03-08 03:22 KST): trailing history again remained `rate_limited` 20/20 after delay 4200 and cap 10, so base pacing was widened from `4200` to `4600`.
 - Rationale: keep mandatory constraints untouched and apply a reversible timing-only reduction in request density to probe for rate-window alignment.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=2 with >=9 `status_check` entries, while preserving smoke success (`ok=1/1`, HTTP 200).
+- Adaptive step-14 (2026-03-08 03:50 KST): after widening delay to 4600, the latest 20-log window still remained `rate_limited` 20/20, so cycle quota was reduced from `10` to `8`.
+- Rationale: reduce per-cycle request density further with a reversible config-only change while preserving all protected sell and rest hard constraints.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=1 with >=10 `status_check` entries and smoke checks still `ok=1/1` (HTTP 200).
