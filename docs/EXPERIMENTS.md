@@ -430,3 +430,10 @@ Track A/B and policy experiments.
 - Metric(s): EXP gain per use-item quota point, reserve recovery speed, low-reserve duration under high consumable usage.
 - Result: Current cycle shows strong EXP gain (`+2880`) with use-item quota drop (`30→22`) while gold remains below reserve, supporting efficiency instrumentation.
 - Decision: Implement in next 30-min cycle and evaluate over 8 hourly runs.
+
+- Date: 2026-03-07 14:09 KST
+- Hypothesis: A composite `transition_risk_alert` (`shield_turns <= 10` + `hunt_remaining = 0` + `gold < reserve`) will better predict short-term instability than independent alerts.
+- Change: Add deterministic transition-risk classifier to hourly feedback with conservative action recommendation.
+- Metric(s): Preemptive mitigation rate before unstable cycles, false-positive transition alerts, post-alert stability in HP/gold trends.
+- Result: Current cycle shows near-level-up progression with low reserve, hunt quota exhaustion, and shield near expiry (`8` turns), supporting transition-risk instrumentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

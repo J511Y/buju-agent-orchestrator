@@ -1279,3 +1279,12 @@
   - Resource trend signal (vs prior 12:09 status snapshot): no level change (`32→32`), `Δexp=+2880`, `Δgold=-100` (still below reserve), HP decreased (`315→290`), mutation shield extended (`11→39`), use-item quota consumed (`30→22`).
   - Development feedback: reserve remains below safety threshold while consumable usage is rising, so hourly feedback should track whether consumable-heavy progression is delaying economy recovery.
 - [2026-03-07 13:09 KST] Next 30-min actionable TODO: add `consumable_efficiency_hint` (exp gained per use-item quota consumed) to reserve-recovery analysis in hourly feedback.
+
+- [2026-03-07 14:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv32, exp `9991`, gold `448`, HP `364/565`, MP `298/298`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 13:09 status snapshot): no level change (`32→32`), `Δexp=+2912` (near level-up: `9991/10240`), `Δgold=+10` but still below reserve, HP recovered (`290→364`), mutation shield nearing expiry (`39→8`), hunt quota exhausted (`1→0`).
+  - Development feedback: progression is strong and economy stopped declining this cycle, but combined shield-near-expiry + zero hunt quota + low reserve indicates imminent transition risk that should be surfaced explicitly.
+- [2026-03-07 14:09 KST] Next 30-min actionable TODO: add `transition_risk_alert` when (`shield_turns <= 10` AND `hunt_remaining = 0` AND `gold < reserve`) to prompt conservative pre-refresh behavior.
