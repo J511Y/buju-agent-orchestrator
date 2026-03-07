@@ -1200,3 +1200,12 @@
   - Resource trend signal (vs prior 09:09 status snapshot): no level change (`31→31`), `Δexp=+2944`, `Δgold=-30` (still below reserve at `358`), HP recovered (`205→305`), mutation shield turns increased (`26→40`), and combat exited (`in_progress=true→false`).
   - Development feedback: despite sustained progression and improved survivability, reserve remains critically low for consecutive cycles; feedback output should include an economy-priority mode suggestion until reserve recovers.
 - [2026-03-07 10:09 KST] Next 30-min actionable TODO: add `economy_priority_mode` recommendation when `gold < reserve` for >=3 consecutive hourly snapshots, with explicit suppression of optional spend actions.
+
+- [2026-03-07 11:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv32, exp `1319`, gold `588`, HP `304/565`, MP `298/298`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 10:09 status snapshot): level-up (`31→32`) with exp rollover (`8033→1319`), slight gold recovery (`358→588`) but still low reserve band, HP stable-to-improved (`305→304` with max `550→565`), mutation shield expired (`remaining_turns 40→none`).
+  - Development feedback: survivability buff expiration coinciding with low-gold regime increases near-term risk; hourly feedback should emit explicit shield-expired + low-reserve combined caution state.
+- [2026-03-07 11:09 KST] Next 30-min actionable TODO: add `shield_economy_caution` flag when mutation shield is absent and `gold < reserve`, with recommendation to prioritize safe hunts and postpone optional spend.

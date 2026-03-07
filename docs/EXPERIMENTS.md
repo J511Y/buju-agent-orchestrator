@@ -409,3 +409,10 @@ Track A/B and policy experiments.
 - Metric(s): Consecutive low-reserve duration, time-to-recover above reserve, EXP gain retained during economy-priority mode.
 - Result: Third consecutive cycle remains below reserve (`gold=358`) with continued EXP gains, supporting a persistence-based economy mode instead of one-shot warnings.
 - Decision: Implement in next 30-min cycle and evaluate over 8 hourly runs.
+
+- Date: 2026-03-07 11:09 KST
+- Hypothesis: A combined `shield_economy_caution` flag (mutation shield absent + `gold < BUJU_MIN_GOLD_RESERVE`) will better predict fragile windows than either condition alone.
+- Change: Extend hourly feedback classifier with combined-condition caution state and targeted safe-hunt recommendations.
+- Metric(s): Incidents during no-shield low-reserve windows, false-positive caution rate, recovery speed back to shielded or reserve-safe state.
+- Result: Current cycle shows mutation shield expiry with continued low-gold regime despite level-up progression, supporting combined-condition cautioning.
+- Decision: Implement in next 30-min cycle and validate across next 8 hourly runs.
