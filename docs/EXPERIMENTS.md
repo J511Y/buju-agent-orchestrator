@@ -507,3 +507,10 @@ Track A/B and policy experiments.
 - Metric(s): Incidents immediately after low-turn shield windows, delayed-refresh rate, next-cycle HP volatility after flagged cycles.
 - Result: Current cycle shows improved HP and hunt headroom with mutation shield at only `2` turns and reserve still below threshold, supporting short-horizon readiness tagging.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 01:09 KST
+- Hypothesis: Emitting explicit `stability_readiness_reason_codes` will reduce ambiguity in operator actions versus binary readiness flags.
+- Change: Extend hourly feedback with deterministic reason codes (`low_reserve`, `low_hp_ratio`, `shield_missing_or_low`) attached to stability readiness state.
+- Metric(s): Time-to-intervention, incorrect intervention rate, consistency of operator response to similar cycles.
+- Result: Current cycle shows high throughput readiness but stability gaps (notably HP drop and low reserve), supporting reason-code instrumentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
