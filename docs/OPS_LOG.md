@@ -1252,3 +1252,12 @@
   - Resource trend signal (vs prior 11:09 status snapshot): no level change (`32→32`), `Δexp=+2880`, `Δgold=-50` (still below reserve), HP improved (`304→315`), mutation shield restored (`none→11 turns`), hunt quota unchanged (`1→1`).
   - Development feedback: low-gold condition persists despite stable progression; partial shield restoration reduces immediate risk but does not remove economy constraint, so feedback should prioritize reserve recovery until threshold is cleared.
 - [2026-03-07 12:09 KST] Next 30-min actionable TODO: add `reserve_recovery_progress` field (hours below reserve + net gold change trend) to make low-gold stabilization progress explicit.
+
+- [2026-03-07 13:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv32, exp `7079`, gold `438`, HP `290/565`, MP `298/298`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak remains elevated (`6`).
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 12:09 status snapshot): no level change (`32→32`), `Δexp=+2880`, `Δgold=-100` (still below reserve), HP decreased (`315→290`), mutation shield extended (`11→39`), use-item quota consumed (`30→22`).
+  - Development feedback: reserve remains below safety threshold while consumable usage is rising, so hourly feedback should track whether consumable-heavy progression is delaying economy recovery.
+- [2026-03-07 13:09 KST] Next 30-min actionable TODO: add `consumable_efficiency_hint` (exp gained per use-item quota consumed) to reserve-recovery analysis in hourly feedback.

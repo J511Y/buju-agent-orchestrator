@@ -423,3 +423,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-detect stalled low-reserve regimes, intervention timing quality, reduction in ambiguous low-gold interpretations.
 - Result: Current cycle remains below reserve with only marginal gold change (`-50`) despite steady EXP gain, supporting explicit reserve-recovery progress tracking.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 13:09 KST
+- Hypothesis: Tracking `exp_per_use_item_quota` during low-reserve periods will identify whether consumable-heavy loops are efficient enough to justify delayed gold recovery.
+- Change: Add consumable-efficiency indicator to hourly feedback alongside reserve and delta metrics.
+- Metric(s): EXP gain per use-item quota point, reserve recovery speed, low-reserve duration under high consumable usage.
+- Result: Current cycle shows strong EXP gain (`+2880`) with use-item quota drop (`30→22`) while gold remains below reserve, supporting efficiency instrumentation.
+- Decision: Implement in next 30-min cycle and evaluate over 8 hourly runs.
