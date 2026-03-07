@@ -119,3 +119,6 @@
 - Adaptive step-5 (2026-03-07 23:19 KST): bottleneck persisted (`rate_limited` still 20/20 in latest window) after action-cap 24, so reduced `BUJU_MAX_ACTIONS_PER_CYCLE` further from `24` to `20`.
 - Rationale: keep constraints intact while reducing per-cycle quota pressure; this is reversible and narrower than logic-level edits.
 - KPI target (next 30 min): trailing 20-log `rate_limited` count <=12 and at least one `status_check` entry, with smoke validation still `ok=1/1`.
+- Adaptive step-6 (2026-03-07 23:49 KST): even after reducing cycle quota to 20, latest 20-log sample still showed `rate_limited` at 20/20, so pacing was tightened again by changing `BUJU_BASE_DELAY_MS` from `3000` to `3400`.
+- Rationale: this keeps hard constraints intact while further smoothing request cadence; reversible config-only change.
+- KPI target (next 30 min): achieve at least 2 `status_check` decisions in trailing 20 thinking logs and keep smoke result at HTTP 200.

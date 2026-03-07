@@ -1,6 +1,18 @@
 # Ops Log
 
 ## 2026-03-07
+- [2026-03-07 23:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
+  - ADAPTIVE DELTA vs previous run: level `35 -> 35` (Δ0), exp advanced (`1573 -> 2309`), gold `358 -> 538` (Δ+180), inventory stable low-use band, area unchanged (`talking_island_cave`).
+  - ADAPTIVE DIAGNOSIS: repeated bottleneck continued (`rate_limited` still `20/20` in trailing window), so KEEP path rejected.
+  - CHANGE (config, reversible): cadence tuned again → `BUJU_BASE_DELAY_MS: 3000 -> 3400` (with existing `BUJU_MAX_ACTIONS_PER_CYCLE=20` retained).
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, and slots>=10 worse-than-equipped liquidation priority.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - CHANGE (docs): updated `docs/DECISIONS.md` with adaptive step-6 rationale and KPI target.
+  - Validation evidence (post-change): `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=35 exp=2309 gold=538 code=200`.
+  - CHANGE (ops telemetry): posted adaptive thinking with explicit delta + changed knob (`action_detail=changed:BUJU_BASE_DELAY_MS=3400`), response `status=200 {"success":true}`.
+  - KPI target for next 30 min: achieve >=2 `status_check` entries in trailing 20 thinking logs while keeping smoke success (`ok=1/1`, HTTP 200).
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` and daemon-managed runner active via `pgrep`).
 - [2026-03-07 23:19 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
   - ADAPTIVE DELTA vs previous run: level `35 -> 35` (Δ0), exp `1573 -> 1589` (Δ+16), gold `358 -> 388` (Δ+30), inventory near low slot count, area unchanged (`talking_island_cave`).
