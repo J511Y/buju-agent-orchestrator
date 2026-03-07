@@ -1225,3 +1225,12 @@
   - Resource trend signal (vs prior 10:09 status snapshot): level-up (`31→32`) with exp rollover (`8033→1319`), slight gold recovery (`358→588`) but still low reserve band, HP stable-to-improved (`305→304` with max `550→565`), mutation shield expired (`remaining_turns 40→none`).
   - Development feedback: survivability buff expiration coinciding with low-gold regime increases near-term risk; hourly feedback should emit explicit shield-expired + low-reserve combined caution state.
 - [2026-03-07 11:09 KST] Next 30-min actionable TODO: add `shield_economy_caution` flag when mutation shield is absent and `gold < reserve`, with recommendation to prioritize safe hunts and postpone optional spend.
+
+- [2026-03-07 12:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv32, exp `4199`, gold `538`, HP `315/565`, MP `298/298`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue returning `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains elevated (`6` in current window).
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 11:09 status snapshot): no level change (`32→32`), `Δexp=+2880`, `Δgold=-50` (still below reserve), HP improved (`304→315`), mutation shield restored (`none→11 turns`), hunt quota unchanged (`1→1`).
+  - Development feedback: low-gold condition persists despite stable progression; partial shield restoration reduces immediate risk but does not remove economy constraint, so feedback should prioritize reserve recovery until threshold is cleared.
+- [2026-03-07 12:09 KST] Next 30-min actionable TODO: add `reserve_recovery_progress` field (hours below reserve + net gold change trend) to make low-gold stabilization progress explicit.

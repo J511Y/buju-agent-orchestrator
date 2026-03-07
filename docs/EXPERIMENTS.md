@@ -416,3 +416,10 @@ Track A/B and policy experiments.
 - Metric(s): Incidents during no-shield low-reserve windows, false-positive caution rate, recovery speed back to shielded or reserve-safe state.
 - Result: Current cycle shows mutation shield expiry with continued low-gold regime despite level-up progression, supporting combined-condition cautioning.
 - Decision: Implement in next 30-min cycle and validate across next 8 hourly runs.
+
+- Date: 2026-03-07 12:09 KST
+- Hypothesis: Adding `reserve_recovery_progress` (consecutive hours below reserve + rolling net `Δgold`) will improve operator ability to distinguish improving vs stagnant low-gold states.
+- Change: Extend hourly feedback output with reserve-duration and short rolling economy trend indicators.
+- Metric(s): Time-to-detect stalled low-reserve regimes, intervention timing quality, reduction in ambiguous low-gold interpretations.
+- Result: Current cycle remains below reserve with only marginal gold change (`-50`) despite steady EXP gain, supporting explicit reserve-recovery progress tracking.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
