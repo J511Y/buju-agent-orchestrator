@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-07
+- [2026-03-07 12:48 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift, unchanged this cycle).
+  - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
+  - KEEP (priority sell rule): when `slots >= 10`, runner keeps highest-priority liquidation of all unequipped equipment worse than currently equipped gear before fallback cleanup.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - KEEP (strategy/code): no additional safe high-impact code/config delta identified this cycle.
+  - CHANGE (ops telemetry): posted strategy reasoning to Buju Agent Thinking API (`POST /api/agent/thinking`) with `decision_type=rate_limited` and required runtime context fields.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=wait_hunt_rate_limit level=32 exp=6071 gold=398 code=200`; thinking post => `status=200 {"success":true}`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` alive via `pgrep`).
 - [2026-03-07 12:19 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
