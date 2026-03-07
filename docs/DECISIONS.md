@@ -140,3 +140,6 @@
 - Adaptive step-12 (2026-03-08 02:53 KST): with action cap 10 and reduced retries, the trailing log sample still reported `rate_limited` 20/20, so pacing was widened further by changing `BUJU_BASE_DELAY_MS` from `3800` to `4200`.
 - Rationale: this keeps all mandatory constraints intact and applies a reversible timing-only pressure reduction to reduce hunt-budget collisions.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=3 with >=8 `status_check` entries while keeping smoke checks green (`ok=1/1`, HTTP 200).
+- Adaptive step-13 (2026-03-08 03:22 KST): trailing history again remained `rate_limited` 20/20 after delay 4200 and cap 10, so base pacing was widened from `4200` to `4600`.
+- Rationale: keep mandatory constraints untouched and apply a reversible timing-only reduction in request density to probe for rate-window alignment.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=2 with >=9 `status_check` entries, while preserving smoke success (`ok=1/1`, HTTP 200).
