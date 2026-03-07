@@ -116,3 +116,6 @@
 - Adaptive step-4 (2026-03-07 22:49 KST): after pacing-only adjustments, recent thinking history still showed persistent `rate_limited` saturation (20/20), so reduced per-cycle burst size by changing `BUJU_MAX_ACTIONS_PER_CYCLE` from `30` to `24`.
 - Rationale: lowering loop action volume is reversible and directly targets minute-window pressure without modifying mandatory sell/rest hard constraints.
 - KPI target (next 30 min): reduce trailing 20-log `rate_limited` count below 15 while preserving one-tick smoke success and daemon continuity.
+- Adaptive step-5 (2026-03-07 23:19 KST): bottleneck persisted (`rate_limited` still 20/20 in latest window) after action-cap 24, so reduced `BUJU_MAX_ACTIONS_PER_CYCLE` further from `24` to `20`.
+- Rationale: keep constraints intact while reducing per-cycle quota pressure; this is reversible and narrower than logic-level edits.
+- KPI target (next 30 min): trailing 20-log `rate_limited` count <=12 and at least one `status_check` entry, with smoke validation still `ok=1/1`.
