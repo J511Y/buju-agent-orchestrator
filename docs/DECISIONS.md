@@ -113,3 +113,6 @@
 - Adaptive step-3 (2026-03-07 22:19 KST): latest 20 thinking logs still reported `rate_limited` in 20/20 entries after the 2600ms pacing change, so delay was raised again from `2600` to `3000`.
 - Scope safety: this is a reversible pacing-only change; sell-priority constraints and rest-first thresholds remain untouched.
 - KPI target (next 30 min): bring `rate_limited` share in recent 20-log window down to <=70% while preserving smoke-run success (`ok=1/1`, HTTP 200).
+- Adaptive step-4 (2026-03-07 22:49 KST): after pacing-only adjustments, recent thinking history still showed persistent `rate_limited` saturation (20/20), so reduced per-cycle burst size by changing `BUJU_MAX_ACTIONS_PER_CYCLE` from `30` to `24`.
+- Rationale: lowering loop action volume is reversible and directly targets minute-window pressure without modifying mandatory sell/rest hard constraints.
+- KPI target (next 30 min): reduce trailing 20-log `rate_limited` count below 15 while preserving one-tick smoke success and daemon continuity.
