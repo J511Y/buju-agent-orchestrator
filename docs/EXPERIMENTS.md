@@ -395,3 +395,10 @@ Track A/B and policy experiments.
 - Metric(s): Early-detection rate for low-gold stalls, false-positive alerts during healthy reinvestment, recovery time back above reserve.
 - Result: Current cycle reached Lv31 with strong progression but dropped to `gold=458` after another large negative gold delta, supporting reserve-threshold alerting.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 09:09 KST
+- Hypothesis: Emitting a deterministic `low_reserve_behavior_hint` (defer optional spend actions when `gold < BUJU_MIN_GOLD_RESERVE`) will shorten low-gold recovery periods without materially reducing EXP momentum.
+- Change: Extend hourly feedback to include spend-throttling guidance when reserve floor is breached.
+- Metric(s): Time spent below reserve threshold, EXP gain while under reserve policy, frequency of repeated low-gold alerts.
+- Result: Current cycle stayed below reserve (`gold=388`) despite continued EXP growth, indicating warning-only feedback is insufficient.
+- Decision: Implement hint rule in next 30-min cycle and evaluate over 8 hourly runs.

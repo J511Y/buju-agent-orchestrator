@@ -1150,3 +1150,12 @@
   - Resource trend signal (vs prior 07:09 status snapshot): level-up (`30→31`), raw exp rollover (`8265→2193`), `Δgold=-4510` to low reserve (`458`), HP improved (`186→263`), mutation shield refreshed (`22→39`), hunt quota recovered (`0→1`).
   - Development feedback: progression remains positive but gold reserve is now near floor; hourly feedback should emit explicit low-gold risk when `gold < min reserve` even if EXP trend is positive.
 - [2026-03-07 08:09 KST] Next 30-min actionable TODO: add `low_gold_reserve_alert` (`current_gold < BUJU_MIN_GOLD_RESERVE`) with severity escalation when paired with consecutive negative `Δgold` cycles.
+
+- [2026-03-07 09:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv31, exp `5089`, gold `388`, HP `205/550`, MP `290/290`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak remains elevated (`6` in current summary window).
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 08:09 status snapshot): no level change (`31→31`), `Δexp=+2896`, `Δgold=-70` (reserve still critically low at `388`), HP decreased (`263→205`), shield turns declined (`39→26`), hunt quota steady (`1→1`).
+  - Development feedback: progression remains stable but gold reserve stays below configured safety floor, so economy guardrails should switch from warning-only to behavior-throttling recommendations.
+- [2026-03-07 09:09 KST] Next 30-min actionable TODO: add low-reserve behavior hint (`gold < reserve` => defer non-essential buys/enhance) directly in hourly feedback output.
