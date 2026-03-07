@@ -137,3 +137,6 @@
 - Adaptive step-11 (2026-03-08 02:20 KST): the latest trailing window remained fully rate-limited (20/20) even after retry-attempt reduction, so cycle quota was trimmed again from `12` to `10`.
 - Rationale: this is a reversible throughput cut intended to reduce minute-window contention while keeping all hard inventory and recovery constraints untouched.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=4 with >=7 `status_check` entries, and smoke check stays `ok=1/1` (HTTP 200).
+- Adaptive step-12 (2026-03-08 02:53 KST): with action cap 10 and reduced retries, the trailing log sample still reported `rate_limited` 20/20, so pacing was widened further by changing `BUJU_BASE_DELAY_MS` from `3800` to `4200`.
+- Rationale: this keeps all mandatory constraints intact and applies a reversible timing-only pressure reduction to reduce hunt-budget collisions.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=3 with >=8 `status_check` entries while keeping smoke checks green (`ok=1/1`, HTTP 200).
