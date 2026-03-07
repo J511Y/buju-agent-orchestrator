@@ -521,3 +521,10 @@ Track A/B and policy experiments.
 - Metric(s): Accuracy of next-cycle recovery direction prediction, false optimism rate after single positive cycles, time-to-reserve-recovery.
 - Result: Current cycle shows continued positive `Δgold`/`Δhp` but persistent reserve breach and shield absence, supporting trend-velocity instrumentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 03:09 KST
+- Hypothesis: Tracking `constraint_persistence_counter` per readiness blocker will improve prioritization by focusing on chronic constraints instead of most recent deltas.
+- Change: Extend hourly feedback with per-constraint consecutive-cycle counters (`low_reserve`, `shield_absent`, `low_hp_ratio`).
+- Metric(s): Time-to-clear persistent constraints, prioritization accuracy, reduction in repeated non-actionable alerts.
+- Result: Current cycle shows continued reserve/shield constraints despite improving HP and quota, supporting persistence-aware prioritization.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

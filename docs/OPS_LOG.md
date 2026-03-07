@@ -1676,3 +1676,12 @@
   - Resource trend signal (vs prior 01:09 status snapshot): no level change (`35→35`), `Δexp=+1200`, `Δgold=+150` (still below reserve floor), HP improved slightly (`239→265`), mutation shield expired (`9→none`), hunt quota increased (`18→19`).
   - Development feedback: economy is recovering slowly with stable progression and quota headroom, but stability readiness remains blocked by shield absence and sub-threshold reserve.
 - [2026-03-08 02:09 KST] Next 30-min actionable TODO: add `recovery_velocity` metric (rolling `Δgold` and `Δhp` over 3 cycles) to quantify whether low-reserve recovery is accelerating or stalling.
+
+- [2026-03-08 03:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `6341`, gold `598`, HP `339/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 02:09 status snapshot): no level change (`35→35`), `Δexp=+1120`, `Δgold=0` (still below reserve floor), HP improved (`265→339`), mutation shield remains absent, hunt quota increased (`19→20`).
+  - Development feedback: recovery trend is positive on HP/quota, but reserve remains stalled under threshold and shield is still absent, so readiness remains partially constrained.
+- [2026-03-08 03:09 KST] Next 30-min actionable TODO: add `constraint_persistence_counter` for each blocked readiness condition (e.g., low reserve, shield absent) to prioritize longest-standing bottlenecks.
