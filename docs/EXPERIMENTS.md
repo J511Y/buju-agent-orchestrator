@@ -535,3 +535,10 @@ Track A/B and policy experiments.
 - Metric(s): Misclassification rate of win/defeat trend under history outages, operator correction frequency, time-to-safe intervention decisions.
 - Result: Current cycle again had status healthy with meaningful `Δexp/Δhp` but history endpoints all `404` (failure streak `9`), supporting confidence-aware reporting.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 05:09 KST
+- Hypothesis: A `hp_drawdown_with_shield_loss_alert` (`Δhp <= -150` and mutation shield transition `present→none`) will catch imminent survivability risk earlier than reserve-only readiness checks.
+- Change: Extend hourly feedback classifier with combined HP-drawdown + shield-transition rule and attach defensive-action recommendation.
+- Metric(s): Next-cycle HP recovery rate after alert, avoidable defeat/retreat incidents, false-positive alert ratio during normal cycles.
+- Result: Current cycle showed `Δexp=+848`, `Δgold=+40`, but large HP drop (`383→181`) with shield expiration (`13→none`) while history endpoints remained unavailable (`404` streak `9`), supporting composite survivability alerting.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
