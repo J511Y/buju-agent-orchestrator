@@ -128,3 +128,6 @@
 - Adaptive step-8 (2026-03-08 00:50 KST): with `BUJU_MAX_ACTIONS_PER_CYCLE=16`, the latest trailing window still remained `rate_limited` 20/20, so cadence was further relaxed by changing `BUJU_BASE_DELAY_MS` from `3400` to `3800`.
 - Rationale: maintain all hard constraints while reducing minute-window contention through additional inter-action spacing; reversible and config-only.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=8 and at least 4 `status_check` entries, with smoke validation still `ok=1/1` and HTTP 200.
+- Adaptive step-9 (2026-03-08 01:20 KST): after delay 3800 and action cap 16, the trailing 20-log sample still stayed `rate_limited` 20/20, so the per-cycle action budget was cut again from `16` to `12`.
+- Rationale: this trims burst pressure using a reversible config-only change while keeping all hard inventory and rest constraints untouched.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=6 and at least 5 `status_check` entries, with smoke run staying `ok=1/1` (HTTP 200).
