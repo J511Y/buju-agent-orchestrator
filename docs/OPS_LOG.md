@@ -1709,3 +1709,12 @@
   - Resource trend signal (vs prior 02:09 status snapshot): no level change (`35→35`), `Δexp=+1120`, `Δgold=0` (still below reserve floor), HP improved (`265→339`), mutation shield remains absent, hunt quota increased (`19→20`).
   - Development feedback: recovery trend is positive on HP/quota, but reserve remains stalled under threshold and shield is still absent, so readiness remains partially constrained.
 - [2026-03-08 03:09 KST] Next 30-min actionable TODO: add `constraint_persistence_counter` for each blocked readiness condition (e.g., low reserve, shield absent) to prioritize longest-standing bottlenecks.
+
+- [2026-03-08 04:11 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `7381`, gold `448`, HP `383/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still return `404` while `/api/status` is healthy (`200`); rolling 6h history failure streak increased to `9`.
+  - Retry recommendation: keep replay-first fallback, retry history endpoints hourly, and only re-enable history-derived win/defeat summaries after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 03:09 status snapshot): no level change (`35→35`), `Δexp=+1040`, `Δgold=-150` (below reserve floor), HP improved (`339→383`), mutation shield restored (`none→13`), hunt quota increased (`20→21`).
+  - Development feedback: progression and survivability improved this hour, but economy regressed below reserve while history telemetry remains blind; readiness is improving but still constrained by low reserve confidence.
+- [2026-03-08 04:11 KST] Next 30-min actionable TODO: implement `status_only_winloss_confidence` flag (`low` when history endpoints fail) and surface it beside gameplay KPIs to prevent overconfident interpretation from status-only trends.

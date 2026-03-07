@@ -528,3 +528,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-clear persistent constraints, prioritization accuracy, reduction in repeated non-actionable alerts.
 - Result: Current cycle shows continued reserve/shield constraints despite improving HP and quota, supporting persistence-aware prioritization.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 04:11 KST
+- Hypothesis: Emitting a `status_only_winloss_confidence` field will reduce false certainty in hourly feedback when progression comes from `/api/status` but battle-history endpoints remain unavailable.
+- Change: Extend hourly feedback output with confidence labels (`high` when history endpoints healthy, `low` when history endpoints fail) and attach to wins/defeats/progression interpretation.
+- Metric(s): Misclassification rate of win/defeat trend under history outages, operator correction frequency, time-to-safe intervention decisions.
+- Result: Current cycle again had status healthy with meaningful `Δexp/Δhp` but history endpoints all `404` (failure streak `9`), supporting confidence-aware reporting.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
