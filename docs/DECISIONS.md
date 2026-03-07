@@ -110,3 +110,6 @@
 - Adaptive follow-up (2026-03-07 21:49 KST): post-change sample still showed `decision_type=rate_limited` dominance in recent logs, so applied a second-step pacing reduction by changing `BUJU_BASE_DELAY_MS` from `2100` to `2600`.
 - Rationale: preserve all hard sell/rest constraints while incrementally reducing burst collisions with hunt/minute windows; avoid broad logic churn.
 - KPI target (next 30 min): increase share of `status_check` (non-rate-limited) thinking decisions to >=20% and keep smoke runs at HTTP 200.
+- Adaptive step-3 (2026-03-07 22:19 KST): latest 20 thinking logs still reported `rate_limited` in 20/20 entries after the 2600ms pacing change, so delay was raised again from `2600` to `3000`.
+- Scope safety: this is a reversible pacing-only change; sell-priority constraints and rest-first thresholds remain untouched.
+- KPI target (next 30 min): bring `rate_limited` share in recent 20-log window down to <=70% while preserving smoke-run success (`ok=1/1`, HTTP 200).
