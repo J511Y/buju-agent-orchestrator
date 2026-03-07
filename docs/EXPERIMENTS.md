@@ -444,3 +444,10 @@ Track A/B and policy experiments.
 - Metric(s): Count of low-reserve level-up cycles detected, recovery time after flagged cycles, false-positive rate where reserve naturally recovers next cycle.
 - Result: Current cycle leveled to Lv33 but remained low reserve (`gold=458`), supporting post-level-up reserve checks.
 - Decision: Implement in next 30-min cycle and evaluate over 8 hourly runs.
+
+- Date: 2026-03-07 16:09 KST
+- Hypothesis: A `survivability_reserve_pressure` condition (`hp_ratio < 0.45` + `gold < BUJU_MIN_GOLD_RESERVE`) will identify fragile states earlier than economy-only alerts.
+- Change: Extend hourly classifier with combined HP/economy pressure rule and explicit recovery-first guidance.
+- Metric(s): Early detection rate of fragile cycles, false-positive pressure alerts, next-cycle HP recovery after alert.
+- Result: Current cycle shows HP drop to `235/580` with continued low reserve (`gold=388`) despite positive EXP gain, supporting combined pressure detection.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
