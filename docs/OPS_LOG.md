@@ -1,6 +1,18 @@
 # Ops Log
 
 ## 2026-03-07
+- [2026-03-07 21:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
+  - ADAPTIVE DELTA vs previous run: level `34 -> 34` (Δ0), exp `10861 -> 10877` (Δ+16), gold `348 -> 378` (Δ+30), inventory `5 -> 5` (Δ0), area unchanged (`talking_island_cave`).
+  - ADAPTIVE DIAGNOSIS: repeated bottleneck persisted in recent history (`decision_type=rate_limited` remained dominant across last-20 logs), so KEEP path rejected.
+  - CHANGE (config, reversible): `BUJU_BASE_DELAY_MS` adjusted `2100 -> 2600` to further reduce burst collisions while preserving all hard constraints.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, and slots>=10 worse-than-equipped liquidation priority.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - CHANGE (docs): updated `docs/DECISIONS.md` with adaptive follow-up rationale and KPI target.
+  - Validation evidence (post-change): `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=34 exp=10877 gold=378 code=200`.
+  - CHANGE (ops telemetry): posted adaptive thinking with explicit delta + changed knob (`action_detail=changed:BUJU_BASE_DELAY_MS=2600`), response `status=200 {"success":true}`.
+  - KPI target for next 30 min: `status_check` share >= 20% and `wait_hunt_rate_limit` share <= 80% while keeping HTTP200 smoke success.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` alive via `pgrep`; daemon-managed runner loop active).
 - [2026-03-07 21:27 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
   - ADAPTIVE DELTA (last-20 thinking logs): `rate_limited` bottleneck frequency remained extreme (`19/19` recent logs). Progress still occurred (`level 32 -> 34` across window), but throttle pattern repeated >=2 runs, so KEEP path rejected.

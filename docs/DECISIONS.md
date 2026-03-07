@@ -107,3 +107,6 @@
 - Adaptive control update (2026-03-07 21:26 KST): repeated bottleneck detected in last 20 thinking logs (`decision_type=rate_limited` 19/19), so keep hard constraints unchanged and reduce request burst pressure by increasing `BUJU_BASE_DELAY_MS` from `250` to `2100`.
 - Expected KPI target (next 30 min): lower `wait_hunt_rate_limit` share below 50% of sampled single-tick validations while maintaining HTTP 200 success and no hard-constraint regressions.
 - Change is intentionally small/reversible (config-only), with no modifications to sell-threshold logic or rest-first thresholds.
+- Adaptive follow-up (2026-03-07 21:49 KST): post-change sample still showed `decision_type=rate_limited` dominance in recent logs, so applied a second-step pacing reduction by changing `BUJU_BASE_DELAY_MS` from `2100` to `2600`.
+- Rationale: preserve all hard sell/rest constraints while incrementally reducing burst collisions with hunt/minute windows; avoid broad logic churn.
+- KPI target (next 30 min): increase share of `status_check` (non-rate-limited) thinking decisions to >=20% and keep smoke runs at HTTP 200.
