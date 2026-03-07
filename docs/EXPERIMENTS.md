@@ -437,3 +437,10 @@ Track A/B and policy experiments.
 - Metric(s): Preemptive mitigation rate before unstable cycles, false-positive transition alerts, post-alert stability in HP/gold trends.
 - Result: Current cycle shows near-level-up progression with low reserve, hunt quota exhaustion, and shield near expiry (`8` turns), supporting transition-risk instrumentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 15:09 KST
+- Hypothesis: A `post_levelup_reserve_check` alert (`level_up_detected` + `gold < BUJU_MIN_GOLD_RESERVE`) will surface hidden economy weakness that is currently masked by positive progression events.
+- Change: Extend hourly feedback with post-level-up reserve health classification and stabilization recommendation.
+- Metric(s): Count of low-reserve level-up cycles detected, recovery time after flagged cycles, false-positive rate where reserve naturally recovers next cycle.
+- Result: Current cycle leveled to Lv33 but remained low reserve (`gold=458`), supporting post-level-up reserve checks.
+- Decision: Implement in next 30-min cycle and evaluate over 8 hourly runs.

@@ -1306,3 +1306,12 @@
   - Resource trend signal (vs prior 13:09 status snapshot): no level change (`32→32`), `Δexp=+2912` (near level-up: `9991/10240`), `Δgold=+10` but still below reserve, HP recovered (`290→364`), mutation shield nearing expiry (`39→8`), hunt quota exhausted (`1→0`).
   - Development feedback: progression is strong and economy stopped declining this cycle, but combined shield-near-expiry + zero hunt quota + low reserve indicates imminent transition risk that should be surfaced explicitly.
 - [2026-03-07 14:09 KST] Next 30-min actionable TODO: add `transition_risk_alert` when (`shield_turns <= 10` AND `hunt_remaining = 0` AND `gold < reserve`) to prompt conservative pre-refresh behavior.
+
+- [2026-03-07 15:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv33, exp `2663`, gold `458`, HP `331/580`, MP `306/306`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 14:09 status snapshot): level-up (`32→33`) with exp rollover (`9991→2663`), `Δgold=+10` (still below reserve), HP softened (`364→331`) with max HP increase (`565→580`), mutation shield expired (`8→none`), hunt quota recovered (`0→1`).
+  - Development feedback: level progression remains robust, but repeated low-reserve state persists across level-ups; feedback should include “reserve did not recover after level-up” marker to flag economy drag.
+- [2026-03-07 15:09 KST] Next 30-min actionable TODO: add `post_levelup_reserve_check` rule that warns when `level_up_detected=true` and `gold < reserve` for immediate economy-stabilization guidance.
