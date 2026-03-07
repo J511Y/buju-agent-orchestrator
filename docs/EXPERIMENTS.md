@@ -493,3 +493,10 @@ Track A/B and policy experiments.
 - Metric(s): Post-reset over-aggression incidents, HP drawdown after high-quota cycles, recovery speed to reserve-safe state.
 - Result: Current cycle shows hunt quota recovery (`1→14`) with continued low reserve and HP decline, supporting dual-readiness instrumentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 23:09 KST
+- Hypothesis: A `readiness_mismatch_alert` (`throughput_ready=true` while `stability_ready=false`) will reduce risky over-aggression after quota recoveries and level-up events.
+- Change: Add mismatch classifier to hourly feedback and gate aggressive recommendations until stability constraints are satisfied.
+- Metric(s): Over-aggressive action incidents after mismatch cycles, HP/gold drawdown in next cycle, time-to-full-readiness.
+- Result: Current cycle shows high hunt quota and positive progression/gold trend but remains stability-incomplete due to shield absence, supporting mismatch alerting.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
