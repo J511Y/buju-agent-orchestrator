@@ -1360,3 +1360,12 @@
   - Resource trend signal (vs prior 15:09 status snapshot): no level change (`33→33`), `Δexp=+2896`, `Δgold=-70` (reserve still below floor), HP declined (`331→235`), mutation shield restored (`none→27`), hunt quota unchanged (`1→1`).
   - Development feedback: EXP momentum persists, but HP drawdown under low-gold regime suggests recovery pacing risk; hourly feedback should surface simultaneous survivability + reserve pressure explicitly.
 - [2026-03-07 16:09 KST] Next 30-min actionable TODO: add `survivability_reserve_pressure` marker when (`hp_ratio < 0.45` AND `gold < reserve`) to force recovery-first recommendation text.
+
+- [2026-03-07 17:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv33, exp `8503`, gold `458`, HP `315/580`, MP `306/306`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` stays healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 16:09 status snapshot): no level change (`33→33`), `Δexp=+2944`, `Δgold=+70` (still below reserve floor), HP recovered (`235→315`), mutation shield absent (`27→none`), hunt quota exhausted (`1→0`).
+  - Development feedback: modest gold rebound with strong EXP gain is positive, but shield absence + zero hunt quota under low-reserve conditions remains a transition-risk pattern that should be highlighted.
+- [2026-03-07 17:09 KST] Next 30-min actionable TODO: add `reserve_rebound_but_fragile` tag when `Δgold > 0` yet (`gold < reserve` and (`shield_absent` or `hunt_remaining=0`)).

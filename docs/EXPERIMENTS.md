@@ -451,3 +451,10 @@ Track A/B and policy experiments.
 - Metric(s): Early detection rate of fragile cycles, false-positive pressure alerts, next-cycle HP recovery after alert.
 - Result: Current cycle shows HP drop to `235/580` with continued low reserve (`gold=388`) despite positive EXP gain, supporting combined pressure detection.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 17:09 KST
+- Hypothesis: A `reserve_rebound_but_fragile` classifier (`Δgold > 0` AND `gold < BUJU_MIN_GOLD_RESERVE` AND (`shield_absent` OR `hunt_remaining=0`)) will reduce premature “stabilized” interpretation during fragile recovery windows.
+- Change: Add conditional rebound tag and targeted caution text in hourly feedback output.
+- Metric(s): False-stability interpretations, subsequent-cycle regressions after rebound signals, intervention timing quality.
+- Result: Current cycle shows positive `Δgold` and strong EXP gain but still low reserve with shield absent and hunt quota exhausted, supporting rebound-fragility tagging.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
