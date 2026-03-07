@@ -63,7 +63,7 @@ npm run dev
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
-- 주요 튜닝 키: `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_BUY_QTY`, `BUJU_MIN_GOLD_RESERVE`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`
+- 주요 튜닝 키: `BUJU_BASE_DELAY_MS`, `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_BUY_QTY`, `BUJU_MIN_GOLD_RESERVE`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`
 - 현재 우선순위 정책:
   - 인벤토리 위험 선차단(기본 10→8 슬롯 정리 모드): 현재 장착 대비 열위 장비 전량 우선 매각, 이후 필요 시 저티어 장비 batch 판매
   - 매각 시 장착본 보전 규칙 적용: 장착 중인 item_id와 겹치는 스택은 장착 수량만큼 예약해 오매각 방지
@@ -75,6 +75,7 @@ npm run dev
   - `400` 반복 액션은 anti-stall 쿨다운으로 일시 스킵 후 헌팅 루프 지속
   - `429`는 설정 가능한 상한(`BUJU_RETRY_MAX_ATTEMPTS`)까지 백오프로 재시도
   - `/api/status.rate_limits` 기반 사전 예산 체크로 잔여 호출 0인 액션은 선제 스킵(불필요한 429/400 감소)
+  - `BUJU_BASE_DELAY_MS`는 rate-limit 병목 완화를 위한 기본 페이싱 제어값으로 운영하며, 변화 시 소폭/가역 튜닝을 우선
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
