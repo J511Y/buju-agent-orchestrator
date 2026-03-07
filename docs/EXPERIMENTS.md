@@ -549,3 +549,10 @@ Track A/B and policy experiments.
 - Metric(s): Next-cycle HP drawdown rate after tagged cycles, incorrect stable-state interpretations, time-to-shield-restoration.
 - Result: Current cycle showed HP rebound (`181→327`) with continued progression (`Δexp=+832`) but shield remained absent and reserve stayed below floor; history endpoints still `404` (streak `9`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 07:09 KST
+- Hypothesis: A `shield_restored_but_drawdown_alert` (shield refresh with concurrent HP/gold decline) will reduce false stabilization calls after defensive buff recovery.
+- Change: Add classifier rule that requires non-negative `Δhp` and `Δgold` before upgrading state to stabilized, even when mutation shield is restored.
+- Metric(s): False-stabilization rate after shield refresh cycles, next-cycle HP/gold regression rate, intervention timing quality.
+- Result: Current cycle restored shield (`none→26`) but still showed `Δhp=-94` and `Δgold=-110` with history endpoints unavailable (`404` streak `9`), supporting drawdown-aware shield interpretation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

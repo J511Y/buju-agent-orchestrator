@@ -1802,3 +1802,12 @@
   - Resource trend signal (vs prior 05:09 status snapshot): no level change (`35→35`), `Δexp=+832`, `Δgold=+10` (still below reserve floor), HP recovered (`181→327`), mutation shield still absent (`none→none`), hunt quota improved (`21→23`).
   - Development feedback: short-term survivability recovered on HP while progression stayed steady, but persistent shield absence + low reserve keeps stability readiness incomplete.
 - [2026-03-08 06:09 KST] Next 30-min actionable TODO: add `shieldless_recovery_guard` to classify HP rebounds without shield as fragile recovery and prioritize shield-refresh-safe actions before aggressive hunts.
+
+- [2026-03-08 07:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `9829`, gold `388`, HP `233/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` stays healthy (`200`); rolling 6h history failure streak remains `9`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 06:09 status snapshot): no level change (`35→35`), `Δexp=+768`, `Δgold=-110` (below reserve floor), HP declined (`327→233`), mutation shield restored (`none→26`), hunt quota flat (`23→23`).
+  - Development feedback: shield recovery improved defensive ceiling, but simultaneous HP/economy drawdown indicates continued instability; progression remains steady under constrained resources.
+- [2026-03-08 07:09 KST] Next 30-min actionable TODO: add `shield_restored_but_drawdown_alert` when shield refresh coincides with (`Δhp < 0` OR `Δgold < 0`) to prevent treating shield restoration alone as stabilization.
