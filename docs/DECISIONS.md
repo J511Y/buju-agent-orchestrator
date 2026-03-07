@@ -122,3 +122,6 @@
 - Adaptive step-6 (2026-03-07 23:49 KST): even after reducing cycle quota to 20, latest 20-log sample still showed `rate_limited` at 20/20, so pacing was tightened again by changing `BUJU_BASE_DELAY_MS` from `3000` to `3400`.
 - Rationale: this keeps hard constraints intact while further smoothing request cadence; reversible config-only change.
 - KPI target (next 30 min): achieve at least 2 `status_check` decisions in trailing 20 thinking logs and keep smoke result at HTTP 200.
+- Adaptive step-7 (2026-03-08 00:19 KST): recent window still showed `rate_limited` saturation (20/20) after delay 3400 and cycle cap 20, so per-cycle quota was reduced again from `20` to `16`.
+- Rationale: this is a minimal, reversible pressure cut that leaves mandatory sell-priority and rest-first hard constraints untouched.
+- KPI target (next 30 min): trailing 20-log `rate_limited` <=10 and at least 3 `status_check` entries, while keeping smoke checks green (`ok=1/1`, HTTP 200).

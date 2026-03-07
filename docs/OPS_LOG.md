@@ -1,5 +1,19 @@
 # Ops Log
 
+## 2026-03-08
+- [2026-03-08 00:19 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
+  - ADAPTIVE DELTA vs previous run: level `35 -> 35` (Δ0), exp `2309 -> 2965` (Δ+656), gold `538 -> 568` (Δ+30), inventory stable low-use band (`6 -> 6`), area unchanged (`talking_island_cave`).
+  - ADAPTIVE DIAGNOSIS: repeated bottleneck persisted (`rate_limited` remained `20/20` in recent window), so KEEP path rejected per rule.
+  - CHANGE (config, reversible): reduced cycle quota again `BUJU_MAX_ACTIONS_PER_CYCLE: 20 -> 16` to further cut minute-window action pressure.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with slots>=10 worse-than-equipped liquidation priority intact.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - CHANGE (docs): updated `docs/DECISIONS.md` with adaptive step-7 rationale and KPI target.
+  - Validation evidence (post-change): `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=35 exp=2965 gold=568 code=200`.
+  - CHANGE (ops telemetry): posted adaptive thinking with explicit deltas and changed knob (`action_detail=changed:BUJU_MAX_ACTIONS_PER_CYCLE=16`), response `status=200 {"success":true}`.
+  - KPI target for next 30 min: trailing-20 `rate_limited` <=10 with >=3 `status_check` entries while maintaining smoke success (`ok=1/1`, HTTP 200).
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` and daemon-managed runner active via `pgrep`).
+
 ## 2026-03-07
 - [2026-03-07 23:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
