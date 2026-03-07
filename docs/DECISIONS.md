@@ -125,3 +125,6 @@
 - Adaptive step-7 (2026-03-08 00:19 KST): recent window still showed `rate_limited` saturation (20/20) after delay 3400 and cycle cap 20, so per-cycle quota was reduced again from `20` to `16`.
 - Rationale: this is a minimal, reversible pressure cut that leaves mandatory sell-priority and rest-first hard constraints untouched.
 - KPI target (next 30 min): trailing 20-log `rate_limited` <=10 and at least 3 `status_check` entries, while keeping smoke checks green (`ok=1/1`, HTTP 200).
+- Adaptive step-8 (2026-03-08 00:50 KST): with `BUJU_MAX_ACTIONS_PER_CYCLE=16`, the latest trailing window still remained `rate_limited` 20/20, so cadence was further relaxed by changing `BUJU_BASE_DELAY_MS` from `3400` to `3800`.
+- Rationale: maintain all hard constraints while reducing minute-window contention through additional inter-action spacing; reversible and config-only.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=8 and at least 4 `status_check` entries, with smoke validation still `ok=1/1` and HTTP 200.
