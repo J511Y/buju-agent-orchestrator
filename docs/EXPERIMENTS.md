@@ -542,3 +542,10 @@ Track A/B and policy experiments.
 - Metric(s): Next-cycle HP recovery rate after alert, avoidable defeat/retreat incidents, false-positive alert ratio during normal cycles.
 - Result: Current cycle showed `Δexp=+848`, `Δgold=+40`, but large HP drop (`383→181`) with shield expiration (`13→none`) while history endpoints remained unavailable (`404` streak `9`), supporting composite survivability alerting.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 06:09 KST
+- Hypothesis: A `shieldless_recovery_guard` label (HP recovery with shield absent) will reduce false "stabilized" interpretation and lower next-cycle survivability regressions.
+- Change: Extend hourly classifier to tag `fragile_recovery` when `Δhp > 0` and `mutation_shield` remains absent, with recommendation to prioritize defensive/shield-refresh actions.
+- Metric(s): Next-cycle HP drawdown rate after tagged cycles, incorrect stable-state interpretations, time-to-shield-restoration.
+- Result: Current cycle showed HP rebound (`181→327`) with continued progression (`Δexp=+832`) but shield remained absent and reserve stayed below floor; history endpoints still `404` (streak `9`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

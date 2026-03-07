@@ -1771,3 +1771,12 @@
   - Resource trend signal (vs prior 04:11 status snapshot): no level change (`35→35`), `Δexp=+848`, `Δgold=+40` (still below reserve floor), HP dropped sharply (`383→181`), mutation shield expired (`13→none`), hunt quota flat (`21→21`).
   - Development feedback: progression/economy remain positive, but survivability degraded materially this hour (HP drawdown + shield loss), indicating stability risk despite healthy status endpoint.
 - [2026-03-08 05:09 KST] Next 30-min actionable TODO: add `hp_drawdown_with_shield_loss_alert` when (`Δhp <= -150` AND `shield_turns: present→none`) to force defensive prioritization before continuing aggressive loops.
+
+- [2026-03-08 06:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `9061`, gold `498`, HP `327/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still return `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `9`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 05:09 status snapshot): no level change (`35→35`), `Δexp=+832`, `Δgold=+10` (still below reserve floor), HP recovered (`181→327`), mutation shield still absent (`none→none`), hunt quota improved (`21→23`).
+  - Development feedback: short-term survivability recovered on HP while progression stayed steady, but persistent shield absence + low reserve keeps stability readiness incomplete.
+- [2026-03-08 06:09 KST] Next 30-min actionable TODO: add `shieldless_recovery_guard` to classify HP rebounds without shield as fragile recovery and prioritize shield-refresh-safe actions before aggressive hunts.
