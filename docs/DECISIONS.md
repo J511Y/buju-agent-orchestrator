@@ -104,3 +104,6 @@
 - Rationale: under live rules/drift conditions, rest can intermittently return 400; treating it as terminal for the tick created avoidable throughput collapse (`ok=0/1`).
 - Added configurable 429 retry ceiling for live strategy requests (`BUJU_RETRY_MAX_ATTEMPTS`, default 4) to reduce false-negative failed ticks during short rate-limit bursts.
 - Rationale: a fixed low retry cap caused occasional terminal hunt 429 outcomes (`ok=0/1`) even when immediate subsequent retry windows succeeded.
+- Adaptive control update (2026-03-07 21:26 KST): repeated bottleneck detected in last 20 thinking logs (`decision_type=rate_limited` 19/19), so keep hard constraints unchanged and reduce request burst pressure by increasing `BUJU_BASE_DELAY_MS` from `250` to `2100`.
+- Expected KPI target (next 30 min): lower `wait_hunt_rate_limit` share below 50% of sampled single-tick validations while maintaining HTTP 200 success and no hard-constraint regressions.
+- Change is intentionally small/reversible (config-only), with no modifications to sell-threshold logic or rest-first thresholds.

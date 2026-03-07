@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-07
+- [2026-03-07 21:27 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift).
+  - ADAPTIVE DELTA (last-20 thinking logs): `rate_limited` bottleneck frequency remained extreme (`19/19` recent logs). Progress still occurred (`level 32 -> 34` across window), but throttle pattern repeated >=2 runs, so KEEP path rejected.
+  - CHANGE (config, reversible): updated `config/strategy.env` → `BUJU_BASE_DELAY_MS: 250 -> 2100` to reduce action burst pressure and lower repeated hunt-rate throttling.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, plus mandatory worse-than-equipped liquidation priority at slots>=10.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - CHANGE (decisions doc): recorded adaptive rationale and KPI target in `docs/DECISIONS.md`.
+  - Validation evidence: smoke run after change => `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=hunt level=34 exp=10205 gold=318 code=200`.
+  - CHANGE (ops telemetry): posted adapted reasoning to Buju Thinking API with explicit delta and changed knob (`action_detail=changed:BUJU_BASE_DELAY_MS=2100`), response `status=200 {"success":true}`.
+  - KPI target for next 30 min: `wait_hunt_rate_limit` share < 50% while maintaining one-tick HTTP 200 smoke success.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` alive via `pgrep`; daemon-managed runner loop active).
 - [2026-03-07 21:19 KST] 30-min STRATEGY DIRECTOR run completed (hard-constraints active, rest-first economy mode).
   - KEEP (drift): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` is `version: 1.11.1`; live doc snapshot `tmp/skill-doc-live.md` is `version: 1.14.0` (persistent drift, unchanged this cycle).
   - KEEP (hard constraints): preserved exactly in `config/strategy.env` — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`.
