@@ -146,3 +146,6 @@
 - Adaptive step-14 (2026-03-08 03:50 KST): after widening delay to 4600, the latest 20-log window still remained `rate_limited` 20/20, so cycle quota was reduced from `10` to `8`.
 - Rationale: reduce per-cycle request density further with a reversible config-only change while preserving all protected sell and rest hard constraints.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=1 with >=10 `status_check` entries and smoke checks still `ok=1/1` (HTTP 200).
+- Adaptive step-15 (2026-03-08 04:22 KST): despite quota reduction to 8, trailing 20 thinking logs remained `rate_limited` 20/20 across consecutive runs, so cadence was widened from `BUJU_BASE_DELAY_MS=4600` to `5200`.
+- Rationale: repeated bottleneck persisted while progression continued (`level 35 유지, exp/gold 증가`), so KEEP was disallowed and a minimal reversible pacing-only change was selected without touching mandatory sell/rest constraints.
+- KPI target (next 30 min): reduce trailing-20 `rate_limited` to <=18, secure >=2 `status_check` entries, and keep smoke validation at `ok=1/1` with HTTP 200.
