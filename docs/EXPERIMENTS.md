@@ -479,3 +479,10 @@ Track A/B and policy experiments.
 - Metric(s): Alert prioritization accuracy, intervention-to-recovery time, false-urgent alerts.
 - Result: Current cycle shows strong EXP gain with shield refresh but persistent low reserve, quota lock, and increased consumable usage, supporting composite scoring.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 21:09 KST
+- Hypothesis: A `partial_recovery_gate` classifier (positive short-term deltas but unmet hard safety constraints) will reduce false “stabilized” judgments during fragile rebounds.
+- Change: Add gating logic in hourly feedback that distinguishes rebound-from-baseline vs fully recovered state.
+- Metric(s): False-stability rate after rebound cycles, time-to-true-stability, operator intervention quality.
+- Result: Current cycle shows positive gold/HP rebound with continued low reserve and no shield, supporting partial-recovery gating.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
