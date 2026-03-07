@@ -458,3 +458,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stability interpretations, subsequent-cycle regressions after rebound signals, intervention timing quality.
 - Result: Current cycle shows positive `Δgold` and strong EXP gain but still low reserve with shield absent and hunt quota exhausted, supporting rebound-fragility tagging.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 18:09 KST
+- Hypothesis: A `quota_locked_progression` flag (progression gain while `hunt_remaining=0`) will improve visibility into constrained-growth states that can mask recovery debt.
+- Change: Add hourly classifier for progression-under-quota-lock and attach conservative recovery recommendation.
+- Metric(s): Detection rate of quota-locked growth cycles, next-cycle reserve recovery, false-positive rate when quota resets naturally resolve risk.
+- Result: Current cycle leveled up (`33→34`) while hunt quota stayed exhausted and reserve remained below threshold, supporting quota-locked progression tagging.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
