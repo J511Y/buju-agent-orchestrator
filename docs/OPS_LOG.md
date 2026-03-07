@@ -1441,3 +1441,12 @@
   - Resource trend signal (vs prior 18:09 status snapshot): no level change (`34→34`), `Δexp=+2928`, `Δgold=-10` (still below reserve), HP slightly recovered (`298→313`), mutation shield near-expiry (`9→4`), hunt quota still exhausted (`0→0`).
   - Development feedback: progression remains steady but shield is now in critical low-turn window under quota lock + low reserve, increasing risk of abrupt survivability degradation.
 - [2026-03-07 19:09 KST] Next 30-min actionable TODO: add `critical_shield_window_alert` when (`shield_turns <= 5` AND `hunt_remaining=0` AND `gold < reserve`) with explicit recommendation to prioritize defense-safe actions.
+
+- [2026-03-07 20:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv34, exp `6397`, gold `428`, HP `263/595`, MP `314/314`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: keep replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 19:09 status snapshot): no level change (`34→34`), `Δexp=+2928`, `Δgold=-10` (still below reserve), HP declined (`313→263`), mutation shield refreshed sharply (`4→48`), hunt quota still exhausted (`0→0`), use-item quota consumed (`30→19`).
+  - Development feedback: shield refresh reduced immediate defense risk, but low reserve + quota lock + higher consumable usage still indicate constrained sustainability.
+- [2026-03-07 20:09 KST] Next 30-min actionable TODO: add `sustainability_score` output combining reserve state, quota lock, and consumable burn rate to prioritize stabilization tasks.

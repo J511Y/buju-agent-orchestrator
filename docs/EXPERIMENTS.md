@@ -472,3 +472,10 @@ Track A/B and policy experiments.
 - Metric(s): Preemptive mitigation before shield expiry, next-cycle HP volatility after alert, false-positive alert rate.
 - Result: Current cycle shows shield down to `4` turns with quota lock and low reserve while progression continues, supporting critical-window alert instrumentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-07 20:09 KST
+- Hypothesis: A composite `sustainability_score` (gold reserve status + hunt quota lock + consumable burn rate) will better rank intervention urgency than independent alerts.
+- Change: Add deterministic weighted scoring in hourly feedback and map to guidance bands (`stable`, `watch`, `fragile`).
+- Metric(s): Alert prioritization accuracy, intervention-to-recovery time, false-urgent alerts.
+- Result: Current cycle shows strong EXP gain with shield refresh but persistent low reserve, quota lock, and increased consumable usage, supporting composite scoring.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
