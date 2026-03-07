@@ -1833,3 +1833,12 @@
   - Resource trend signal (vs prior 06:09 status snapshot): no level change (`35→35`), `Δexp=+768`, `Δgold=-110` (below reserve floor), HP declined (`327→233`), mutation shield restored (`none→26`), hunt quota flat (`23→23`).
   - Development feedback: shield recovery improved defensive ceiling, but simultaneous HP/economy drawdown indicates continued instability; progression remains steady under constrained resources.
 - [2026-03-08 07:09 KST] Next 30-min actionable TODO: add `shield_restored_but_drawdown_alert` when shield refresh coincides with (`Δhp < 0` OR `Δgold < 0`) to prevent treating shield restoration alone as stabilization.
+
+- [2026-03-08 08:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `10549`, gold `538`, HP `227/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `9`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 07:09 status snapshot): no level change (`35→35`), `Δexp=+720`, `Δgold=+150` (still below reserve floor), HP near-flat/slightly down (`233→227`), mutation shield expired (`26→none`), hunt quota slightly reduced (`23→22`).
+  - Development feedback: economy improved this hour, but shield loss plus non-recovering HP indicates fragile state despite positive gold trend.
+- [2026-03-08 08:09 KST] Next 30-min actionable TODO: add `gold_up_but_fragile_guard` when (`Δgold > 0` AND (`shield_absent` OR `Δhp <= 0`)) so positive economy hours are not misclassified as stable.

@@ -556,3 +556,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stabilization rate after shield refresh cycles, next-cycle HP/gold regression rate, intervention timing quality.
 - Result: Current cycle restored shield (`none→26`) but still showed `Δhp=-94` and `Δgold=-110` with history endpoints unavailable (`404` streak `9`), supporting drawdown-aware shield interpretation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 08:09 KST
+- Hypothesis: A `gold_up_but_fragile_guard` classifier (`Δgold > 0` with shield absence or non-positive HP delta) will reduce false stability labeling during partial recoveries.
+- Change: Add economy-vs-survivability cross-check rule and require both economy and survivability improvement before emitting stabilized state.
+- Metric(s): False-stability rate on positive-gold cycles, next-cycle HP regression frequency, shieldless-risk incident count.
+- Result: Current cycle showed `Δgold=+150` and `Δexp=+720` but HP was flat/down (`233→227`) and shield expired (`26→none`) while history endpoints remained `404` (streak `9`), supporting guard-rule instrumentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
