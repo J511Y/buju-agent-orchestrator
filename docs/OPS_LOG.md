@@ -1175,3 +1175,12 @@
   - Resource trend signal (vs prior 08:09 status snapshot): no level change (`31→31`), `Δexp=+2896`, `Δgold=-70` (reserve still critically low at `388`), HP decreased (`263→205`), shield turns declined (`39→26`), hunt quota steady (`1→1`).
   - Development feedback: progression remains stable but gold reserve stays below configured safety floor, so economy guardrails should switch from warning-only to behavior-throttling recommendations.
 - [2026-03-07 09:09 KST] Next 30-min actionable TODO: add low-reserve behavior hint (`gold < reserve` => defer non-essential buys/enhance) directly in hourly feedback output.
+
+- [2026-03-07 10:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv31, exp `8033`, gold `358`, HP `305/550`, MP `290/290`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints still `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 09:09 status snapshot): no level change (`31→31`), `Δexp=+2944`, `Δgold=-30` (still below reserve at `358`), HP recovered (`205→305`), mutation shield turns increased (`26→40`), and combat exited (`in_progress=true→false`).
+  - Development feedback: despite sustained progression and improved survivability, reserve remains critically low for consecutive cycles; feedback output should include an economy-priority mode suggestion until reserve recovers.
+- [2026-03-07 10:09 KST] Next 30-min actionable TODO: add `economy_priority_mode` recommendation when `gold < reserve` for >=3 consecutive hourly snapshots, with explicit suppression of optional spend actions.

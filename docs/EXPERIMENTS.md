@@ -402,3 +402,10 @@ Track A/B and policy experiments.
 - Metric(s): Time spent below reserve threshold, EXP gain while under reserve policy, frequency of repeated low-gold alerts.
 - Result: Current cycle stayed below reserve (`gold=388`) despite continued EXP growth, indicating warning-only feedback is insufficient.
 - Decision: Implement hint rule in next 30-min cycle and evaluate over 8 hourly runs.
+
+- Date: 2026-03-07 10:09 KST
+- Hypothesis: Triggering `economy_priority_mode` after >=3 consecutive low-reserve hourly snapshots will improve gold recovery speed without materially reducing EXP gains.
+- Change: Add persistence-aware reserve policy in hourly feedback that recommends suppressing optional spend actions until reserve recovery.
+- Metric(s): Consecutive low-reserve duration, time-to-recover above reserve, EXP gain retained during economy-priority mode.
+- Result: Third consecutive cycle remains below reserve (`gold=358`) with continued EXP gains, supporting a persistence-based economy mode instead of one-shot warnings.
+- Decision: Implement in next 30-min cycle and evaluate over 8 hourly runs.
