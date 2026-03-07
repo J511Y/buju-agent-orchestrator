@@ -134,3 +134,6 @@
 - Adaptive step-10 (2026-03-08 01:50 KST): after delay 3800 plus action cap 12, the latest trailing history still showed `rate_limited` 20/20, so retry pressure was reduced by changing `BUJU_RETRY_MAX_ATTEMPTS` from `4` to `2`.
 - Rationale: fewer immediate retry bursts during throttled windows may cut contention without altering protected sell-priority or rest-first constraints.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=5 with >=6 `status_check` entries, while preserving smoke success (`ok=1/1`, HTTP 200).
+- Adaptive step-11 (2026-03-08 02:20 KST): the latest trailing window remained fully rate-limited (20/20) even after retry-attempt reduction, so cycle quota was trimmed again from `12` to `10`.
+- Rationale: this is a reversible throughput cut intended to reduce minute-window contention while keeping all hard inventory and recovery constraints untouched.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=4 with >=7 `status_check` entries, and smoke check stays `ok=1/1` (HTTP 200).
