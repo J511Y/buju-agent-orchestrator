@@ -149,3 +149,6 @@
 - Adaptive step-15 (2026-03-08 04:22 KST): despite quota reduction to 8, trailing 20 thinking logs remained `rate_limited` 20/20 across consecutive runs, so cadence was widened from `BUJU_BASE_DELAY_MS=4600` to `5200`.
 - Rationale: repeated bottleneck persisted while progression continued (`level 35 유지, exp/gold 증가`), so KEEP was disallowed and a minimal reversible pacing-only change was selected without touching mandatory sell/rest constraints.
 - KPI target (next 30 min): reduce trailing-20 `rate_limited` to <=18, secure >=2 `status_check` entries, and keep smoke validation at `ok=1/1` with HTTP 200.
+- Adaptive step-16 (2026-03-08 04:49 KST): after delay 5200 and cap 8, trailing thinking distribution was still pinned at `rate_limited` 20/20, so per-cycle quota was tightened once more from `BUJU_MAX_ACTIONS_PER_CYCLE=8` to `6`.
+- Rationale: maintain all hard inventory liquidation/rest-economy constraints and apply a small reversible throughput reduction because the same bottleneck repeated across at least two consecutive runs.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=16 with >=3 `status_check` decisions while preserving smoke result `ok=1/1` (HTTP 200).
