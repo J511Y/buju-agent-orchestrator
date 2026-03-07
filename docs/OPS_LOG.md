@@ -1575,3 +1575,12 @@
   - Resource trend signal (vs prior 22:09 status snapshot): level-up (`34→35`) with exp rollover (`11373→1333`), `Δgold=+100` (still below reserve floor), HP improved (`251→309`) with max HP increase (`595→610`), mutation shield expired (`15→none`), hunt quota unchanged (`14→14`).
   - Development feedback: throughput readiness remains high and economy is slowly improving, but shield absence keeps stability readiness incomplete; post-level-up cycles should explicitly report this mismatch.
 - [2026-03-07 23:09 KST] Next 30-min actionable TODO: add `readiness_mismatch_alert` when `throughput_ready=true` and `stability_ready=false` to prevent aggressive policy escalation.
+
+- [2026-03-08 00:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `2741`, gold `448`, HP `419/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0`, action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue returning `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first KPI fallback, retry history endpoints hourly, and restore history-derived KPI summaries only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 23:09 status snapshot): no level change (`35→35`), `Δexp=+1408`, `Δgold=-60` (still below reserve floor), HP improved significantly (`309→419`), mutation shield in critical expiry window (`none→2 turns`), hunt quota increased (`14→17`).
+  - Development feedback: throughput and survivability improved, but economy remains sub-threshold and shield is near immediate expiry, so current state is high-readiness with short safety horizon.
+- [2026-03-08 00:09 KST] Next 30-min actionable TODO: add `short_horizon_readiness` tag when readiness is high but `shield_turns <= 2`, prompting immediate refresh-safe actions before aggressive loops.

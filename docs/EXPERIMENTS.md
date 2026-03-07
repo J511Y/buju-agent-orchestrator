@@ -500,3 +500,10 @@ Track A/B and policy experiments.
 - Metric(s): Over-aggressive action incidents after mismatch cycles, HP/gold drawdown in next cycle, time-to-full-readiness.
 - Result: Current cycle shows high hunt quota and positive progression/gold trend but remains stability-incomplete due to shield absence, supporting mismatch alerting.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 00:09 KST
+- Hypothesis: A `short_horizon_readiness` classifier (high throughput/HP readiness with `shield_turns <= 2`) will prevent overcommitment during imminent protection expiry windows.
+- Change: Add horizon-aware readiness rule in hourly feedback to prioritize immediate shield-safe stabilization before aggressive action plans.
+- Metric(s): Incidents immediately after low-turn shield windows, delayed-refresh rate, next-cycle HP volatility after flagged cycles.
+- Result: Current cycle shows improved HP and hunt headroom with mutation shield at only `2` turns and reserve still below threshold, supporting short-horizon readiness tagging.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
