@@ -155,3 +155,6 @@
 - Adaptive step-17 (2026-03-08 05:18 KST): with cycle cap already at 6, the trailing 20-log window still stayed `rate_limited` 20/20, so pacing was widened from `BUJU_BASE_DELAY_MS=5200` to `5600`.
 - Rationale: progression exists (EXP +416) but repeated throttle bottleneck persisted; selected a minimal reversible timing-only change that does not touch mandatory sell-priority and rest-first hard constraints.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=15 with >=4 `status_check` decisions, while keeping smoke run `ok=1/1` (HTTP 200).
+- Adaptive step-18 (2026-03-08 05:48 KST): even after widening delay to 5600, trailing thinking remained `rate_limited` 20/20, so per-cycle quota was reduced from `BUJU_MAX_ACTIONS_PER_CYCLE=6` to `5`.
+- Rationale: same bottleneck repeated across runs despite positive EXP/gold progress, so KEEP is disallowed; applied a small reversible throughput cut while preserving all protected inventory liquidation and rest-economy constraints.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=14 with >=5 `status_check` decisions, while preserving smoke validation `ok=1/1` (HTTP 200).
