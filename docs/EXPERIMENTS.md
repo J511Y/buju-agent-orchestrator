@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 07:09 KST
+- Hypothesis: Emitting explicit `idle_with_consumable_burn_streak_count` in hourly feedback will improve automation response quality versus severity text alone.
+- Change: Add numeric streak counter output for repeated condition (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and keep threshold-based escalation.
+- Metric(s): Recovery latency after streak>=3; downstream action consistency; false escalation interventions.
+- Result: Fourth consecutive hour confirmed same ineffective pattern with no progression and repeated consumable drain while history endpoints remained `404`.
+- Decision: Continue experiment for next 8 cycles; promote if streak-counted alerts shorten time-to-first progression.
+
 - Date: 2026-03-09 06:08 KST
 - Hypothesis: Adding a severity bump after 3 consecutive `idle_with_consumable_burn` hits will shorten time-to-recovery versus repeated same-priority warnings.
 - Change: Keep current detector (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and add streak-threshold escalation rule in hourly feedback output.
