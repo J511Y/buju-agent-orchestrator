@@ -689,3 +689,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-first-nonzero progression after escalation, false escalation rate, probe success ratio.
 - Result: Current cycle remained flat at reset baseline for a third consecutive hour (`Δlevel/Δexp/Δgold=0`) with continued use-item quota drain and history endpoints unavailable (`404`, streak `7`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-09 03:09 KST
+- Hypothesis: An `ineffective_activity_guard` (`Δexp=0`, `Δgold=0`, and significant consumable burn) will reduce wasted cycles during post-reset stalls.
+- Change: Add guard rule to detect no-progress + resource burn pattern and trigger throttled mode with mandatory liveness probe.
+- Metric(s): Consumable burn per zero-progress hour, time-to-first-nonzero progression after guard activation, false-positive guard rate.
+- Result: Current cycle remained flat at reset baseline for a fourth consecutive hour while use-item quota dropped further (`18→14`) and history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
