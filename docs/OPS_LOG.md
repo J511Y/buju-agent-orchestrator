@@ -2174,3 +2174,12 @@
   - Resource trend signal (vs prior 17:09 status snapshot): no level change (`36→36`), `Δexp=+368`, `Δgold=-210` (below reserve floor), HP near-flat/slightly down (`306→303`), mutation shield ticked down (`33→32`), hunt quota flat (`26→26`).
   - Development feedback: progression continues but economy deteriorated sharply this hour while survivability stagnated, indicating clear instability under shield decay.
 - [2026-03-08 18:09 KST] Next 30-min actionable TODO: add `gold_crash_under_shield_decay_alert` for (`Δgold<=-200` AND `Δhp<=0` AND `Δshield<0`) to enforce immediate economy-preserving defensive mode.
+
+- [2026-03-08 19:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `3595`, gold `418`, HP `337/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 18:09 status snapshot): no level change (`36→36`), `Δexp=+336`, `Δgold=+30` (still below reserve floor), HP improved (`303→337`), mutation shield decayed sharply (`32→17`), hunt quota flat (`26→26`).
+  - Development feedback: progression/economy/survivability ticked up, but rapid shield decay shortens safety horizon and keeps this in fragile-recovery territory.
+- [2026-03-08 19:09 KST] Next 30-min actionable TODO: add `fast_shield_decay_horizon_alert` when (`Δshield <= -10` and shield remains active) to schedule preemptive refresh-safe actions before expiry.

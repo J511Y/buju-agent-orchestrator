@@ -633,3 +633,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-stop gold freefall, next-cycle HP/gold stabilization rate, false-negative high-risk cycle count.
 - Result: Current cycle showed `Δexp=+368` but severe `Δgold=-210` with HP non-recovery (`306→303`) and shield decay (`33→32`) while history endpoints remained unavailable (`404`, streak `7`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 19:09 KST
+- Hypothesis: A `fast_shield_decay_horizon_alert` (`Δshield <= -10` while shield is still active) will improve pre-expiry stabilization and reduce post-expiry regressions.
+- Change: Add shield-horizon classifier and emit proactive shield-refresh-safe recommendation before full expiration.
+- Metric(s): Post-expiry HP drawdown rate, time-to-shield-restoration after alert, false-positive horizon alerts.
+- Result: Current cycle showed positive `Δexp=+336`, `Δgold=+30`, `Δhp=+34` but rapid shield decay (`32→17`) with history endpoints still unavailable (`404`, streak `7`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
