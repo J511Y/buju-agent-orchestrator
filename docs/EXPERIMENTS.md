@@ -570,3 +570,10 @@ Track A/B and policy experiments.
 - Metric(s): Gold floor breach duration, next-cycle economy regression after rebound cycles, false-negative detection of unstable recoveries.
 - Result: Current cycle showed HP/shield recovery (`227→327`, `none→38`) with steady progression (`Δexp=+704`) but sharp economy decline (`Δgold=-180`) under ongoing history `404` streak `9`.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 10:09 KST
+- Hypothesis: A `stalled_reserve_with_progress_alert` (`Δexp>0`, `Δgold=0`, and below reserve floor) will surface hidden economy stagnation during otherwise healthy progression cycles.
+- Change: Add rule to tag progression-without-reserve-recovery and recommend gold-positive, low-risk action mix before sustained hunt loops.
+- Metric(s): Time-to-reserve-recovery, frequency of prolonged sub-reserve plateaus, next-cycle gold delta after alert.
+- Result: Current cycle showed steady progression (`Δexp=+640`) and survivability recovery (`Δhp=+22`, shield `38→40`) but no gold recovery (`Δgold=0`) with reserve still breached; history endpoints remained unavailable (`404` streak `10`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

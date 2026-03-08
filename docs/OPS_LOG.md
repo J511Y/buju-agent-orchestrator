@@ -1895,3 +1895,12 @@
   - Resource trend signal (vs prior 08:09 status snapshot): no level change (`35→35`), `Δexp=+704`, `Δgold=-180` (below reserve floor), HP recovered (`227→327`), mutation shield restored (`none→38`), hunt quota increased (`22→24`).
   - Development feedback: defensive posture improved via HP + shield recovery, but economy drawdown deepened and keeps stabilization incomplete.
 - [2026-03-08 09:09 KST] Next 30-min actionable TODO: add `recovery_imbalance_alert` when survivability improves (`Δhp>0` + shield restored) but `Δgold<=-150`, to trigger economy-preserving action limits.
+
+- [2026-03-08 10:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv35, exp `11893`, gold `358`, HP `349/610`, MP `322/322`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak increased to `10`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 09:09 status snapshot): no level change (`35→35`), `Δexp=+640`, `Δgold=0` (still below reserve floor), HP improved (`327→349`), mutation shield strengthened (`38→40`), hunt quota increased (`24→25`).
+  - Development feedback: survivability trend improved and progression continues, but economy remains stalled below reserve and history telemetry blind spot deepened.
+- [2026-03-08 10:09 KST] Next 30-min actionable TODO: add `stalled_reserve_with_progress_alert` when (`Δexp>0` AND `Δgold=0` AND `gold<reserve`) to bias actions toward gold-positive recovery steps.
