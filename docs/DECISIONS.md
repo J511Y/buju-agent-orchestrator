@@ -300,3 +300,7 @@
 - CHANGE (reversible): raised `BUJU_MAX_ACTIONS_PER_CYCLE` from `1` to `2` in `config/strategy.env` to restore minimal throughput while retaining the new `/combat/start` primary path.
 - Constraint integrity: all mandatory inventory sell constraints and rest-first economy thresholds were kept unchanged.
 - KPI target (next 30 min): reach `exp>=12` and `gold>=112` from current `exp=3/gold=103`, maintain smoke `>=2/2` HTTP 200, and keep inventory slots `<=8`.
+- Adaptive step-65 (2026-03-09 05:48 KST): the subsequent interval remained flat (`level 1->1`, `exp 3->3`, `gold 113->113`, inventory/area unchanged), and the trailing thinking window was sparse (`1` record), so repeated-error evidence was inconclusive but stagnation alone still forced CHANGE.
+- CHANGE (reversible): increased `BUJU_MAX_ACTIONS_PER_CYCLE` from `2` to `3` to probe whether slightly higher per-cycle throughput yields measurable growth under stable `/combat/start` execution.
+- Constraint integrity: hard inventory sell constraints and rest-first economy thresholds remain unchanged.
+- KPI target (next 30 min): achieve `exp>=6` and `gold>=116` with smoke `ok>=3/3` HTTP 200, while keeping inventory slots `<=8`.
