@@ -605,3 +605,10 @@ Track A/B and policy experiments.
 - Metric(s): Duration of sub-reserve periods, next-cycle HP/gold stability after guarded cycles, false-stable classification rate.
 - Result: Current cycle showed HP rebound (`240→286`) with continued progression (`Δexp=+432`) but notable gold decline (`Δgold=-140`) and persistent shield absence; history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 15:09 KST
+- Hypothesis: A `shield_restore_drawdown_gate` will reduce false stability upgrades when mutation shield returns but HP/gold continue declining.
+- Change: Extend classifier to require (`shield_restored=true` AND `Δhp>=0` AND `Δgold>=0`) before marking `stabilized`; otherwise keep `partial_recovery`.
+- Metric(s): False-stable labels after shield restoration, next-cycle HP/gold regression rate, time-to-true-stable classification.
+- Result: Current cycle restored shield (`none→24`) while `Δexp=+432` but still had `Δhp=-6` and `Δgold=-90`; history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
