@@ -598,3 +598,10 @@ Track A/B and policy experiments.
 - Metric(s): Next-cycle HP recovery after alert, severe HP-drop recurrence rate, false-negative survivability incidents.
 - Result: Current cycle showed `Δexp=+496` and `Δgold=+30`, but HP dropped sharply (`356→240`) while shield stayed absent and history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 14:09 KST
+- Hypothesis: A `hp_rebound_with_gold_drain_guard` will better detect fragile rebounds where HP improves but economy degrades under shield absence.
+- Change: Add classifier for (`Δhp>0` AND `Δgold<=-100` AND `shield_absent`) and emit economy-safe defensive recommendation.
+- Metric(s): Duration of sub-reserve periods, next-cycle HP/gold stability after guarded cycles, false-stable classification rate.
+- Result: Current cycle showed HP rebound (`240→286`) with continued progression (`Δexp=+432`) but notable gold decline (`Δgold=-140`) and persistent shield absence; history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

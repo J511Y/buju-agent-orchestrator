@@ -2019,3 +2019,12 @@
   - Resource trend signal (vs prior 12:09 status snapshot): no level change (`36→36`), `Δexp=+496`, `Δgold=+30` (still below reserve floor), HP declined (`356→240`), mutation shield remains absent (`none→none`), hunt quota slightly reduced (`26→25`).
   - Development feedback: economy/progression remain positive, but large HP drawdown with persistent shield absence indicates survivability regression and fragile recovery state.
 - [2026-03-08 13:09 KST] Next 30-min actionable TODO: add `shieldless_hp_drawdown_alert` for (`shield_absent` AND `Δhp <= -100`) to trigger immediate defensive throttling even when gold/exp are positive.
+
+- [2026-03-08 14:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `1675`, gold `468`, HP `286/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 13:09 status snapshot): no level change (`36→36`), `Δexp=+432`, `Δgold=-140` (below reserve floor), HP recovered (`240→286`), mutation shield remains absent (`none→none`), hunt quota flat (`25→25`).
+  - Development feedback: survivability partially recovered this hour, but reserve drawdown and persistent shield absence keep the system in fragile partial-recovery mode.
+- [2026-03-08 14:09 KST] Next 30-min actionable TODO: add `hp_rebound_with_gold_drain_guard` when (`Δhp>0` AND `Δgold<=-100` AND `shield_absent`) to prioritize economy-safe defensive pacing.
