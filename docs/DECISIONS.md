@@ -324,3 +324,7 @@
 - CHANGE (reversible): reduced retry burst overhead by changing `BUJU_RETRY_MAX_ATTEMPTS` from `2` to `1`.
 - Rationale: with no fresh rate-limit spike and persistent KPI flatline, shift from pacing/threshold changes to retry-pressure reduction while preserving all mandatory inventory/rest constraints.
 - KPI target (next 30 min): maintain smoke `ok>=3/3` with `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-71 (2026-03-09 08:48 KST): the next interval still showed repeated stagnation (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), with no new 429 signature.
+- CHANGE (reversible): reduced cycle breadth by setting `BUJU_MAX_ACTIONS_PER_CYCLE` from `3` to `2` while keeping `BUJU_BASE_DELAY_MS=1400` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: with rate-limit pressure quiet but KPI flatline persisting, reduce per-cycle action fan-out to favor cleaner deterministic rest/combat turnover.
+- KPI target (next 30 min): maintain smoke `ok>=2/2` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
