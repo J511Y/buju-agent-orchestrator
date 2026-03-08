@@ -682,3 +682,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-stall-detection post-reset, false idle escalations, first non-zero progression latency after intervention.
 - Result: Current cycle remained fully flat at reset baseline with recurring use-item quota consumption but no progression signal while history endpoints stayed unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-09 02:09 KST
+- Hypothesis: Escalating `idle_streak_counter` at 3 consecutive zero-progression post-reset cycles will shorten detection-to-recovery time for stalled loops.
+- Change: Upgrade idle detector to trigger an automatic single low-risk liveness probe when streak reaches `3`.
+- Metric(s): Time-to-first-nonzero progression after escalation, false escalation rate, probe success ratio.
+- Result: Current cycle remained flat at reset baseline for a third consecutive hour (`Δlevel/Δexp/Δgold=0`) with continued use-item quota drain and history endpoints unavailable (`404`, streak `7`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

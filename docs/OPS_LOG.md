@@ -2371,3 +2371,12 @@
   - Resource trend signal (vs prior 00:09 status snapshot): reset baseline still flat (`Lv1`, `exp=0`, `gold=100`, `HP/MP max=100/50`, area unchanged), with continued use-item quota consumption (`24→21`).
   - Development feedback: automation remains in post-reset no-progression state; persistent zero deltas suggest idle/stalled loop risk rather than normal progression variance.
 - [2026-03-09 01:09 KST] Next 30-min actionable TODO: add `idle_streak_counter` (post-reset) that escalates after 2+ consecutive zero-progression cycles and triggers a lightweight liveness action probe.
+
+- [2026-03-09 02:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv1, exp `0`, gold `100`, HP `100/100`, MP `50/50`, area `talking_island_field`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 01:09 status snapshot): reset baseline still unchanged (`Lv1`, `exp=0`, `gold=100`, `HP/MP max=100/50`, area unchanged), with continued use-item quota consumption (`21→18`).
+  - Development feedback: third consecutive post-reset zero-progression cycle observed; idle/stalled-loop risk is increasing and should be actively probed.
+- [2026-03-09 02:09 KST] Next 30-min actionable TODO: implement `idle_streak_counter>=3` escalation to auto-run a single low-risk liveness action probe and log probe outcome.
