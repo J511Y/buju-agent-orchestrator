@@ -288,3 +288,6 @@
 - Adaptive step-61 (2026-03-09 03:18 KST): bootstrap remained fully flat (`level=1`, `exp=0`, `gold=100`) and hunt smoke continued failing with `HTTP 400`, so cadence was reduced from `BUJU_BASE_DELAY_MS=1500` to `1000`.
 - Rationale: repeated same-cause bottleneck persisted across consecutive cycles with zero forward movement; applied a minimal reversible timing cut while preserving all mandatory inventory liquidation/rest-first constraints.
 - KPI target (next 30 min): first smoke success `ok=1/1` HTTP 200 and first progression event (`exp>0` or `level>=2`).
+- Adaptive step-62 (2026-03-09 03:48 KST): bootstrap state remained unchanged (`level=1`, `exp=0`, `gold=100`) and hunt smoke still failed with `HTTP 400`, so cadence was reduced from `BUJU_BASE_DELAY_MS=1000` to `800`.
+- Rationale: the same non-rate-limit bottleneck repeated again across consecutive cycles without metric lift; selected a minimal reversible timing cut while preserving all mandatory inventory liquidation/rest-first constraints.
+- KPI target (next 30 min): obtain first smoke `ok=1/1` with HTTP 200 and first progression evidence (`exp>0` or `level>=2`).

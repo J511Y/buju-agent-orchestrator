@@ -1,15 +1,15 @@
 # Ops Log
 
 ## 2026-03-09
-- [2026-03-09 03:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+- [2026-03-09 03:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - KEEP (drift evidence): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live snapshot `tmp/skill-doc-live.md` remains `version: 1.14.0` (persistent drift unchanged).
   - ADAPTIVE DELTA vs previous run: bootstrap stagnation unchanged (`level 1 -> 1`, `exp 0 -> 0`, `gold 100 -> 100`, `inventory 3 -> 3`, area `talking_island_field` unchanged).
   - ADAPTIVE DIAGNOSIS: repeated hunt `HTTP 400` bottleneck persisted in consecutive smoke validations (`ok=0/1`), so KEEP rejected by policy.
-  - CHANGE (config, reversible): tightened bootstrap cadence `BUJU_BASE_DELAY_MS: 1500 -> 1000` while retaining `BUJU_MAX_ACTIONS_PER_CYCLE=1`.
+  - CHANGE (config, reversible): tightened bootstrap cadence `BUJU_BASE_DELAY_MS: 1000 -> 800` while retaining `BUJU_MAX_ACTIONS_PER_CYCLE=1`.
   - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, and slots>=10 worse-than-equipped liquidation priority.
   - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
   - Validation evidence (current cycle): `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=0/1 lastAction=hunt level=1 exp=? gold=100 code=400`.
-  - CHANGE (ops telemetry): posted adaptive thinking to `POST /api/agent/thinking` with explicit stagnation delta and `action_detail=changed:BUJU_BASE_DELAY_MS=1000`, response `status=200 {"success":true}`.
+  - CHANGE (ops telemetry): posted adaptive thinking to `POST /api/agent/thinking` with explicit stagnation delta and `action_detail=changed:BUJU_BASE_DELAY_MS=800`, response `status=200 {"success":true}`.
   - KPI target for next 30 min: recover smoke to `ok=1/1` with HTTP 200 and produce first progression signal (`level>=2` or `exp>0`).
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` and `node scripts/live-strategy-runner.js` active via `pgrep`).
 - [2026-03-09 00:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
