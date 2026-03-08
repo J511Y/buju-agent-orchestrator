@@ -668,3 +668,10 @@ Track A/B and policy experiments.
 - Metric(s): False anomaly rate after resets, correctness of first-3-cycle post-reset recommendations, time-to-stable baseline re-establishment.
 - Result: Current cycle showed abrupt cold-start profile (Lv36→Lv1, max HP/MP reset, area shift) while history endpoints remained unavailable (`404`, streak `6`), supporting reset-aware segmentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-09 00:09 KST
+- Hypothesis: A `post_reset_idle_detector` (consecutive zero-delta cycles after reset) will improve detection of stalled automation vs expected baseline idling.
+- Change: Add detector that tracks consecutive cycles with (`Δlevel=0`, `Δexp=0`, `Δgold=0`) in reset segment and emits bootstrap/liveness-check recommendation.
+- Metric(s): Time-to-detect stalled loop after reset, false idle alerts during normal bootstrap, first non-zero progression latency.
+- Result: Current cycle remained fully flat at reset baseline (Lv1/exp0/gold100/HP100) with only use-item quota movement while history endpoints stayed unavailable (`404`, streak `7`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

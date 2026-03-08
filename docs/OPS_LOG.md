@@ -2329,3 +2329,12 @@
   - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
   - Development feedback: current cycle should be treated as baseline-reset state; pre-reset trend comparisons are invalid until reset-aware segmentation is applied.
 - [2026-03-08 23:09 KST] Next 30-min actionable TODO: add `status_reset_detector` that starts a new trend segment when large discontinuities occur (e.g., level drop, max-HP/MP reset, or area+stat cold start).
+
+- [2026-03-09 00:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv1, exp `0`, gold `100`, HP `100/100`, MP `50/50`, area `talking_island_field`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 23:09 status snapshot): baseline remains unchanged (`Lv1`, `exp=0`, `gold=100`, `HP/MP max=100/50`, area unchanged), with only use-item quota consumption (`27→24`).
+  - Development feedback: post-reset baseline appears stable but no progression signal is observed; telemetry should explicitly distinguish true idle/no-progress from missing-history blind spots.
+- [2026-03-09 00:09 KST] Next 30-min actionable TODO: add `post_reset_idle_detector` to flag consecutive zero-delta baseline cycles and suggest minimal bootstrap actions to confirm loop liveness.
