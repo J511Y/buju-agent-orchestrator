@@ -304,3 +304,7 @@
 - CHANGE (reversible): increased `BUJU_MAX_ACTIONS_PER_CYCLE` from `2` to `3` to probe whether slightly higher per-cycle throughput yields measurable growth under stable `/combat/start` execution.
 - Constraint integrity: hard inventory sell constraints and rest-first economy thresholds remain unchanged.
 - KPI target (next 30 min): achieve `exp>=6` and `gold>=116` with smoke `ok>=3/3` HTTP 200, while keeping inventory slots `<=8`.
+- Adaptive step-66 (2026-03-09 06:18 KST): progression was still stagnant (`level 1`, `exp 3`, `gold 113`, same area/inventory), and a temporary 4-action probe surfaced rate pressure (`ok=3/4`, `code=429`).
+- CHANGE (reversible): shifted from throughput increase to collision mitigation — set `BUJU_MAX_ACTIONS_PER_CYCLE` back to `3` (from 4 test) and widened `BUJU_BASE_DELAY_MS` from `800` to `1000`.
+- Rationale: preserve combat-start stability while lowering minute-window burst collisions; keep all hard inventory/rest constraints untouched.
+- KPI target (next 30 min): maintain smoke `ok>=3/3` with `code=200` (no 429), and lift to `exp>=6`, `gold>=116`, inventory slots `<=8`.

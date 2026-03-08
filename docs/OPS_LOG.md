@@ -40,6 +40,18 @@
   - CHANGE (ops telemetry): posted adaptive thinking to `POST /api/agent/thinking` with explicit delta and `action_detail=changed:BUJU_MAX_ACTIONS_PER_CYCLE=2...`, response `{"success":true}`.
   - KPI target for next 30 min: `exp>=12`, `gold>=112`, smoke `>=2/2` HTTP 200, inventory slots `<=8`.
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` and `node scripts/live-strategy-runner.js` active via `pgrep`).
+- [2026-03-09 06:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - CHANGE (mandatory loop): read trailing logs via `GET /api/agent/thinking/j211y?limit=20` (records=`2`) and computed delta against the 05:48 run.
+  - ADAPTIVE DELTA vs previous run: progression remained flat (`level 1->1`, `exp 3->3`, `gold 113->113`, `inventory 3->3`, area unchanged), which alone disqualifies KEEP.
+  - ADAPTIVE DIAGNOSIS: experimental throughput raise to 4 actions produced renewed rate-limit pressure (`ok=3/4`, tail `code=429`), confirming burst sensitivity.
+  - CHANGE (config, reversible): applied collision-mitigation rollback/tune — `BUJU_MAX_ACTIONS_PER_CYCLE: 4(test) -> 3`, `BUJU_BASE_DELAY_MS: 800 -> 1000`.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, plus slots>=10 worse-than-equipped liquidation priority unchanged.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - Drift check: pinned doc `1.11.1` vs live skill doc `1.17.0` (persistent drift, unchanged this cycle).
+  - Validation evidence: post-adjustment smoke `node scripts/live-strategy-runner.js` => `live-strategy ok=3/3 lastAction=combat_start level=1 exp=3 gold=113 code=200`.
+  - CHANGE (ops telemetry): posted adaptive thinking with delta-explicit reasoning and `action_detail=changed:BUJU_BASE_DELAY_MS=1000...`, response `{"success":true}`.
+  - KPI target for next 30 min: keep smoke `ok>=3/3` at `code=200` (no 429), and raise to `exp>=6`, `gold>=116`, with inventory slots `<=8`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` active; daemon log continues combat-start loop).
 - [2026-03-09 05:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - CHANGE (mandatory loop): queried `GET /api/agent/thinking/j211y?limit=20`; window currently contains `1` record, then computed delta against the previous 05:18 checkpoint.
   - ADAPTIVE DELTA vs previous run: stagnation persisted (`level 1->1`, `exp 3->3`, `gold 113->113`, `inventory 3->3`, area unchanged `talking_island_field`).
