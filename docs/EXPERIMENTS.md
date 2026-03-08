@@ -640,3 +640,10 @@ Track A/B and policy experiments.
 - Metric(s): Post-expiry HP drawdown rate, time-to-shield-restoration after alert, false-positive horizon alerts.
 - Result: Current cycle showed positive `Δexp=+336`, `Δgold=+30`, `Δhp=+34` but rapid shield decay (`32→17`) with history endpoints still unavailable (`404`, streak `7`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 20:09 KST
+- Hypothesis: A `consumable_burn_with_shield_decay_alert` will identify short-horizon instability earlier than HP-only or shield-only rules.
+- Change: Add classifier condition (`Δuse_item <= -3`, `Δshield <= -8`, `Δhp < 0`) and emit immediate stabilization recommendation.
+- Metric(s): Next-cycle HP stabilization after alert, repeated consumable-burn episodes, false-negative fragile-cycle rate.
+- Result: Current cycle showed `Δexp=+336` with HP drop (`337→265`), shield decay (`17→8`), and use-item burn (`30→26`) while history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

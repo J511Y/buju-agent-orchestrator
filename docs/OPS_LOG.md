@@ -2205,3 +2205,12 @@
   - Resource trend signal (vs prior 18:09 status snapshot): no level change (`36→36`), `Δexp=+336`, `Δgold=+30` (still below reserve floor), HP improved (`303→337`), mutation shield decayed sharply (`32→17`), hunt quota flat (`26→26`).
   - Development feedback: progression/economy/survivability ticked up, but rapid shield decay shortens safety horizon and keeps this in fragile-recovery territory.
 - [2026-03-08 19:09 KST] Next 30-min actionable TODO: add `fast_shield_decay_horizon_alert` when (`Δshield <= -10` and shield remains active) to schedule preemptive refresh-safe actions before expiry.
+
+- [2026-03-08 20:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `3931`, gold `398`, HP `265/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak is `6`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 19:09 status snapshot): no level change (`36→36`), `Δexp=+336`, `Δgold=-20` (below reserve floor), HP declined (`337→265`), mutation shield decayed (`17→8`), hunt quota flat (`26→26`), use-item quota consumed (`30→26`).
+  - Development feedback: progression continues but survivability and shield horizon both worsened; increased consumable usage with low reserve suggests fragile sustain.
+- [2026-03-08 20:09 KST] Next 30-min actionable TODO: add `consumable_burn_with_shield_decay_alert` when (`Δuse_item <= -3` AND `Δshield <= -8` AND `Δhp < 0`) to force short-horizon stabilization mode.
