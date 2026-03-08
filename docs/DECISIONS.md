@@ -206,3 +206,6 @@
 - Adaptive step-34 (2026-03-08 13:49 KST): with cycle quota still fixed at 1, trailing 20 thinking logs remained `rate_limited` 20/20, so base delay was widened from `BUJU_BASE_DELAY_MS=10000` to `10400`.
 - Rationale: repeated bottleneck persisted across consecutive runs despite continued exp/gold progression; applied a minimal reversible pacing-only adjustment while preserving all mandatory inventory liquidation/rest-first constraints.
 - KPI target (next 30 min): trailing-20 `rate_limited` <=1 with >=18 `status_check` decisions, while preserving smoke validation `ok=1/1` (HTTP 200).
+- Adaptive step-35 (2026-03-08 14:18 KST): with cycle quota pinned at 1, trailing 20 thinking logs still remained `rate_limited` 20/20, so base delay was widened from `BUJU_BASE_DELAY_MS=10400` to `10800`.
+- Rationale: repeated bottleneck persisted across consecutive runs despite ongoing exp progression; applied a minimal reversible pacing-only change while preserving all mandatory inventory liquidation/rest-first hard constraints.
+- KPI target (next 30 min): trailing-20 `rate_limited` <=1 with >=18 `status_check` decisions, while keeping smoke run `ok=1/1` (HTTP 200).
