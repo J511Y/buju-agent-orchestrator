@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 08:08 KST
+- Hypothesis: Adding both `streak_count` and `escalation_level` fields to idle-burn feedback will improve downstream automation consistency over streak count alone.
+- Change: Extend `idle_with_consumable_burn` output to include numeric streak and deterministic severity tier mapping (e.g., 1-2=warn, >=3=critical).
+- Metric(s): Recovery latency after critical tier; action consistency across repeated cycles; false-critical rate.
+- Result: Fifth consecutive no-progression + consumable-drain cycle observed with history endpoints still `404` and status stable.
+- Decision: Continue experiment for 8 cycles; adopt if critical-tier output reduces ineffective streak duration.
+
 - Date: 2026-03-09 07:09 KST
 - Hypothesis: Emitting explicit `idle_with_consumable_burn_streak_count` in hourly feedback will improve automation response quality versus severity text alone.
 - Change: Add numeric streak counter output for repeated condition (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and keep threshold-based escalation.
