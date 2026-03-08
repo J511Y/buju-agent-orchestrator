@@ -273,3 +273,6 @@
 - Adaptive step-56 (2026-03-09 00:48 KST, late-cycle correction): bootstrap stagnation remained with repeated hunt `HTTP 400`, so cadence was tightened further from `BUJU_BASE_DELAY_MS=5000` to `4000`.
 - Rationale: repeated identical blocker persisted within the same cycle window; selected a small reversible cadence cut while preserving all mandatory inventory liquidation/rest-first constraints.
 - KPI target (next 30 min): achieve first smoke `ok=1/1` HTTP 200 and progression signal (`exp>0` or `level>=2`).
+- Adaptive step-57 (2026-03-09 01:18 KST): bootstrap stagnation still held (`level=1`, `exp=0`, `gold=100`) and hunt smoke remained `HTTP 400`, so cadence was tightened from `BUJU_BASE_DELAY_MS=4000` to `3000`.
+- Rationale: repeated bootstrap hunt-400 bottleneck persisted across consecutive cycles; applied a minimal reversible cadence reduction while preserving all mandatory inventory liquidation/rest-first constraints.
+- KPI target (next 30 min): obtain first smoke `ok=1/1` with HTTP 200 and any positive progression signal (`exp>0` or `level>=2`).
