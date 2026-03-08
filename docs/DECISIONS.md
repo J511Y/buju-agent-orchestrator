@@ -291,3 +291,8 @@
 - Adaptive step-62 (2026-03-09 03:48 KST): bootstrap state remained unchanged (`level=1`, `exp=0`, `gold=100`) and hunt smoke still failed with `HTTP 400`, so cadence was reduced from `BUJU_BASE_DELAY_MS=1000` to `800`.
 - Rationale: the same non-rate-limit bottleneck repeated again across consecutive cycles without metric lift; selected a minimal reversible timing cut while preserving all mandatory inventory liquidation/rest-first constraints.
 - KPI target (next 30 min): obtain first smoke `ok=1/1` with HTTP 200 and first progression evidence (`exp>0` or `level>=2`).
+- Adaptive step-63 (2026-03-09 04:20 KST): repeated bottleneck root cause was moved from timing to API compatibility — live spec drift (`1.11.1` pinned vs `1.17.0` live) requires combat initiation through `POST /api/combat/start` with `{monster_id, area}`; `/hunt` path remained the repeating `HTTP 400` cause.
+- CHANGE (reversible): in `scripts/live-strategy-runner.js`, switched primary combat call to `/combat/start` with required payload and kept guarded `/hunt` fallback only for compatibility (`404` or `API_DEPRECATED`). Added `BUJU_USE_COMBAT_START=1` feature toggle in `config/strategy.env` for quick rollback.
+- Outcome evidence: one-tick validation recovered from `ok=0/1 code=400` to `ok=1/1 code=200`, with first measurable bootstrap progress (`exp 0→3`, `gold 100→103`).
+- Constraint integrity: all mandatory inventory sell constraints and rest-first economy thresholds unchanged.
+- KPI target (next 30 min): sustain smoke `ok=1/1` HTTP 200 and increase to `exp>=15`, `gold>=115` while keeping inventory slots `<=8`.

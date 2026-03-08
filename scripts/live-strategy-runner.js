@@ -49,7 +49,8 @@ const CFG = {
   potionUseMaxQuantity: Number(process.env.BUJU_POTION_USE_MAX_QUANTITY || 3),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
-  retryMaxAttempts: Number(process.env.BUJU_RETRY_MAX_ATTEMPTS || 4)
+  retryMaxAttempts: Number(process.env.BUJU_RETRY_MAX_ATTEMPTS || 4),
+  useCombatStart: String(process.env.BUJU_USE_COMBAT_START || '1') !== '0'
 };
 
 const stallState = new Map();
@@ -529,6 +530,30 @@ async function step() {
   const areaMon = await req(`/areas/${c.current_area}/monsters`);
   const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
   const monsterId = chooseMonster(monsters, c.level || 1);
+
+  if (CFG.useCombatStart) {
+    const combat = await req('/combat/start', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, area: c.current_area }) });
+    recordActionResult('combat_start', combat.status);
+
+    if (combat.status === 404 || (combat.status === 400 && String(combat.json?.code || '') === 'API_DEPRECATED')) {
+      const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
+      recordActionResult('hunt', huntFallback.status);
+      return { ok: huntFallback.status === 200, action: 'hunt_fallback', monster_id: monsterId, skill_id: skillId, result: huntFallback.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: huntFallback.status };
+    }
+
+    const rewards = combat.json?.rewards || {};
+    return {
+      ok: combat.status === 200,
+      action: 'combat_start',
+      combat_result: combat.json?.result,
+      reward_exp: rewards.exp,
+      reward_gold: rewards.gold,
+      level: combat.json?.character?.level ?? c.level,
+      exp: combat.json?.character?.exp ?? c.exp,
+      gold: combat.json?.character?.gold ?? c.gold,
+      code: combat.status
+    };
+  }
 
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
   recordActionResult('hunt', hunt.status);

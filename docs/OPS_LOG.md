@@ -1,6 +1,19 @@
 # Ops Log
 
 ## 2026-03-09
+- [2026-03-09 04:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - CHANGE (mandatory loop): fetched last 20 thinking logs via `GET /api/agent/thinking/j211y?limit=20` (available records=`11`), compared against prior run snapshot.
+  - ADAPTIVE DELTA vs previous run: before change smoke was `ok=0/1 code=400` with stagnant bootstrap (`level 1, exp 0, gold 100, inventory 3, area talking_island_field`); after change smoke is `ok=1/1 code=200` with measurable lift (`exp 3, gold 103`, same level/area, inventory 3).
+  - ADAPTIVE DIAGNOSIS: repeated bottleneck (`hunt HTTP 400` in consecutive runs) confirmed, therefore KEEP rejected by rule.
+  - CHANGE (code, reversible): switched primary combat action in `scripts/live-strategy-runner.js` from deprecated `/hunt` path to `/combat/start` with required payload `{monster_id, area}` and retained guarded `/hunt` fallback for compatibility (`404` or `API_DEPRECATED`).
+  - CHANGE (config): added `BUJU_USE_COMBAT_START=1` in `config/strategy.env` (toggleable rollback).
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, plus slots>=10 worse-than-equipped liquidation priority unchanged.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - Drift check: pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `1.11.1`; live snapshot (`/api/skill-doc/download`) is now `1.17.0` (drift widened, combat endpoint behavior changed).
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `live-strategy ok=1/1 lastAction=combat_start level=1 exp=3 gold=103 code=200`.
+  - CHANGE (ops telemetry): posted adaptive thinking to `POST /api/agent/thinking` with delta-explicit reasoning and `action_detail=changed:combat_path=/combat/start(monster_id,area)...`, response `{"success":true}`.
+  - KPI target for next 30 min: keep smoke `ok=1/1` HTTP 200 and grow to `exp>=15`, `gold>=115`, `inventory slots<=8`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` and `node scripts/live-strategy-runner.js` active via `pgrep`).
 - [2026-03-09 04:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`, history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` with failure streak up to `7`.
   - Last-hour gameplay signals: progression flat (`Δlevel=0`, `Δexp=0`), economy flat (`Δgold=0`), no confirmed win/defeat events (`win=0`, `defeat=0`, source=`fallback:local_replay`).
