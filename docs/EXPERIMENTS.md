@@ -675,3 +675,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-detect stalled loop after reset, false idle alerts during normal bootstrap, first non-zero progression latency.
 - Result: Current cycle remained fully flat at reset baseline (Lv1/exp0/gold100/HP100) with only use-item quota movement while history endpoints stayed unavailable (`404`, streak `7`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-09 01:09 KST
+- Hypothesis: A post-reset `idle_streak_counter` with liveness probe escalation will reduce time-to-detect stalled automation when status remains flat across consecutive cycles.
+- Change: Track consecutive zero-progress cycles (`Δlevel=0`, `Δexp=0`, `Δgold=0`) in reset segment and trigger a minimal action/liveness probe after threshold breach.
+- Metric(s): Time-to-stall-detection post-reset, false idle escalations, first non-zero progression latency after intervention.
+- Result: Current cycle remained fully flat at reset baseline with recurring use-item quota consumption but no progression signal while history endpoints stayed unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
