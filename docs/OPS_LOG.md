@@ -1,6 +1,12 @@
 # Ops Log
 
 ## 2026-03-09
+- [2026-03-09 04:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`, history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` with failure streak up to `7`.
+  - Last-hour gameplay signals: progression flat (`Δlevel=0`, `Δexp=0`), economy flat (`Δgold=0`), no confirmed win/defeat events (`win=0`, `defeat=0`, source=`fallback:local_replay`).
+  - Resource trend: consumable pressure continued (`use_item_remaining 18 -> 14`, `Δ=-4`) while HP/MP/gold remained unchanged at reset baseline (`HP 100/100`, `MP 50/50`, `gold 100`, area `talking_island_field`).
+  - Anomaly: activity-history API remains unavailable (persistent 404), so win/defeat confidence is low and status-only interpretation is required.
+  - 30-min TODO: add `idle_with_consumable_burn` guard in hourly feedback generator (trigger when `Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and emit one deterministic recovery recommendation line.
 - [2026-03-09 03:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - KEEP (drift evidence): pinned doc `docs/GRINDQUEST_SKILL_DOC_v1.11.1.md` remains `version: 1.11.1`; live snapshot `tmp/skill-doc-live.md` remains `version: 1.14.0` (persistent drift unchanged).
   - ADAPTIVE DELTA vs previous run: bootstrap stagnation unchanged (`level 1 -> 1`, `exp 0 -> 0`, `gold 100 -> 100`, `inventory 3 -> 3`, area `talking_island_field` unchanged).

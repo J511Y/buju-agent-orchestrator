@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 04:09 KST
+- Hypothesis: A deterministic `idle_with_consumable_burn` detector (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) will identify ineffective post-reset cycles earlier than progression-only checks.
+- Change: Add detector and recommendation line to hourly feedback output using cached status delta.
+- Metric(s): Consecutive ineffective-cycle duration; time-to-first-nonzero progression after detector trigger; false-positive detector rate.
+- Result: Baseline captured this cycle (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) with history endpoints still `404`.
+- Decision: Run for next 8 hourly cycles before promoting to default severity escalation.
+
 - Date: 2026-03-04 22:09 KST
 - Hypothesis: Missing/undocumented recent-activity API is causing blind spots; adding a local-log fallback KPI extractor will improve hourly feedback quality and actionability.
 - Change: Build `fetch-activity` probe (API-first, JSONL fallback) and compute 1h metrics (ticks, action success/fail/skipped, inferred battle outcomes).
