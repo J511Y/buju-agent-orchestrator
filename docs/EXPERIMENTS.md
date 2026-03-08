@@ -626,3 +626,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stable classifications after shield restoration, next-cycle HP regression frequency, time-to-true stabilization.
 - Result: Current cycle restored shield (`none→33`) with `Δexp=+384` and `Δgold=+70`, but HP still declined (`328→306`) while history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 18:09 KST
+- Hypothesis: A `gold_crash_under_shield_decay_alert` will catch high-risk degradation windows where economy collapses while shield and HP trends are non-improving.
+- Change: Add classifier condition (`Δgold<=-200`, `Δhp<=0`, `Δshield<0`) and emit economy-preserving defensive recommendation with reduced hunt pressure.
+- Metric(s): Time-to-stop gold freefall, next-cycle HP/gold stabilization rate, false-negative high-risk cycle count.
+- Result: Current cycle showed `Δexp=+368` but severe `Δgold=-210` with HP non-recovery (`306→303`) and shield decay (`33→32`) while history endpoints remained unavailable (`404`, streak `7`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
