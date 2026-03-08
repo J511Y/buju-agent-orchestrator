@@ -661,3 +661,10 @@ Track A/B and policy experiments.
 - Metric(s): Reserve recovery time after alert, next-cycle gold regression rate, false-stable labels in mixed-trend cycles.
 - Result: Current cycle showed HP/shield rebound (`336→391`, `21→40`) with continued progression (`Δexp=+272`) but economy decline (`Δgold=-90`) under ongoing history endpoint outages (`404`, streak `7`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 23:09 KST
+- Hypothesis: A `status_reset_detector` (large discontinuity across level/max-stats/area) will prevent misleading trend analysis immediately after character/season resets.
+- Change: Add reset-segmentation rule that starts a fresh baseline when abrupt state jumps are detected and suppresses pre/post-reset delta comparisons.
+- Metric(s): False anomaly rate after resets, correctness of first-3-cycle post-reset recommendations, time-to-stable baseline re-establishment.
+- Result: Current cycle showed abrupt cold-start profile (Lv36→Lv1, max HP/MP reset, area shift) while history endpoints remained unavailable (`404`, streak `6`), supporting reset-aware segmentation.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

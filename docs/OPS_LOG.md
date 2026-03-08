@@ -2298,3 +2298,12 @@
   - Resource trend signal (vs prior 21:09 status snapshot): no level change (`36→36`), `Δexp=+272`, `Δgold=-90` (below reserve floor), HP improved (`336→391`), mutation shield strengthened (`21→40`), hunt quota flat (`28→28`).
   - Development feedback: survivability rebounded strongly (HP + shield), but economy regressed further below reserve, so recovery remains unbalanced.
 - [2026-03-08 22:09 KST] Next 30-min actionable TODO: add `survivability_up_economy_down_alert` when (`Δhp>0` AND `Δshield>0` AND `Δgold<0`) to enforce gold-preserving policy until reserve recovers.
+
+- [2026-03-08 23:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv1, exp `0`, gold `100`, HP `100/100`, MP `50/50`, area `talking_island_field`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: hard state discontinuity detected vs prior snapshot (Lv36→Lv1, exp `4523→0`, gold `308→100`, HP max `625→100`, MP max `330→50`, area `talking_island_cave→talking_island_field`), consistent with character/season reset or identity switch.
+  - Anomaly: history endpoints remain `404` while `/api/status` stays healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Development feedback: current cycle should be treated as baseline-reset state; pre-reset trend comparisons are invalid until reset-aware segmentation is applied.
+- [2026-03-08 23:09 KST] Next 30-min actionable TODO: add `status_reset_detector` that starts a new trend segment when large discontinuities occur (e.g., level drop, max-HP/MP reset, or area+stat cold start).
