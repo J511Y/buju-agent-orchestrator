@@ -312,3 +312,7 @@
 - CHANGE (reversible): increased timing buffer `BUJU_BASE_DELAY_MS` from `1000` to `1200` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=3`.
 - Rationale: apply timing-side mitigation (not quota churn) to reduce burst-collision risk after the recent 429 signal, while preserving all hard inventory/rest constraints.
 - KPI target (next 30 min): keep smoke `ok>=3/3` with `code=200` and no 429, and reach `exp>=6`, `gold>=116`, inventory slots `<=8`.
+- Adaptive step-68 (2026-03-09 07:19 KST): stagnation repeated again (`level 1`, `exp 3`, `gold 113`, inventory 3, same area) across consecutive runs, while smoke remained healthy (`ok=3/3`, `code=200`).
+- CHANGE (reversible): widened timing guardrail further by setting `BUJU_BASE_DELAY_MS` from `1200` to `1400` and keeping `BUJU_MAX_ACTIONS_PER_CYCLE=3` unchanged.
+- Rationale: with repeated flat KPI and no hard error signature, favor incremental pacing dilation to test progression recovery without touching mandatory inventory/rest constraints.
+- KPI target (next 30 min): break flatline to `exp>=6` or `gold>=116`, while sustaining smoke `ok>=3/3` at `code=200` and inventory slots `<=8`.
