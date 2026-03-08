@@ -296,3 +296,7 @@
 - Outcome evidence: one-tick validation recovered from `ok=0/1 code=400` to `ok=1/1 code=200`, with first measurable bootstrap progress (`exp 0→3`, `gold 100→103`).
 - Constraint integrity: all mandatory inventory sell constraints and rest-first economy thresholds unchanged.
 - KPI target (next 30 min): sustain smoke `ok=1/1` HTTP 200 and increase to `exp>=15`, `gold>=115` while keeping inventory slots `<=8`.
+- Adaptive step-64 (2026-03-09 04:48 KST): after switching to `/combat/start`, the 30-minute interval still showed flat progression (`level 1`, `exp 3`, `gold 103`, `inv 3`, same area), so KEEP remained disallowed due to stagnation even though HTTP 400 failures were removed.
+- CHANGE (reversible): raised `BUJU_MAX_ACTIONS_PER_CYCLE` from `1` to `2` in `config/strategy.env` to restore minimal throughput while retaining the new `/combat/start` primary path.
+- Constraint integrity: all mandatory inventory sell constraints and rest-first economy thresholds were kept unchanged.
+- KPI target (next 30 min): reach `exp>=12` and `gold>=112` from current `exp=3/gold=103`, maintain smoke `>=2/2` HTTP 200, and keep inventory slots `<=8`.
