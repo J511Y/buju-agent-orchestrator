@@ -591,3 +591,10 @@ Track A/B and policy experiments.
 - Metric(s): False stabilization rate under shieldless cycles, next-cycle HP regression frequency, time-to-full-readiness.
 - Result: Current cycle showed positive deltas (`Δexp=+544`, `Δgold=+120`, `Δhp=+24`) but mutation shield stayed absent while history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 13:09 KST
+- Hypothesis: A `shieldless_hp_drawdown_alert` (`shield_absent` with `Δhp <= -100`) will reduce survivability regressions that are currently masked by small positive gold/exp deltas.
+- Change: Extend hourly classifier with shieldless-drawdown rule and force defensive action recommendations before further hunt pressure.
+- Metric(s): Next-cycle HP recovery after alert, severe HP-drop recurrence rate, false-negative survivability incidents.
+- Result: Current cycle showed `Δexp=+496` and `Δgold=+30`, but HP dropped sharply (`356→240`) while shield stayed absent and history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

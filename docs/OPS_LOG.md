@@ -1988,3 +1988,12 @@
   - Resource trend signal (vs prior 11:09 status snapshot): no level change (`36→36`), `Δexp=+544`, `Δgold=+120` (still below reserve floor), HP improved (`332→356`), mutation shield remains absent (`none→none`), hunt quota increased (`25→26`).
   - Development feedback: progression, economy, and HP all improved this hour, but persistent shield absence keeps recovery fragile despite positive short-term deltas.
 - [2026-03-08 12:09 KST] Next 30-min actionable TODO: add `positive_delta_shield_absent_gate` so cycles with (`Δexp>0`, `Δgold>0`, `Δhp>0`) are still classified as partial recovery when shield remains absent.
+
+- [2026-03-08 13:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `1243`, gold `608`, HP `240/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 12:09 status snapshot): no level change (`36→36`), `Δexp=+496`, `Δgold=+30` (still below reserve floor), HP declined (`356→240`), mutation shield remains absent (`none→none`), hunt quota slightly reduced (`26→25`).
+  - Development feedback: economy/progression remain positive, but large HP drawdown with persistent shield absence indicates survivability regression and fragile recovery state.
+- [2026-03-08 13:09 KST] Next 30-min actionable TODO: add `shieldless_hp_drawdown_alert` for (`shield_absent` AND `Δhp <= -100`) to trigger immediate defensive throttling even when gold/exp are positive.
