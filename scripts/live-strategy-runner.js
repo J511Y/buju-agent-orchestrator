@@ -459,7 +459,7 @@ async function step() {
     }
   }
 
-  if (hpRatio < CFG.lowHpRatio && hasRateBudget(rateLimits, 'rest')) {
+  if (hpRatio <= CFG.lowHpRatio && hasRateBudget(rateLimits, 'rest')) {
     const r = await req('/rest', { method: 'POST', body: '{}' });
     recordActionResult('rest', r.status);
     if (r.status === 200) {

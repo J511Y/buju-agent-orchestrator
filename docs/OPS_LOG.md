@@ -71,6 +71,18 @@
   - CHANGE (ops telemetry): posted adaptive thinking with delta-linked reasoning and `action_detail=changed:BUJU_BASE_DELAY_MS=1400...`, response `{"success":true}`.
   - KPI target for next 30 min: break stagnation (`exp>=6` or `gold>=116`) while sustaining smoke `ok>=3/3` code=200 and inventory slots `<=8`.
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` + `node scripts/live-strategy-runner.js` active via `pgrep`).
+- [2026-03-09 07:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`5`) and compared to 07:19 checkpoint.
+  - ADAPTIVE DELTA vs previous run: progression still flat (`level 1->1`, `exp 3->3`, `gold 113->113`, `inventory 3->3`, area unchanged), with repeated stagnation across consecutive runs.
+  - ADAPTIVE DIAGNOSIS: no fresh 429 pattern in this interval; therefore shifted adaptation axis from pacing-only to recovery-logic boundary handling.
+  - CHANGE (code, reversible): `scripts/live-strategy-runner.js` rest gate changed from `hpRatio < BUJU_LOW_HP_RATIO` to `hpRatio <= BUJU_LOW_HP_RATIO` so borderline 50% HP triggers rest-first behavior.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, plus slots>=10 worse-than-equipped liquidation priority unchanged.
+  - KEEP (rest-first economy values): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - Drift check: pinned doc `1.11.1` vs live skill doc `1.17.0` (persistent drift, unchanged this cycle).
+  - Validation evidence: smoke run remained stable (`live-strategy ok=3/3 ... code=200`), and daemon log now shows rest-first ticks at boundary (`lastAction=rest` entries observed).
+  - CHANGE (ops telemetry): posted adaptive thinking with explicit delta and `action_detail=changed:rest-trigger-condition hp_ratio<=...`, response `{"success":true}`.
+  - KPI target for next 30 min: keep smoke `ok>=3/3` code=200, observe at least one rest-first tick at HP<=50%, and break flatline (`exp>=6` or `gold>=116`).
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` + `node scripts/live-strategy-runner.js` active via `pgrep`).
 - [2026-03-09 06:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`3`) and compared latest state against prior 06:18 checkpoint.
   - ADAPTIVE DELTA vs previous run: stagnation persisted (`level 1->1`, `exp 3->3`, `gold 113->113`, `inventory 3->3`, area unchanged).

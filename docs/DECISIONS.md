@@ -316,3 +316,7 @@
 - CHANGE (reversible): widened timing guardrail further by setting `BUJU_BASE_DELAY_MS` from `1200` to `1400` and keeping `BUJU_MAX_ACTIONS_PER_CYCLE=3` unchanged.
 - Rationale: with repeated flat KPI and no hard error signature, favor incremental pacing dilation to test progression recovery without touching mandatory inventory/rest constraints.
 - KPI target (next 30 min): break flatline to `exp>=6` or `gold>=116`, while sustaining smoke `ok>=3/3` at `code=200` and inventory slots `<=8`.
+- Adaptive step-69 (2026-03-09 07:49 KST): after another flat interval (`level 1`, `exp 3`, `gold 113`, inventory/area unchanged), repeated stagnation persisted, but no new rate-limit spike appeared.
+- CHANGE (reversible, logic-level): updated rest gate in runner from `hpRatio < BUJU_LOW_HP_RATIO` to `hpRatio <= BUJU_LOW_HP_RATIO` so 50% HP boundary enters rest-first path.
+- Rationale: switch from timing-only tuning to boundary-condition correction to reduce borderline low-HP combat churn while preserving all mandated sell/rest numeric constraints.
+- KPI target (next 30 min): observe `rest` activation at HP<=50% at least once and achieve `exp>=6` or `gold>=116` with smoke `ok>=3/3`, `code=200`.
