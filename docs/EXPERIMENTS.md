@@ -647,3 +647,10 @@ Track A/B and policy experiments.
 - Metric(s): Next-cycle HP stabilization after alert, repeated consumable-burn episodes, false-negative fragile-cycle rate.
 - Result: Current cycle showed `Δexp=+336` with HP drop (`337→265`), shield decay (`17→8`), and use-item burn (`30→26`) while history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 21:09 KST
+- Hypothesis: A `reserve_stall_after_recovery_alert` will catch hidden economy stagnation during survivability rebounds and shorten sub-reserve duration.
+- Change: Add classifier for (`Δhp>0`, `Δshield>0`, `Δgold=0`, `gold<reserve`) and emit gold-positive stabilization recommendation.
+- Metric(s): Time spent below reserve after survivability rebound, next-cycle gold improvement rate, false-stable classification count.
+- Result: Current cycle showed HP/shield recovery (`265→336`, `8→21`) with ongoing progression (`Δexp=+320`) but no gold recovery (`Δgold=0`) while history endpoints remained unavailable (`404`, streak `7`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
