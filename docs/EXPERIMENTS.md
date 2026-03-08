@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 06:08 KST
+- Hypothesis: Adding a severity bump after 3 consecutive `idle_with_consumable_burn` hits will shorten time-to-recovery versus repeated same-priority warnings.
+- Change: Keep current detector (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and add streak-threshold escalation rule in hourly feedback output.
+- Metric(s): Time-to-first progression after 3-hit threshold; ineffective-cycle streak length distribution; escalation false-positive rate.
+- Result: Third consecutive evidence hour observed with identical no-progress + consumable-drain pattern while history endpoints remained `404`.
+- Decision: Continue experiment and compare recovery latency pre/post threshold hit over next 8 hourly cycles.
+
 - Date: 2026-03-09 05:09 KST
 - Hypothesis: Repeated `idle_with_consumable_burn` detections across consecutive hours indicate automation inefficiency and should trigger immediate recovery-mode guidance.
 - Change: Keep detector criteria (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and add consecutive-hit escalation threshold in feedback output.
