@@ -2081,3 +2081,12 @@
   - Resource trend signal (vs prior 14:09 status snapshot): no level change (`36→36`), `Δexp=+432`, `Δgold=-90` (below reserve floor), HP slightly down (`286→280`), mutation shield restored (`none→24`), hunt quota flat (`25→25`).
   - Development feedback: shield recovery improved immediate defense posture, but concurrent HP/gold decline keeps this as non-stable recovery.
 - [2026-03-08 15:09 KST] Next 30-min actionable TODO: add `shield_restore_drawdown_gate` that requires non-negative `Δhp` and `Δgold` after shield restoration before upgrading readiness state.
+
+- [2026-03-08 16:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `2507`, gold `528`, HP `328/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `6`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 15:09 status snapshot): no level change (`36→36`), `Δexp=+400`, `Δgold=+150` (still below reserve floor), HP recovered (`280→328`), mutation shield expired (`24→none`), hunt quota improved (`25→26`).
+  - Development feedback: short-term progression/economy/survivability improved, but shield expiration keeps stability incomplete and recovery still fragile.
+- [2026-03-08 16:09 KST] Next 30-min actionable TODO: add `shield_expiry_after_positive_deltas_guard` so positive `Δexp/Δgold/Δhp` cycles are still tagged partial-recovery when shield transitions `present→none`.

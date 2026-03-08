@@ -612,3 +612,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stable labels after shield restoration, next-cycle HP/gold regression rate, time-to-true-stable classification.
 - Result: Current cycle restored shield (`none→24`) while `Δexp=+432` but still had `Δhp=-6` and `Δgold=-90`; history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 16:09 KST
+- Hypothesis: A `shield_expiry_after_positive_deltas_guard` will reduce false stabilization labeling when all short-term deltas are positive but protection just expired.
+- Change: Add classifier rule to keep `partial_recovery` if (`Δexp>0`, `Δgold>0`, `Δhp>0`) and shield transition is `present→none`.
+- Metric(s): False-stable classification rate after shield expiry, next-cycle HP/gold regression, time-to-shield-restoration.
+- Result: Current cycle showed positive deltas (`Δexp=+400`, `Δgold=+150`, `Δhp=+48`) but shield expired (`24→none`) under ongoing history endpoint outages (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
