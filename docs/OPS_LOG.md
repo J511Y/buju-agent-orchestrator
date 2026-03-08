@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-09
+- [2026-03-09 05:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (probe failure streak up to `7`).
+  - Last-hour gameplay signals: progression flat (`Δlevel=0`, `Δexp=0`), economy flat (`Δgold=0`), no confirmed wins/defeats (`win=0`, `defeat=0`, source=`fallback:local_replay`).
+  - Resource trend: consumable-only drain repeated (`use_item_remaining 18 -> 14`, `Δ=-4`) while HP/MP/gold stayed unchanged (`HP 100/100`, `MP 50/50`, `gold 100`, area `talking_island_field`).
+  - Anomaly: activity-history APIs remain unavailable (persistent `404`), so outcome confidence stays low and status-delta interpretation is required.
+  - Retry recommendation (API failure mode): keep `/api/status` as primary signal, retry history endpoints on next cycle with same endpoint set, and escalate only if `/api/status` also degrades.
+  - 30-min TODO: implement `idle_with_consumable_burn` alert output and include one deterministic recovery action recommendation when trigger condition is met.
 - [2026-03-09 04:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - CHANGE (mandatory loop): fetched last 20 thinking logs via `GET /api/agent/thinking/j211y?limit=20` (available records=`11`), compared against prior run snapshot.
   - ADAPTIVE DELTA vs previous run: before change smoke was `ok=0/1 code=400` with stagnant bootstrap (`level 1, exp 0, gold 100, inventory 3, area talking_island_field`); after change smoke is `ok=1/1 code=200` with measurable lift (`exp 3, gold 103`, same level/area, inventory 3).

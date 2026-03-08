@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 05:09 KST
+- Hypothesis: Repeated `idle_with_consumable_burn` detections across consecutive hours indicate automation inefficiency and should trigger immediate recovery-mode guidance.
+- Change: Keep detector criteria (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) and add consecutive-hit escalation threshold in feedback output.
+- Metric(s): Consecutive ineffective-cycle streak length; time-to-first non-zero progression after escalation; false escalation rate.
+- Result: Second consecutive evidence hour captured with same pattern (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) while history endpoints stayed `404`.
+- Decision: Continue experiment for 8 hourly cycles, then promote to default severity if streak-trigger improves recovery latency.
+
 - Date: 2026-03-09 04:09 KST
 - Hypothesis: A deterministic `idle_with_consumable_burn` detector (`Δexp=0 && Δgold=0 && Δuse_item_remaining<0`) will identify ineffective post-reset cycles earlier than progression-only checks.
 - Change: Add detector and recommendation line to hourly feedback output using cached status delta.
