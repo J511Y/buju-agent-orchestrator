@@ -563,3 +563,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stability rate on positive-gold cycles, next-cycle HP regression frequency, shieldless-risk incident count.
 - Result: Current cycle showed `Δgold=+150` and `Δexp=+720` but HP was flat/down (`233→227`) and shield expired (`26→none`) while history endpoints remained `404` (streak `9`), supporting guard-rule instrumentation.
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 09:09 KST
+- Hypothesis: A `recovery_imbalance_alert` (survivability recovery with concurrent large gold drawdown) will reduce hidden economy regressions during defensive rebound cycles.
+- Change: Add classifier condition (`Δhp > 0`, shield transition `none→present`, and `Δgold <= -150`) and emit economy-preserving recommendation in hourly feedback.
+- Metric(s): Gold floor breach duration, next-cycle economy regression after rebound cycles, false-negative detection of unstable recoveries.
+- Result: Current cycle showed HP/shield recovery (`227→327`, `none→38`) with steady progression (`Δexp=+704`) but sharp economy decline (`Δgold=-180`) under ongoing history `404` streak `9`.
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
