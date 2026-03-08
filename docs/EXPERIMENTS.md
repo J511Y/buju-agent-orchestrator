@@ -654,3 +654,10 @@ Track A/B and policy experiments.
 - Metric(s): Time spent below reserve after survivability rebound, next-cycle gold improvement rate, false-stable classification count.
 - Result: Current cycle showed HP/shield recovery (`265→336`, `8→21`) with ongoing progression (`Δexp=+320`) but no gold recovery (`Δgold=0`) while history endpoints remained unavailable (`404`, streak `7`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 22:09 KST
+- Hypothesis: A `survivability_up_economy_down_alert` will prevent false stabilization in cycles where defense recovers but reserve worsens.
+- Change: Add classifier for (`Δhp>0`, `Δshield>0`, `Δgold<0`) and trigger gold-preserving recommendation despite positive survivability trend.
+- Metric(s): Reserve recovery time after alert, next-cycle gold regression rate, false-stable labels in mixed-trend cycles.
+- Result: Current cycle showed HP/shield rebound (`336→391`, `21→40`) with continued progression (`Δexp=+272`) but economy decline (`Δgold=-90`) under ongoing history endpoint outages (`404`, streak `7`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.

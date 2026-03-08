@@ -2267,3 +2267,12 @@
   - Resource trend signal (vs prior 20:09 status snapshot): no level change (`36→36`), `Δexp=+320`, `Δgold=0` (below reserve floor), HP improved (`265→336`), mutation shield recovered (`8→21`), hunt quota increased (`26→28`), use-item quota reset/recovered (`26→30`).
   - Development feedback: survivability and shield horizon improved this hour, but economy remains stalled under reserve and history telemetry is still blind.
 - [2026-03-08 21:09 KST] Next 30-min actionable TODO: add `reserve_stall_after_recovery_alert` when (`Δhp>0` AND `Δshield>0` AND `Δgold=0` AND `gold<reserve`) to prioritize gold-positive stabilization actions.
+
+- [2026-03-08 22:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `4523`, gold `308`, HP `391/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints remain `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak remains `7`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 21:09 status snapshot): no level change (`36→36`), `Δexp=+272`, `Δgold=-90` (below reserve floor), HP improved (`336→391`), mutation shield strengthened (`21→40`), hunt quota flat (`28→28`).
+  - Development feedback: survivability rebounded strongly (HP + shield), but economy regressed further below reserve, so recovery remains unbalanced.
+- [2026-03-08 22:09 KST] Next 30-min actionable TODO: add `survivability_up_economy_down_alert` when (`Δhp>0` AND `Δshield>0` AND `Δgold<0`) to enforce gold-preserving policy until reserve recovers.
