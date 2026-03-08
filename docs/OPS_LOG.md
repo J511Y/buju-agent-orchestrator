@@ -33,6 +33,17 @@
   - CHANGE (ops telemetry): posted adaptive thinking to `POST /api/agent/thinking` with explicit delta and `action_detail=changed:BUJU_MAX_ACTIONS_PER_CYCLE=2...`, response `{"success":true}`.
   - KPI target for next 30 min: `exp>=12`, `gold>=112`, smoke `>=2/2` HTTP 200, inventory slots `<=8`.
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` and `node scripts/live-strategy-runner.js` active via `pgrep`).
+- [2026-03-09 05:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - KEEP (mandatory loop): queried `GET /api/agent/thinking/j211y?limit=20`; returned `0` logs (season context rollover), so repeated bottleneck reason>=2 was not observed in this window.
+  - ADAPTIVE DELTA vs previous run: net progression improved (`exp 3 -> 3` retained baseline, `gold 103 -> 113`, `inventory 3 -> 3`, area unchanged `talking_island_field`, level unchanged `1`).
+  - KEEP evidence: runner/daemon smoke stable on new combat path (`ok=2/2`, `code=200`, `lastAction=combat_start`) and no recurring `HTTP 400`/rate-limit signature in this cycle.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, plus slots>=10 worse-than-equipped liquidation priority unchanged.
+  - KEEP (rest-first economy): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - Drift check: pinned doc `1.11.1` vs live skill doc `1.17.0` (persistent drift, no new incompatible delta detected this cycle).
+  - KEEP (no code/config change): retained `BUJU_MAX_ACTIONS_PER_CYCLE=2` and `/combat/start` primary path because metrics improved without repeated blocker.
+  - Ops telemetry: posted KEEP reasoning to `POST /api/agent/thinking` with `action_detail=kept:with-evidence...`, response `{"success":true}`.
+  - KPI target for next 30 min: `exp>=9`, `gold>=119`, smoke `ok>=2/2` with HTTP 200, inventory slots `<=8`.
+  - Runtime continuity evidence: live daemon continuous (`bash ./scripts/live-runner-daemon.sh` active; daemon log shows ongoing `combat_start` loops).
 - [2026-03-09 04:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`, history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` with failure streak up to `7`.
   - Last-hour gameplay signals: progression flat (`Δlevel=0`, `Δexp=0`), economy flat (`Δgold=0`), no confirmed win/defeat events (`win=0`, `defeat=0`, source=`fallback:local_replay`).
