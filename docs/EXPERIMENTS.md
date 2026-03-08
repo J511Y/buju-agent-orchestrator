@@ -584,3 +584,10 @@ Track A/B and policy experiments.
 - Metric(s): HP/gold drawdown in the cycle after level-up, frequency of unstable post-level-up runs, time-to-restored full-readiness.
 - Result: Current cycle reached Lv36 with stat growth and `Δgold=+100`, but mutation shield expired (`40→none`) and reserve remained below floor while history endpoints stayed unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 12:09 KST
+- Hypothesis: A `positive_delta_shield_absent_gate` will reduce false "stabilized" labels when short-term progression/economy/HP improve but mutation shield is still absent.
+- Change: Add rule to keep state at `partial_recovery` if (`Δexp>0`, `Δgold>0`, `Δhp>0`) AND `shield_absent=true`, with shield-refresh-first recommendation.
+- Metric(s): False stabilization rate under shieldless cycles, next-cycle HP regression frequency, time-to-full-readiness.
+- Result: Current cycle showed positive deltas (`Δexp=+544`, `Δgold=+120`, `Δhp=+24`) but mutation shield stayed absent while history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
