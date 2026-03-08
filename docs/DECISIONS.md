@@ -308,3 +308,7 @@
 - CHANGE (reversible): shifted from throughput increase to collision mitigation — set `BUJU_MAX_ACTIONS_PER_CYCLE` back to `3` (from 4 test) and widened `BUJU_BASE_DELAY_MS` from `800` to `1000`.
 - Rationale: preserve combat-start stability while lowering minute-window burst collisions; keep all hard inventory/rest constraints untouched.
 - KPI target (next 30 min): maintain smoke `ok>=3/3` with `code=200` (no 429), and lift to `exp>=6`, `gold>=116`, inventory slots `<=8`.
+- Adaptive step-67 (2026-03-09 06:48 KST): despite stabilized 3-action operation, progression remained flat for another interval (`level 1`, `exp 3`, `gold 113`, inventory/area unchanged), so CHANGE remained mandatory by stagnation rule.
+- CHANGE (reversible): increased timing buffer `BUJU_BASE_DELAY_MS` from `1000` to `1200` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=3`.
+- Rationale: apply timing-side mitigation (not quota churn) to reduce burst-collision risk after the recent 429 signal, while preserving all hard inventory/rest constraints.
+- KPI target (next 30 min): keep smoke `ok>=3/3` with `code=200` and no 429, and reach `exp>=6`, `gold>=116`, inventory slots `<=8`.
