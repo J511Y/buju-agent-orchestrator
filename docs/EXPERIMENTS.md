@@ -619,3 +619,10 @@ Track A/B and policy experiments.
 - Metric(s): False-stable classification rate after shield expiry, next-cycle HP/gold regression, time-to-shield-restoration.
 - Result: Current cycle showed positive deltas (`Δexp=+400`, `Δgold=+150`, `Δhp=+48`) but shield expired (`24→none`) under ongoing history endpoint outages (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 17:09 KST
+- Hypothesis: A `shield_restored_hp_negative_guard` will reduce premature readiness upgrades when mutation shield returns but HP trend is still negative.
+- Change: Add classifier condition to keep `partial_recovery` if shield transitions `none→present` and `Δhp<0`, even when `Δgold` and `Δexp` are positive.
+- Metric(s): False-stable classifications after shield restoration, next-cycle HP regression frequency, time-to-true stabilization.
+- Result: Current cycle restored shield (`none→33`) with `Δexp=+384` and `Δgold=+70`, but HP still declined (`328→306`) while history endpoints remained unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
