@@ -1926,3 +1926,12 @@
   - Resource trend signal (vs prior 09:09 status snapshot): no level change (`35→35`), `Δexp=+640`, `Δgold=0` (still below reserve floor), HP improved (`327→349`), mutation shield strengthened (`38→40`), hunt quota increased (`24→25`).
   - Development feedback: survivability trend improved and progression continues, but economy remains stalled below reserve and history telemetry blind spot deepened.
 - [2026-03-08 10:09 KST] Next 30-min actionable TODO: add `stalled_reserve_with_progress_alert` when (`Δexp>0` AND `Δgold=0` AND `gold<reserve`) to bias actions toward gold-positive recovery steps.
+
+- [2026-03-08 11:09 KST] Hourly gameplay feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`activity:fetch --hours 1` + `/api/status`): source=`fallback:local_replay`; status HTTP `200`; Lv36, exp `203`, gold `458`, HP `332/625`, MP `330/330`, area `talking_island_cave`.
+  - Last-hour gameplay signals: progression delta `0/0/0` (level/exp/gold), wins/defeats `0/0` (history unavailable), action outcomes `0/0/0` (success/failed/skipped).
+  - Anomaly: history endpoints continue `404` while `/api/status` remains healthy (`200`); rolling 6h history failure streak is `6`.
+  - Retry recommendation: continue replay-first fallback, retry history endpoints hourly, and restore history-derived combat KPIs only after >=2 consecutive successful history responses.
+  - Resource trend signal (vs prior 10:09 status snapshot): level-up (`35→36`) with exp rollover (`11893→203`), `Δgold=+100` (still below reserve floor), HP slightly down (`349→332`) with max HP/MP increased (`610→625`, `322→330`), mutation shield expired (`40→none`), hunt quota flat (`25→25`).
+  - Development feedback: progression milestone achieved with improved max stats and modest economy gain, but shield drop + sub-reserve gold keeps post-level-up stability incomplete.
+- [2026-03-08 11:09 KST] Next 30-min actionable TODO: add `post_levelup_shieldless_guard` to flag level-up cycles where max stats rise but shield is absent and gold remains sub-reserve.

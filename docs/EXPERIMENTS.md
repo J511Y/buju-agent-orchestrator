@@ -577,3 +577,10 @@ Track A/B and policy experiments.
 - Metric(s): Time-to-reserve-recovery, frequency of prolonged sub-reserve plateaus, next-cycle gold delta after alert.
 - Result: Current cycle showed steady progression (`Δexp=+640`) and survivability recovery (`Δhp=+22`, shield `38→40`) but no gold recovery (`Δgold=0`) with reserve still breached; history endpoints remained unavailable (`404` streak `10`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-08 11:09 KST
+- Hypothesis: A `post_levelup_shieldless_guard` (level-up with shield absence and sub-reserve gold) will reduce over-aggressive behavior immediately after progression milestones.
+- Change: Add post-level-up classifier that checks (`level_up_detected=true`, `shield_absent`, `gold<reserve`) and emits stabilization-first recommendation.
+- Metric(s): HP/gold drawdown in the cycle after level-up, frequency of unstable post-level-up runs, time-to-restored full-readiness.
+- Result: Current cycle reached Lv36 with stat growth and `Δgold=+100`, but mutation shield expired (`40→none`) and reserve remained below floor while history endpoints stayed unavailable (`404`, streak `6`).
+- Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
