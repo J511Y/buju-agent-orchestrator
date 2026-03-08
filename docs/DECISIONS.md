@@ -264,3 +264,9 @@
 - Rationale: at low-level bootstrap, overly wide delay was not helping recover from repeated hunt-400 stalls; apply a reversible cadence reduction while keeping all mandatory sell/rest constraints untouched.
 - KPI target (next 30 min): recover smoke to `ok=1/1` with HTTP 200 and move progression beyond bootstrap (`level>=2` or `exp>0`).
 - Note: superseded intermediate note removed; current adaptive step for this cycle is the delay increase to `BUJU_BASE_DELAY_MS=18000` with standard KPI tracking.
+- Adaptive step-54 (2026-03-09 00:18 KST): bootstrap stagnation persisted (`level=1`, `exp=0`, `gold=100`) and repeated hunt smoke still returned `HTTP 400`, so delay was reduced from `BUJU_BASE_DELAY_MS=8000` to `6000` for recovery.
+- Rationale: repeated bottleneck changed from rate-limit saturation to hunt-400 at low-level reset; tighter reversible cadence was selected to unblock bootstrap progression while preserving all mandatory sell/rest constraints.
+- KPI target (next 30 min): recover smoke to `ok=1/1` with HTTP 200 and show progression beyond reset (`level>=2` or `exp>0`).
+- Adaptive step-55 (2026-03-09 00:48 KST): bootstrap stagnation remained (`level=1`, `exp=0`, `gold=100`) and hunt smoke continued returning `HTTP 400`, so delay was reduced from `BUJU_BASE_DELAY_MS=6000` to `5000`.
+- Rationale: repeated hunt-400 bottleneck persisted across consecutive bootstrap runs; applied a minimal reversible cadence reduction while preserving all mandatory inventory liquidation/rest-first hard constraints.
+- KPI target (next 30 min): recover smoke to `ok=1/1` with HTTP 200 and produce first positive progression signal (`level>=2` or `exp>0`).
