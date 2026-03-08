@@ -320,3 +320,7 @@
 - CHANGE (reversible, logic-level): updated rest gate in runner from `hpRatio < BUJU_LOW_HP_RATIO` to `hpRatio <= BUJU_LOW_HP_RATIO` so 50% HP boundary enters rest-first path.
 - Rationale: switch from timing-only tuning to boundary-condition correction to reduce borderline low-HP combat churn while preserving all mandated sell/rest numeric constraints.
 - KPI target (next 30 min): observe `rest` activation at HP<=50% at least once and achieve `exp>=6` or `gold>=116` with smoke `ok>=3/3`, `code=200`.
+- Adaptive step-70 (2026-03-09 08:19 KST): even after boundary-rest correction, core progression stayed flat (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), though HP state improved to 70% and smoke remained stable.
+- CHANGE (reversible): reduced retry burst overhead by changing `BUJU_RETRY_MAX_ATTEMPTS` from `2` to `1`.
+- Rationale: with no fresh rate-limit spike and persistent KPI flatline, shift from pacing/threshold changes to retry-pressure reduction while preserving all mandatory inventory/rest constraints.
+- KPI target (next 30 min): maintain smoke `ok>=3/3` with `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
