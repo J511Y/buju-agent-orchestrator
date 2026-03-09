@@ -113,6 +113,18 @@
   - CHANGE (ops telemetry): posted adaptive thinking with delta-linked reasoning and `action_detail=changed:BUJU_BASE_DELAY_MS=1400...`, response `{"success":true}`.
   - KPI target for next 30 min: break stagnation (`exp>=6` or `gold>=116`) while sustaining smoke `ok>=3/3` code=200 and inventory slots `<=8`.
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` + `node scripts/live-strategy-runner.js` active via `pgrep`).
+- [2026-03-09 13:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` and computed delta versus prior run.
+  - ADAPTIVE DELTA vs previous run: strong improvement (`level 2 -> 9`, `exp 14 -> 393`, `gold 134 -> 314`, inventory `3 -> 3`, area unchanged), with smoke stable (`ok=5/5`, `code=200`).
+  - Risk signal check: no repeated defeat/rate-limit bottleneck observed in the latest window (`deaths=0`, no recurring 429 signature).
+  - KEEP decision evidence: metrics improved materially and no repeated blocker reason>=2 in the latest cycle context.
+  - Equipment progression status: best-in-slot equip evaluation remains active (equipSlot + `maxDamage+defBonus` scoring), safe-hunt selector remains active, move-by-level threshold gating unchanged.
+  - Enhancement path status: minimal safe enhancement path remains implemented and gated (weapon-first, scroll+npc+gold prerequisites, cooldown). Current live prerequisites not fully met this cycle (scroll stock unavailable), so no forced enhancement action executed.
+  - Drift check: pinned doc `1.11.1` vs live skill doc `1.18.0` (persistent drift).
+  - Hard constraints preserved exactly (inventory liquidation + rest-first numeric set unchanged).
+  - Ops telemetry: posted KEEP thinking to `POST /api/agent/thinking` with delta-linked reasoning and `action_detail=kept:with-evidence...`, response `{"success":true}`.
+  - KPI target next 30 min: keep smoke `ok>=5/5` code=200, reach `level>=10` and `gold>=380`, inventory slots `<=8`, defeats `=0`.
+  - Runtime continuity evidence: daemon continuous (live daemon + runner process active).
 - [2026-03-09 12:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`14`) and compared with 11:50 checkpoint.
   - ADAPTIVE DELTA vs previous run: progression outputs remained unchanged (`level 1`, `exp 3`, `gold 113`, `inventory 3`, same area), so repeated stagnation reason continues.
