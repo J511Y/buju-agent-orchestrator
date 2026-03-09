@@ -2655,3 +2655,16 @@
   - Resource trend signal (vs prior 02:09 status snapshot): reset baseline still unchanged (`Lv1`, `exp=0`, `gold=100`, `HP/MP max=100/50`, area unchanged), with accelerated use-item quota consumption (`18→14`).
   - Development feedback: fourth consecutive post-reset zero-progression cycle confirms persistent idle/stalled behavior; consumable burn without progression indicates ineffective loop activity.
 - [2026-03-09 03:09 KST] Next 30-min actionable TODO: implement `ineffective_activity_guard` that flags (`Δexp=0`, `Δgold=0`, `Δuse_item<=-3`) and forces immediate no-op throttling plus explicit liveness probe.
+- [2026-03-09 12:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`14`) and computed deltas vs prior checkpoint.
+  - ADAPTIVE DELTA: recovery observed (`level 1->2`, `exp 3->14`, `gold 113->134`, `inventory 3->3`, area unchanged), with no fresh rate-limit spike and no death signal.
+  - Decision: CHANGE (not KEEP) because repeated stagnation bottleneck remained in trailing history and equipment progression path needed completion.
+  - CHANGE (logic): implemented minimal safe enhancement action path in runner (weapon-first, requires equipped weapon + scroll + blacksmith NPC + gold reserve, cooldown-gated to avoid spam).
+  - CHANGE (safety/compat): `combat/start` now sends explicit `{monster_id, area}` payload while fallback behavior remains intact.
+  - KEEP (hard constraints): unchanged — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, and slots>=10 worse-than-equipped liquidation priority preserved.
+  - KEEP (rest-first economy values): unchanged — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - Drift check: pinned `1.11.1` vs live `1.18.0` (persistent drift).
+  - Validation evidence: `node scripts/live-strategy-runner.js` => `live-strategy ok=5/5 lastAction=combat_start level=2 exp=14 gold=134 code=200`.
+  - Ops telemetry: posted adaptive thinking with delta-based reasoning and `action_detail=changed:safe_enhancement_path...`, response `{"success":true}`.
+  - KPI target next 30m: keep smoke `ok>=5/5` code=200, deaths=0, `exp>=20`, `gold>=150`, inventory slots `<=8`.
+  - Runtime continuity: daemon and live runner processes confirmed active.

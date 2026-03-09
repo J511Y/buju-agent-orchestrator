@@ -356,3 +356,13 @@
 - CHANGE (reversible): reduced `BUJU_BASE_DELAY_MS` from `1300` to `1200` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=5` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: repeated flat outputs under stable runtime justify one more timing-density increase before deeper strategy rewrites.
 - KPI target (next 30 min): keep smoke `ok>=5/5` with `code=200` and produce first progression movement (`exp>=6` or `gold>=116`), inventory slots `<=8`.
+
+## Equipment Progression Plan (staged)
+- Early game (Lv1~9): prioritize safe EXP/gold accumulation, always auto-equip best-in-slot by `equipSlot` and `score=maxDamage+defBonus`, avoid enhancement spam.
+- Mid game (Lv10+): enhance main weapon first only when prerequisites are satisfied (weapon equipped, enhancement scroll available, blacksmith NPC reachable, gold reserve met).
+- Late game: expand enhancement to armor/accessory after weapon baseline, with cooldown/risk controls and reserve preservation.
+
+- Adaptive step-79 (2026-03-09 12:49 KST): recovery appeared (`level 1->2`, `exp 3->14`, `gold 113->134`), but trailing repeated-stagnation history and missing enhancement path completion required CHANGE.
+- CHANGE (reversible): added minimal safe enhancement path in runner (weapon-first, prerequisite checks, cooldown gate) and explicit `combat/start` payload (`monster_id`, `area`) for compatibility safety.
+- Constraint integrity: mandatory inventory liquidation + rest-first numeric constraints unchanged.
+- KPI target (next 30 min): maintain smoke `ok>=5/5` code=200, deaths=0, and reach `exp>=20`, `gold>=150`, inventory slots `<=8`.

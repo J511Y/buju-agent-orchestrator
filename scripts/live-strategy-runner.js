@@ -50,7 +50,10 @@ const CFG = {
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
   retryMaxAttempts: Number(process.env.BUJU_RETRY_MAX_ATTEMPTS || 4),
-  useCombatStart: String(process.env.BUJU_USE_COMBAT_START || '1') !== '0'
+  useCombatStart: String(process.env.BUJU_USE_COMBAT_START || '1') !== '0',
+  enhanceMidLevel: Number(process.env.BUJU_ENHANCE_MID_LEVEL || 10),
+  enhanceGoldReserve: Number(process.env.BUJU_ENHANCE_GOLD_RESERVE || 600),
+  enhanceCooldownTicks: Number(process.env.BUJU_ENHANCE_COOLDOWN_TICKS || 12)
 };
 
 const stallState = new Map();
@@ -379,6 +382,39 @@ function chooseMonster(monsters, player) {
   return pool[0]?.id || 'rabbit';
 }
 
+async function ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimits) {
+  if (inCombat) return null;
+  if ((c.level || 1) < CFG.enhanceMidLevel) return null;
+  if (!hasRateBudget(rateLimits, 'enhance')) return null;
+  if (shouldSkipAction('enhance_weapon')) return null;
+  if ((c.gold || 0) < CFG.enhanceGoldReserve) return null;
+
+  const weaponId = (equipped?.weapon && (equipped.weapon.item_id || equipped.weapon)) || null;
+  if (!weaponId) return null;
+
+  const scrollIds = ['weapon_enchant_scroll', 'enhance_scroll', 'blessed_weapon_enchant_scroll'];
+  const scrollId = scrollIds.find(id => qty(inventory, id) > 0);
+  if (!scrollId) return null;
+
+  const npcs = await req('/npc/list');
+  if (npcs.status !== 200) return null;
+  const npcList = npcs.json?.npcs || [];
+  const smith = npcList.find(n => {
+    const t = String(n.type || '').toLowerCase();
+    const nname = String(n.name || '').toLowerCase();
+    return t.includes('blacksmith') || nname.includes('blacksmith') || nname.includes('대장장이');
+  });
+  if (!smith?.npc_id) return null;
+
+  const payload = { item_id: weaponId, scroll_item_id: scrollId };
+  const e = await req(`/npc/${smith.npc_id}/enhance`, { method: 'POST', body: JSON.stringify(payload) });
+  recordActionResult('enhance_weapon', e.status);
+  if (e.status !== 200) return null;
+
+  stallState.set('enhance_weapon', { fails400: 0, untilTick: tickCounter + CFG.enhanceCooldownTicks });
+  return { ok: true, action: 'enhance_weapon_safe', item_id: weaponId, scroll_item_id: scrollId, npc_id: smith.npc_id, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+}
+
 async function ensureMutationShield(c, inventory, inCombat, rateLimits) {
   if ((c.level || 1) < CFG.mutationLevel) return null;
   if (shouldSkipAction('mutation_shield')) return null;
@@ -439,6 +475,9 @@ async function step() {
   const inCombat = !!(c.combat?.in_progress);
   const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
 
+  const hasWeapon = !!(equipped?.weapon && (equipped.weapon.item_id || equipped.weapon));
+  const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
+
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
   // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
   const hasSellCandidateNow = !!chooseSellCandidate(inventory, equipped);
@@ -462,6 +501,15 @@ async function step() {
     ? await liquidateInventoryRisk(inventory, equipped, slotUsed, c)
     : null;
   if (sellResult) return sellResult;
+
+  // 시즌 초기화 직후 안전장치: 무기/방어구 미착용 상태면 전투보다 장착을 최우선
+  if ((!hasWeapon || !hasArmor) && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_for_equip')) {
+    const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
+    recordActionResult('surrender_for_equip', sr.status);
+    if (sr.status === 200) {
+      return { ok: true, action: 'surrender_for_equip', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+  }
 
   // 안전 우선: 현재 전투 몬스터가 과도하게 위험하면 즉시 항복 후 안전 지역 복귀를 유도
   if (inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('danger_surrender')) {
@@ -499,6 +547,20 @@ async function step() {
     }
   }
 
+  if (!inCombat && (!hasWeapon || !hasArmor)) {
+    const emergencyEquip = await chooseBestEquip(inventory, equipped);
+    if (emergencyEquip) {
+      if (!hasRateBudget(rateLimits, 'use_item')) {
+        return { ok: true, action: 'wait_use_item_rate_limit_for_equip', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
+      const er = await req('/item/use', { method: 'POST', body: JSON.stringify({ action: 'equip', item_id: emergencyEquip.itemId }) });
+      recordActionResult('equip', er.status);
+      if (er.status === 200) {
+        return { ok: true, action: 'equip_emergency', item_id: emergencyEquip.itemId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
+    }
+  }
+
   if (hpRatio <= CFG.lowHpRatio && hasRateBudget(rateLimits, 'rest')) {
     const r = await req('/rest', { method: 'POST', body: '{}' });
     recordActionResult('rest', r.status);
@@ -522,6 +584,9 @@ async function step() {
     }
     // 400 soft-fail => continue
   }
+
+  const enhancePlan = await ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimits);
+  if (enhancePlan) return enhancePlan;
 
   const hpS = qty(inventory, 'hp_potion_s');
   const mpS = qty(inventory, 'mp_potion_s');
@@ -572,6 +637,20 @@ async function step() {
   const monsterId = chooseMonster(monsters, c);
 
   if (CFG.useCombatStart) {
+    // 시즌2 자동전투: 전투 시작 전 전략을 항상 갱신
+    const strategyBody = {
+      skill_priority: [skillId || 'basic_attack', 'basic_attack'],
+      hp_potion_threshold: Math.round(CFG.lowHpPotionRatio * 100),
+      hp_potion_type: 'hp_potion_s',
+      auto_surrender_threshold: Math.round(CFG.lowHpRatio * 100)
+    };
+    const strategy = await req('/combat/strategy', { method: 'POST', body: JSON.stringify(strategyBody) });
+    recordActionResult('combat_strategy', strategy.status);
+
+    if (!hasRateBudget(rateLimits, 'hunt')) {
+      return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+
     const combat = await req('/combat/start', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, area: c.current_area }) });
     recordActionResult('combat_start', combat.status);
 
