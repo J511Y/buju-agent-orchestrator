@@ -348,3 +348,7 @@
 - CHANGE (reversible): increased action cadence by reducing `BUJU_BASE_DELAY_MS` from `1500` to `1300` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=4` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: repeated flat outputs under stable runtime indicate under-frequency risk; apply timing acceleration before deeper logic rewrites, while preserving all mandatory inventory/rest constraints.
 - KPI target (next 30 min): sustain smoke `ok>=4/4` with `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-77 (2026-03-09 11:50 KST): even with faster cadence, progression stayed flat (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), while execution remained stable and unthrottled.
+- CHANGE (reversible): increased cycle throughput from `BUJU_MAX_ACTIONS_PER_CYCLE=4` to `5`, keeping `BUJU_BASE_DELAY_MS=1300` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: repeated stagnation with healthy runtime signals supports another bounded throughput step before considering heavier logic changes.
+- KPI target (next 30 min): maintain smoke `ok>=5/5` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
