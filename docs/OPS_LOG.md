@@ -113,6 +113,18 @@
   - CHANGE (ops telemetry): posted adaptive thinking with delta-linked reasoning and `action_detail=changed:BUJU_BASE_DELAY_MS=1400...`, response `{"success":true}`.
   - KPI target for next 30 min: break stagnation (`exp>=6` or `gold>=116`) while sustaining smoke `ok>=3/3` code=200 and inventory slots `<=8`.
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` + `node scripts/live-strategy-runner.js` active via `pgrep`).
+- [2026-03-09 13:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): read trailing logs via `GET /api/agent/thinking/j211y?limit=20` and computed deltas against the prior run.
+  - ADAPTIVE DELTA vs previous run: progression improved (`level 9 -> 11`, `exp 393 -> 481`), inventory remained controlled (`5/30`), and area stable.
+  - Gold delta note: `314 -> 304` interpreted as progression spend; improvement criterion still satisfied via level/exp gains.
+  - Risk/bottleneck check: no repeated rate-limit signature and no recent defeat evidence (`/api/logs?action=combat&limit=30` returned no defeat hits).
+  - KEEP evidence: smoke remains stable and successful (`ok>=5/5`, `code=200`) under current safe-hunt + level-gated movement + best-slot equip + enhancement-prereq gates.
+  - Enhancement prerequisites check: minimal safe enhancement path remains active but not executed this cycle (enhancement scroll stock unavailable; NPC list empty in current area context).
+  - Drift check: pinned doc `1.11.1` vs live skill doc `1.18.0` (persistent drift, unchanged this cycle).
+  - Hard constraints preserved exactly (inventory liquidation and rest-first numeric set unchanged).
+  - Ops telemetry: posted KEEP thinking with delta-based reasoning and `action_detail=kept:with-evidence...`, response `{"success":true}`.
+  - KPI target next 30 min: reach `level>=12`, `exp>=700`, keep smoke `ok>=5/5` code=200, defeats `=0`, inventory slots `<=8`.
+  - Runtime continuity evidence: daemon continuous (live daemon + runner process active).
 - [2026-03-09 13:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` and computed delta versus prior run.
   - ADAPTIVE DELTA vs previous run: strong improvement (`level 2 -> 9`, `exp 14 -> 393`, `gold 134 -> 314`, inventory `3 -> 3`, area unchanged), with smoke stable (`ok=5/5`, `code=200`).
