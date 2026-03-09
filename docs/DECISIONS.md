@@ -344,3 +344,7 @@
 - CHANGE (reversible): raised `BUJU_MAX_ACTIONS_PER_CYCLE` from `3` to `4`, keeping `BUJU_BASE_DELAY_MS=1500` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: with repeated flat outputs but stable execution, test one-step throughput expansion before further logic churn.
 - KPI target (next 30 min): maintain smoke `ok>=4/4` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-76 (2026-03-09 11:19 KST): after cycle-width expansion, metrics remained flat (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), with smoke stable and no new throttle signal.
+- CHANGE (reversible): increased action cadence by reducing `BUJU_BASE_DELAY_MS` from `1500` to `1300` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=4` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: repeated flat outputs under stable runtime indicate under-frequency risk; apply timing acceleration before deeper logic rewrites, while preserving all mandatory inventory/rest constraints.
+- KPI target (next 30 min): sustain smoke `ok>=4/4` with `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
