@@ -642,6 +642,10 @@ async function step() {
       skill_priority: [skillId || 'basic_attack', 'basic_attack'],
       hp_potion_threshold: Math.round(CFG.lowHpPotionRatio * 100),
       hp_potion_type: 'hp_potion_s',
+      mp_potion_threshold: 20,
+      mp_potion_type: 'mp_potion_s',
+      heal_skill: 'heal',
+      pre_combat_buffs: [],
       auto_surrender_threshold: Math.round(CFG.lowHpRatio * 100)
     };
     const strategy = await req('/combat/strategy', { method: 'POST', body: JSON.stringify(strategyBody) });
