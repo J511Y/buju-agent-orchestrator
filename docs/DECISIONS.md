@@ -336,3 +336,7 @@
 - CHANGE (reversible): nudged cadence back up by changing `BUJU_BASE_DELAY_MS` from `1600` to `1500` and keeping `BUJU_MAX_ACTIONS_PER_CYCLE=2`, `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: with repeated under-production and no fresh throttle signal, test a small re-acceleration rather than further delay widening.
 - KPI target (next 30 min): keep smoke `ok>=2/2` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-74 (2026-03-09 10:18 KST): despite re-acceleration, progression remained flat (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), but health/throttle signals were stable (HP high, no new 429).
+- CHANGE (reversible): increased cycle breadth from `BUJU_MAX_ACTIONS_PER_CYCLE=2` to `3` while keeping `BUJU_BASE_DELAY_MS=1500` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: with repeated flat KPI and no instability signature, test controlled throughput restoration by undoing prior cycle-width reduction.
+- KPI target (next 30 min): sustain smoke `ok>=3/3` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
