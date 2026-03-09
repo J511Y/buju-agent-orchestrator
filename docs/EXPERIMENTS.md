@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 12:08 KST
+- Hypothesis: Explicit streak-reset criteria (`Δexp>0 || Δgold>0`) will reduce false persistent-critical alerts once recovery begins.
+- Change: Extend idle-burn streak helper with deterministic reset conditions and log reset reason in hourly feedback metadata.
+- Metric(s): False critical persistence rate; time-to-deescalation after first recovery signal; alert precision.
+- Result: Ninth consecutive ineffective hour observed (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) while history endpoints remained `404`.
+- Decision: Continue experiment and validate reset behavior over next 8 cycles.
+
 - Date: 2026-03-09 11:09 KST
 - Hypothesis: A tiny reusable `idle_streak` state helper (read/update/write) will improve maintainability and lower bugs versus ad-hoc inline streak persistence.
 - Change: Prototype a dedicated helper for hourly feedback to persist and increment/reset `idle_with_consumable_burn` streak deterministically.
