@@ -347,17 +347,35 @@ function chooseBestSkill(skills, currentMp) {
   return pool[0]?.skill_id || 'basic_attack';
 }
 
-function chooseMonster(monsters, level) {
+function chooseMonster(monsters, player) {
   if (!monsters.length) return 'rabbit';
+  const level = Number(player?.level || 1);
+  const pAtk = Number(player?.atk || 1);
+  const pDef = Number(player?.def || 1);
+
   const filtered = monsters.filter(m => (m.level || level) <= level + CFG.maxSafeMonsterLevelGap);
   const pool = filtered.length ? filtered : monsters;
+
   pool.sort((a, b) => {
-    const aExp = a.exp_reward ?? a.exp ?? 0;
-    const bExp = b.exp_reward ?? b.exp ?? 0;
-    const aRisk = (a.level || level) - level;
-    const bRisk = (b.level || level) - level;
-    return (bExp - aExp) || (aRisk - bRisk);
+    const ax = Number(a.exp_reward ?? a.exp ?? 0);
+    const bx = Number(b.exp_reward ?? b.exp ?? 0);
+    const al = Number(a.level || level);
+    const bl = Number(b.level || level);
+    const aAtk = Number(a.atk || 0);
+    const bAtk = Number(b.atk || 0);
+    const aDef = Number(a.def || 0);
+    const bDef = Number(b.def || 0);
+
+    const aKillPressure = Math.max(1, pAtk - aDef);
+    const bKillPressure = Math.max(1, pAtk - bDef);
+    const aDanger = Math.max(0, aAtk - pDef) + Math.max(0, al - level) * 4;
+    const bDanger = Math.max(0, bAtk - pDef) + Math.max(0, bl - level) * 4;
+
+    const aScore = (ax * 2) + aKillPressure - (aDanger * 3);
+    const bScore = (bx * 2) + bKillPressure - (bDanger * 3);
+    return bScore - aScore;
   });
+
   return pool[0]?.id || 'rabbit';
 }
 
@@ -419,6 +437,7 @@ async function step() {
   const equipped = invRes.status === 200 ? invRes.json.equipped || {} : {};
   const slotUsed = usedSlots(inventory, invRes.json);
   const inCombat = !!(c.combat?.in_progress);
+  const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
   // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
@@ -444,7 +463,28 @@ async function step() {
     : null;
   if (sellResult) return sellResult;
 
-  const hpRatio = (c.hp?.current || 0) / Math.max(1, c.hp?.max || 1);
+  // 안전 우선: 현재 전투 몬스터가 과도하게 위험하면 즉시 항복 후 안전 지역 복귀를 유도
+  if (inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('danger_surrender')) {
+    const curMonsterId = c.combat?.monster_id;
+    if (curMonsterId) {
+      const monRes = await req(`/areas/${c.current_area}/monsters`);
+      const mons = monRes.status === 200 ? (monRes.json?.monsters || []) : [];
+      const curMon = mons.find(m => m.id === curMonsterId);
+      if (curMon) {
+        const mLevel = Number(curMon.level || c.level || 1);
+        const mAtk = Number(curMon.atk || 0);
+        const tooHighLevel = mLevel > (Number(c.level || 1) + 2);
+        const tooHighDamage = mAtk > Number(c.def || 1) * 1.6;
+        if (hpRatio < 0.55 || tooHighLevel || tooHighDamage) {
+          const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
+          recordActionResult('danger_surrender', sr.status);
+          if (sr.status === 200) {
+            return { ok: true, action: 'surrender_dangerous_combat', monster_id: curMonsterId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+          }
+        }
+      }
+    }
+  }
 
   // Priority 2: potion-over-rest economics (batch-first use where quantity is supported).
   if (hpRatio < CFG.lowHpPotionRatio) {
@@ -529,7 +569,7 @@ async function step() {
 
   const areaMon = await req(`/areas/${c.current_area}/monsters`);
   const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
-  const monsterId = chooseMonster(monsters, c.level || 1);
+  const monsterId = chooseMonster(monsters, c);
 
   if (CFG.useCombatStart) {
     const combat = await req('/combat/start', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, area: c.current_area }) });
