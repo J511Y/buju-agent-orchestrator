@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 10:09 KST
+- Hypothesis: Persisting idle-burn streak in a dedicated JSON state file will improve reproducibility and prevent alert-severity drift across hourly runs.
+- Change: Add file-backed streak state (`hourly_idle_streak.json`) used by feedback renderer before severity selection.
+- Metric(s): Streak continuity correctness; severity consistency across restarts; recovery latency after streak escalation.
+- Result: Seventh consecutive no-progression + consumable-drain signal observed while history endpoints remained `404` and `/api/status` stayed healthy.
+- Decision: Proceed with implementation experiment and measure for next 8 cycles.
+
 - Date: 2026-03-09 09:08 KST
 - Hypothesis: File-backed hourly streak persistence for `idle_with_consumable_burn` will reduce false resets and improve escalation timing compared with in-memory-only counting.
 - Change: Persist streak state in a small JSON artifact and read/update it each hourly feedback run before composing severity.
