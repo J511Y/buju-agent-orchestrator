@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 11:09 KST
+- Hypothesis: A tiny reusable `idle_streak` state helper (read/update/write) will improve maintainability and lower bugs versus ad-hoc inline streak persistence.
+- Change: Prototype a dedicated helper for hourly feedback to persist and increment/reset `idle_with_consumable_burn` streak deterministically.
+- Metric(s): Streak state correctness in sequential runs; implementation complexity (LOC/touch points); false escalation/reset rate.
+- Result: Eighth consecutive ineffective hour observed (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) with history endpoints still `404`.
+- Decision: Proceed with helper-based implementation and evaluate over next 8 cycles.
+
 - Date: 2026-03-09 10:09 KST
 - Hypothesis: Persisting idle-burn streak in a dedicated JSON state file will improve reproducibility and prevent alert-severity drift across hourly runs.
 - Change: Add file-backed streak state (`hourly_idle_streak.json`) used by feedback renderer before severity selection.
