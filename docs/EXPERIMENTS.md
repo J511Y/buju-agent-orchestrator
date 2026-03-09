@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 09:08 KST
+- Hypothesis: File-backed hourly streak persistence for `idle_with_consumable_burn` will reduce false resets and improve escalation timing compared with in-memory-only counting.
+- Change: Persist streak state in a small JSON artifact and read/update it each hourly feedback run before composing severity.
+- Metric(s): Streak continuity accuracy across runs; time-to-escalation after true consecutive ineffective hours; false reset rate.
+- Result: Sixth consecutive ineffective hour observed (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) while history endpoints remained `404`.
+- Decision: Proceed with persistence experiment for next 8 cycles and compare escalation precision against current behavior.
+
 - Date: 2026-03-09 08:08 KST
 - Hypothesis: Adding both `streak_count` and `escalation_level` fields to idle-burn feedback will improve downstream automation consistency over streak count alone.
 - Change: Extend `idle_with_consumable_burn` output to include numeric streak and deterministic severity tier mapping (e.g., 1-2=warn, >=3=critical).
