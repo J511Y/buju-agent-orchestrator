@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-09
+- [2026-03-09 14:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (failure streak up to `6`).
+  - Last-hour gameplay signals: no progression/economy shift (`Δlevel=0`, `Δexp=0`, `Δgold=0`), with unresolved outcomes (`win=0`, `defeat=0`, source=`fallback:local_replay`).
+  - Resource trend: repeated consumable-only drain continued (`use_item_remaining 18 -> 14`, `Δ=-4`) while HP/MP/gold/area stayed unchanged.
+  - Anomaly: activity-history APIs remain degraded (`404`), so status-only interpretation is still required and win/defeat confidence remains low.
+  - Retry recommendation (API failure mode): keep hourly retries for history endpoints, rely on `/api/status` as primary evidence, escalate only if `/api/status` returns non-200 or fails.
+  - 30-min TODO: wire `idle_streak` state into feedback output payload (`streak_count`, `severity`, `reset_reason`) and expose it in OPS summary line.
 - [2026-03-09 13:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (failure streak up to `7`).
   - Last-hour gameplay signals: no gameplay progression/economy movement (`Δlevel=0`, `Δexp=0`, `Δgold=0`); win/defeat remains unresolved (`win=0`, `defeat=0`, source=`fallback:local_replay`).

@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 14:09 KST
+- Hypothesis: Emitting `streak_count + severity + reset_reason` as a single structured block will reduce operator ambiguity versus free-text idle alerts.
+- Change: Extend hourly feedback formatter to output a deterministic idle-streak metadata block derived from persisted streak state.
+- Metric(s): Alert interpretation errors; mismatch between computed streak and reported severity; time-to-action after alert.
+- Result: Eleventh consecutive ineffective cycle observed (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) while history endpoints remained `404`.
+- Decision: Continue experiment for next 8 cycles and promote if structured metadata improves action consistency.
+
 - Date: 2026-03-09 13:09 KST
 - Hypothesis: Adding transition tests for idle-streak escalation/reset logic will prevent alert-state regressions and improve confidence in automated severity routing.
 - Change: Add deterministic test cases for `idle->idle->idle(critical)` and `critical->progress(reset)` transitions in hourly feedback logic.
