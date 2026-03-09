@@ -332,3 +332,7 @@
 - CHANGE (reversible): widened pacing further by changing `BUJU_BASE_DELAY_MS` from `1400` to `1600` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=2` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: when flat KPI persists without fresh error signatures, apply incremental cadence dilation to test progression recovery while preserving all hard inventory/rest constraints.
 - KPI target (next 30 min): sustain smoke `ok>=2/2` with `code=200` and break flatline to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-73 (2026-03-09 09:49 KST): metrics remained flat again (`level 1`, `exp 3`, `gold 113`, inventory 3, same area) despite delay widening, while HP/rate-limit state stayed healthy.
+- CHANGE (reversible): nudged cadence back up by changing `BUJU_BASE_DELAY_MS` from `1600` to `1500` and keeping `BUJU_MAX_ACTIONS_PER_CYCLE=2`, `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: with repeated under-production and no fresh throttle signal, test a small re-acceleration rather than further delay widening.
+- KPI target (next 30 min): keep smoke `ok>=2/2` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.

@@ -85,6 +85,18 @@
   - CHANGE (ops telemetry): posted adaptive thinking with delta-linked reasoning and `action_detail=changed:BUJU_BASE_DELAY_MS=1400...`, response `{"success":true}`.
   - KPI target for next 30 min: break stagnation (`exp>=6` or `gold>=116`) while sustaining smoke `ok>=3/3` code=200 and inventory slots `<=8`.
   - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh` + `node scripts/live-strategy-runner.js` active via `pgrep`).
+- [2026-03-09 09:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
+  - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`9`) and compared against 09:18 checkpoint.
+  - ADAPTIVE DELTA vs previous run: progression still flat (`level 1`, `exp 3`, `gold 113`, `inventory 3`, same area) with repeated stagnation reason across consecutive runs; HP state improved to 70%.
+  - ADAPTIVE DIAGNOSIS: no fresh rate-limit spike; switched from delay widening to slight cadence re-acceleration to test under-production hypothesis.
+  - CHANGE (config, reversible): `BUJU_BASE_DELAY_MS: 1600 -> 1500` in `config/strategy.env`.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, plus slots>=10 worse-than-equipped liquidation priority unchanged.
+  - KEEP (rest-first economy values): preserved exactly — `BUJU_LOW_HP_RATIO=0.50`, `BUJU_LOW_HP_POTION_RATIO=0.15`, `BUJU_MIN_HP_POTION_S=6`, `BUJU_MIN_MP_POTION_S=4`, `BUJU_MIN_BUY_QTY=3`, `BUJU_POTION_USE_MAX_QUANTITY=1`.
+  - Drift check: pinned doc `1.11.1` vs live skill doc `1.17.0` (persistent drift, unchanged this cycle).
+  - Validation evidence: `node scripts/live-strategy-runner.js` => `live-strategy ok=2/2 lastAction=combat_start level=1 exp=3 gold=113 code=200`.
+  - CHANGE (ops telemetry): posted adaptive thinking with explicit delta and `action_detail=changed:BUJU_BASE_DELAY_MS=1500...`, response `{"success":true}`.
+  - KPI target for next 30 min: keep smoke `ok>=2/2` code=200 and break stagnation (`exp>=6` or `gold>=116`) with inventory slots `<=8`.
+  - Runtime continuity evidence: daemon continuous (live daemon + runner process active).
 - [2026-03-09 09:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode).
   - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`8`) and computed delta against 08:48 checkpoint.
   - ADAPTIVE DELTA vs previous run: unchanged progression (`level 1`, `exp 3`, `gold 113`, `inventory 3`, same area), confirming repeated stagnation reason across consecutive runs.
