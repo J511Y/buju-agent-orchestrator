@@ -352,3 +352,7 @@
 - CHANGE (reversible): increased cycle throughput from `BUJU_MAX_ACTIONS_PER_CYCLE=4` to `5`, keeping `BUJU_BASE_DELAY_MS=1300` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: repeated stagnation with healthy runtime signals supports another bounded throughput step before considering heavier logic changes.
 - KPI target (next 30 min): maintain smoke `ok>=5/5` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-78 (2026-03-09 12:18 KST): after widening to 5-action cycles, metrics were still pinned (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), but execution quality stayed high (`ok=5/5`, no fresh throttle).
+- CHANGE (reversible): reduced `BUJU_BASE_DELAY_MS` from `1300` to `1200` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=5` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: repeated flat outputs under stable runtime justify one more timing-density increase before deeper strategy rewrites.
+- KPI target (next 30 min): keep smoke `ok>=5/5` with `code=200` and produce first progression movement (`exp>=6` or `gold>=116`), inventory slots `<=8`.
