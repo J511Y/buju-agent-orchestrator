@@ -340,3 +340,7 @@
 - CHANGE (reversible): increased cycle breadth from `BUJU_MAX_ACTIONS_PER_CYCLE=2` to `3` while keeping `BUJU_BASE_DELAY_MS=1500` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
 - Rationale: with repeated flat KPI and no instability signature, test controlled throughput restoration by undoing prior cycle-width reduction.
 - KPI target (next 30 min): sustain smoke `ok>=3/3` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
+- Adaptive step-75 (2026-03-09 10:48 KST): stagnation persisted again (`level 1`, `exp 3`, `gold 113`, inventory 3, same area), while stability headroom remained positive (HP high, no fresh throttle errors).
+- CHANGE (reversible): raised `BUJU_MAX_ACTIONS_PER_CYCLE` from `3` to `4`, keeping `BUJU_BASE_DELAY_MS=1500` and `BUJU_RETRY_MAX_ATTEMPTS=1`.
+- Rationale: with repeated flat outputs but stable execution, test one-step throughput expansion before further logic churn.
+- KPI target (next 30 min): maintain smoke `ok>=4/4` at `code=200` and break stagnation to `exp>=6` or `gold>=116`, inventory slots `<=8`.
