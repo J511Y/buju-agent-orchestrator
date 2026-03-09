@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-09 13:09 KST
+- Hypothesis: Adding transition tests for idle-streak escalation/reset logic will prevent alert-state regressions and improve confidence in automated severity routing.
+- Change: Add deterministic test cases for `idle->idle->idle(critical)` and `critical->progress(reset)` transitions in hourly feedback logic.
+- Metric(s): Regression incidents in streak severity; test pass rate; mismatch between expected and emitted severity.
+- Result: Tenth consecutive ineffective cycle observed (`Δexp=0`, `Δgold=0`, `Δuse_item_remaining=-4`) with history endpoints still `404`.
+- Decision: Proceed with test-coverage experiment and evaluate over next 8 cycles.
+
 - Date: 2026-03-09 12:08 KST
 - Hypothesis: Explicit streak-reset criteria (`Δexp>0 || Δgold>0`) will reduce false persistent-critical alerts once recovery begins.
 - Change: Extend idle-burn streak helper with deterministic reset conditions and log reset reason in hourly feedback metadata.
