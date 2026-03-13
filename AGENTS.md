@@ -44,6 +44,7 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
    - 시즌 리셋 안전장치(장비 공백 시 전투 중단/재장착, 위험 전투 즉시 항복) 변경 시 surrender 트리거 기준(HP/몬스터 위험도)과 README 운영 정책을 함께 갱신
    - 인벤토리 매각 정책 변경 시: 장착 대비 열위 장비 우선 정리, 장착본(item_id 중복 스택) 예약 보전, trigger/target 슬롯(예: 10→8) 의도를 README와 함께 동기화
    - `config/strategy.env` 튜닝 변경 시: 기본 페이싱(`BUJU_BASE_DELAY_MS`)/사이클 쿼터(`BUJU_MAX_ACTIONS_PER_CYCLE`)/이동 임계(`BUJU_MOVE_LEVEL_*`, `BUJU_AREA_LV*`)/안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)/인벤토리 임계값(`BUJU_INV_*`)/포션 사용량(`BUJU_POTION_USE_MAX_QUANTITY`)·재고/최소 구매 수량(`BUJU_MIN_BUY_QTY`)/골드 예비금(`BUJU_MIN_GOLD_RESERVE`)/anti-stall(`BUJU_STALL_*`)/재시도·백오프(`BUJU_RETRY_MAX_ATTEMPTS`, `BUJU_BACKOFF_*`)/전투 진입 토글(`BUJU_USE_COMBAT_START`)/강화 안전장치(`BUJU_ENHANCE_*`) 의도와 README Live Strategy Runner 정책 설명을 함께 동기화
+   - 단, 인벤토리 안전 불변식(판매 트리거/목표 10→8, tick당 정리 10회)은 코드 하드제약이다. 관련 env 값이 존재해도 실행 경로에서 오버라이드되지 않음을 문서에 명시한다.
    - 라이브 정책이 API 메커닉(v1.14+ 전투 중 상점 제한, `rest` 400 soft-fail 등)을 반영하도록 유지하고, 제약 변경 시 BUJU_GAME_CONTEXT/README 동시 갱신
    - 워커 safety gate/실패 복구 로직 변경 시: `npm run verify:cycle`, `npm run verify:worker`, `npm run verify:replay`
    - Safety Gate 용량 임계값(`pendingActionCount >= maxPendingActions`) 계약을 변경하면 README 반영 + `verify:cycle` 포화 경계 케이스를 갱신

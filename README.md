@@ -63,7 +63,8 @@ npm run dev
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
-- 주요 튜닝 키: `BUJU_BASE_DELAY_MS`, `BUJU_MAX_ACTIONS_PER_CYCLE`, `BUJU_MOVE_LEVEL_*`, `BUJU_AREA_LV*`, `BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_INV_SELL_TRIGGER_SLOTS`, `BUJU_INV_SELL_TARGET_SLOTS`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_BUY_QTY`, `BUJU_MIN_GOLD_RESERVE`, `BUJU_POTION_USE_MAX_QUANTITY`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`, `BUJU_BACKOFF_*`, `BUJU_USE_COMBAT_START`, `BUJU_ENHANCE_*`
+- 주요 튜닝 키: `BUJU_BASE_DELAY_MS`, `BUJU_MAX_ACTIONS_PER_CYCLE`, `BUJU_MOVE_LEVEL_*`, `BUJU_AREA_LV*`, `BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_BUY_QTY`, `BUJU_MIN_GOLD_RESERVE`, `BUJU_POTION_USE_MAX_QUANTITY`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`, `BUJU_BACKOFF_*`, `BUJU_USE_COMBAT_START`, `BUJU_ENHANCE_*`
+- 하드 인벤토리 안전 불변식(환경변수로 오버라이드하지 않음): 판매 트리거/목표 슬롯은 10→8, 정리 반복 상한은 tick당 10회로 고정
 - 현재 우선순위 정책:
   - 인벤토리 위험 선차단(기본 10→8 슬롯 정리 모드): 현재 장착 대비 열위 장비 전량 우선 매각, 이후 필요 시 저티어 장비 batch 판매
   - 매각 시 장착본 보전 규칙 적용: 장착 중인 item_id와 겹치는 스택은 장착 수량만큼 예약해 오매각 방지
