@@ -802,3 +802,10 @@ Track A/B and policy experiments.
 - Result: Current cycle produced clear status-derived movement (`Δexp=+598`, `Δgold=+35`, `Δhp=-6`) while all history endpoints remained `404`.
 - Decision: Continue for next 6 hourly cycles; promote to default fallback if non-zero status-derived signals remain stable and no major mismatches appear.
 
+
+## [2026-03-13 20:28 KST] Dynamic combat-start cooldown from throttle-wait share
+- Hypothesis: Adapting `combat_start` cooldown to recent `wait_combat_start_rate_limit` share will retain progression while reducing HP bleed and wasted cycles under persistent throttle conditions.
+- Change: Add a controller that raises cooldown when wait-share >50% and lowers it when <25%; emit telemetry (`cooldown_ms`, wait-share, `Δexp`, `Δhp`) in hourly feedback.
+- Metric(s): Wait-share %, `Δexp/hour`, `Δhp/hour`, 429 incidence per 30-min window.
+- Result: Baseline this cycle shows meaningful progression (`Δexp=+1606`, `Δgold=+15`) with notable survivability cost (`Δhp=-47`) and ongoing throttle-wait dominance in thinking logs.
+- Decision: Run for next 4 cycles; promote if wait-share drops without reducing `Δexp/hour`.

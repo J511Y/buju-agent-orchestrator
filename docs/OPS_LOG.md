@@ -2781,3 +2781,14 @@
   - CHANGE (ops telemetry): posted Buju thinking with delta-based reasoning and next KPI to `POST /api/agent/thinking`.
   - KPI target next 30 min: smoke `ok>=1/2` with `code=200` and `429<=1`, defeats `=0`, inventory `<=8`, progress to `level>=19` or `gold>=340`.
   - Runtime continuity evidence: daemon still active (`bash ./scripts/live-runner-daemon.sh` + runner process observed via `pgrep`).
+2026-03-13 19:43:52 KST | watchdog restart: live-runner-daemon.sh restarted
+2026-03-13 20:13:57 KST | watchdog restarted live-runner-daemon
+
+- [2026-03-13 20:28 KST] Hourly gameplay-feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence (`npm run -s activity:fetch -- --hours 1` + direct probes): source=`fallback:local_replay`; `/api/status`=`200`; `/api/activity/recent?hours=1`, `/api/logs/recent?hours=1`, `/api/battle/logs/recent?hours=1`=`404`; `/api/agent/thinking/j211y?limit=5`=`200`.
+  - Live status snapshot (`GET /api/status`): Lv18, exp `1607/3240`, gold `319`, HP `201/355` (56.6%), MP `186/186`; combat context indicates skeleton engagement signal.
+  - Last-hour gameplay signals (vs prior hourly snapshot 17:28 KST): progression positive (`Δlevel=0`, `Δexp=+1606`), economy positive (`Δgold=+15`), survivability down (`Δhp=-47`), wins/defeats unresolved (`0/0`, history endpoints unavailable).
+  - Anomaly/control-plane signal: activity-history APIs remain degraded (`404`); latest thinking logs show recurring combat-start throttle pressure (`wait_combat_start_rate_limit` dominant in recent daemon window).
+  - Retry recommendation (API failure mode): keep hourly retries on history endpoints; continue status+thinking fallback and keep win/defeat confidence capped at `medium` until history APIs recover for >=2 consecutive cycles.
+  - Development feedback: progression is occurring but with high throttle-wait overhead and HP drawdown; next iteration should optimize combat-start pacing before increasing action volume.
+- [2026-03-13 20:28 KST] Next 30-min actionable TODO: implement `combat_start_dynamic_cooldown` (increase cooldown when recent wait-rate-limit share >50%, relax when <25%) and log `cooldown_ms`, wait-share, and `Δexp/Δhp` per cycle.
