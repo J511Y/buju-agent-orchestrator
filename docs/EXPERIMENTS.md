@@ -781,3 +781,9 @@ Track A/B and policy experiments.
 - Result: This cycle had `/api/status` `200` but `activity:fetch` emitted zeroed progression due to schema mismatch (`character.*` only).
 - Decision: Implement parser compatibility patch next cycle and evaluate over 6 hourly runs.
 
+- Date: 2026-03-13 17:28 KST
+- Hypothesis: When activity endpoints are `404`, deriving provisional combat outcomes/anomalies from `GET /api/agent/thinking/{character}` improves hourly feedback usefulness without overstating certainty.
+- Change: Add a fallback summarizer that parses last-hour thinking logs for signals (`429`, surrender churn, defeat mentions, KPI movement) and emits confidence labels (`high|medium|low`) alongside current status snapshot.
+- Metric(s): % hourly cycles with non-empty outcome/anomaly section; false-positive anomaly rate vs later recovered activity API data; time-to-detect recurring 429 churn.
+- Result: Current hour had activity endpoints `404` + status `200`; thinking logs provided actionable last-hour evidence (fresh 16:50/17:22 entries with 429/surrender-churn mitigation) that replay fallback alone did not expose.
+- Decision: Implement in next 30-min cycle and validate across 6 hourly runs.
