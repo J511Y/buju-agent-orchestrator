@@ -1,5 +1,14 @@
 # Ops Log
 
+## 2026-03-13
+- [2026-03-13 16:28 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
+  - Last-hour gameplay signals: progression and outcomes unresolved (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `win=0`, `defeat=0`) due to history API degradation.
+  - Live status snapshot (`GET /api/status`): `level=18`, `exp=1`, `gold=304`, `season=시즌 2` (schema now `character.*`, not `status.*`).
+  - Anomaly: `activity:fetch` currently reads legacy `/api/status` shape (`status.*`), so character/resource fields are dropped even when endpoint is healthy.
+  - Retry recommendation (API failure mode): keep hourly retries for history endpoints; if `404` persists, rely on `/api/status.character` extraction plus replay fallback until history API recovers.
+  - 30-min TODO: patch activity summarizer to support `/api/status.character` schema and emit at least `level/exp/gold/hp/mp` in fallback mode.
+
 ## 2026-03-09
 - [2026-03-09 19:25 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (current failure streak up to `3`).

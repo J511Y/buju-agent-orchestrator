@@ -773,3 +773,11 @@ Track A/B and policy experiments.
 - Metric(s): Consumable burn per zero-progress hour, time-to-first-nonzero progression after guard activation, false-positive guard rate.
 - Result: Current cycle remained flat at reset baseline for a fourth consecutive hour while use-item quota dropped further (`18→14`) and history endpoints remained unavailable (`404`, streak `6`).
 - Decision: Implement in next 30-min cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-13 16:28 KST
+- Hypothesis: Supporting `/api/status.character` parsing in the hourly fetcher will restore actionable progression/resource signals even when history endpoints are `404`.
+- Change: Extend status summarizer fallback path to accept both legacy `status.*` and current `character.*` schemas.
+- Metric(s): % hourly cycles with non-empty level/exp/gold/hp/mp snapshot; number of "status endpoint healthy but empty fields" incidents.
+- Result: This cycle had `/api/status` `200` but `activity:fetch` emitted zeroed progression due to schema mismatch (`character.*` only).
+- Decision: Implement parser compatibility patch next cycle and evaluate over 6 hourly runs.
+
