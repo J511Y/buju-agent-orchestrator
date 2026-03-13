@@ -395,3 +395,10 @@
 - Constraint integrity: hard inventory policy preserved exactly (`BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`) and worse-than-equipped liquidation priority unchanged.
 - Equipment progression policy (explicit): (a) early game = gold accumulation, no enhancement spam; (b) mid game = weapon-first enhancement when reserve+scroll+NPC prerequisites are satisfied; (c) late game = widen to armor/accessory with cooldown/failure-risk controls.
 - KPI target (next 30 min): daemon tail `combat_start 429 <=1` per 6 cycles, dangerous-surrender events `<=1` per 6 cycles, defeats `=0`, inventory slots `<=8`, and progression to `level>=19` or `gold>=320`.
+
+- Adaptive step-84 (2026-03-13 18:16 KST): last-20 thinking logs still show long-window improvement (`level 1->18`, `gold 113->304`, `deaths=0`, `rate_limited=0/20`), but fresh smoke probe under current settings produced a new throttle failure (`live-strategy ok=0/2`, `lastAction=combat_start`, `code=429`) despite short-term gains (`exp 0->309`, `gold 304->334`).
+- CHANGE (reversible): increased pacing delay from `BUJU_BASE_DELAY_MS=2200` to `2600` while keeping `BUJU_MAX_ACTIONS_PER_CYCLE=2` to reduce burst pressure without collapsing throughput.
+- Safety/efficiency intent kept: safest high-efficiency monster selector (safety-filter + efficiency score), level-threshold area movement, and defeat-aware dynamic risk gap remain active.
+- Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots>=10, liquidation still prioritizes unequipped gear worse than equipped first.
+- Equipment progression status kept: best-in-slot auto-equip by `equipSlot` + `maxDamage+defBonus`; staged enhancement plan (early safe gold, mid weapon-first with reserve, late broaden with risk control) remains active; minimal safe enhancement path stays prerequisite-gated (`weapon+scroll+npc+reserve+cooldown`).
+- KPI target (next 30 min): smoke `ok>=1/2` with `code=200` and `429<=1`, defeats `=0`, maintain `inventory<=8`, progress to `level>=19` or `gold>=340`.

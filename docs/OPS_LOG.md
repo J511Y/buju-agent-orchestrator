@@ -2757,3 +2757,13 @@
   - Last-hour control-plane signal (`GET /api/agent/thinking/j211y?limit=30`): two fresh strategy logs (16:50, 17:22) report repeated `combat_start` 429 pressure and surrender churn mitigation patch (`stall_429_cooldown_ticks=6`, stricter `surrender_for_equip` precondition).
   - Failure mode + retry recommendation: activity/history endpoints are still unavailable (`404`) while status remains healthy (`200`); keep hourly retries, and continue using status + thinking logs as evidence fallback until activity endpoints return `200` in at least two consecutive cycles.
 - [2026-03-13 17:28 KST] Next 30-min actionable TODO: add hourly summarizer fallback that derives provisional win/defeat + anomaly counters from recent `agent/thinking` logs when activity endpoints are `404`, then emit a confidence flag (`high`=activity API, `medium`=thinking fallback, `low`=status-only).
+- [2026-03-13 18:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP/CHANGE loop: parsed last 20 thinking logs (`/api/agent/thinking/j211y?limit=20`) and computed deltas: `level 1->18`, `exp 0->0`, `gold 113->304`, `deaths 0->0`, `rate_limited=0/20`, `status_check=20/20`.
+  - Fresh validation evidence: `node scripts/live-strategy-runner.js` under prior config returned `live-strategy ok=0/2 lastAction=combat_start level=18 exp=309 gold=334 code=429`.
+  - ADAPTIVE DIAGNOSIS: KEEP condition failed for immediate window due to renewed throttle (429) even with positive short-term progression (`exp +309`, `gold +30`), so CHANGE was mandatory.
+  - CHANGE (config, reversible): `BUJU_BASE_DELAY_MS: 2200 -> 2600` in `config/strategy.env`; `BUJU_MAX_ACTIONS_PER_CYCLE=2` retained.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, including `slots>=10` worse-than-equipped liquidation priority.
+  - KEEP (equipment progression): best-slot auto-equip (`equipSlot`, `maxDamage+defBonus`), staged enhancement strategy, and minimal safe enhancement action path with prerequisite gates all remain active.
+  - CHANGE (ops telemetry): posted Buju thinking with delta-based reasoning and next KPI to `POST /api/agent/thinking`.
+  - KPI target next 30 min: smoke `ok>=1/2` with `code=200` and `429<=1`, defeats `=0`, inventory `<=8`, progress to `level>=19` or `gold>=340`.
+  - Runtime continuity evidence: daemon still active (`bash ./scripts/live-runner-daemon.sh` + runner process observed via `pgrep`).
