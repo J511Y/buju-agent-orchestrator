@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-13
+- [2026-03-13 18:28 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
+  - Last-hour gameplay signals: no confirmed progression or combat outcomes from history stream (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `win=0`, `defeat=0`, `unknown=0`) because activity-history APIs remained unavailable.
+  - Live status snapshot (`GET /api/status`, direct probe): `level=18`, `exp=397`, `gold=304`, `hp=217/355`, `mp=186/186`, `season=시즌 2`.
+  - Resource trend/anomaly: HP/MP fields are now nested objects (`hp.current/max`, `mp.current/max`) under `character.*`; current summarizer expects scalar legacy fields, reducing status-derived signal quality.
+  - Retry recommendation (API failure mode): continue hourly retries on history endpoints; treat `/api/status` as primary live evidence while history endpoints return `404`, and retry with same endpoint set next cycle.
+  - 30-min TODO: extend status summarizer to parse nested `character.hp/mp` objects and emit normalized scalar deltas (`hp_current`, `hp_max`, `mp_current`, `mp_max`) in fallback summaries.
 - [2026-03-13 16:28 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
   - Last-hour gameplay signals: progression and outcomes unresolved (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `win=0`, `defeat=0`) due to history API degradation.

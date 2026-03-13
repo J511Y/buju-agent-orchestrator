@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-13 18:28 KST
+- Hypothesis: Normalizing `/api/status.character.hp/mp` object fields into scalar telemetry in the hourly fallback summary will improve actionability when history APIs are degraded.
+- Change: Add parser/mapper in activity summarizer for nested `hp.current/max` and `mp.current/max` (with legacy scalar fallback) and include normalized status fields in output.
+- Metric(s): Cycles with non-empty status resource telemetry while history endpoints are `404`; operator follow-up ambiguity rate.
+- Result: Current cycle confirmed history endpoints `404` with `/api/status` healthy (`level=18`, `exp=397`, `gold=304`, nested HP/MP objects present).
+- Decision: Proceed next 30-min cycle; promote if normalized fields appear consistently for 6 consecutive degraded-history cycles.
+
 - Date: 2026-03-09 14:09 KST
 - Hypothesis: Emitting `streak_count + severity + reset_reason` as a single structured block will reduce operator ambiguity versus free-text idle alerts.
 - Change: Extend hourly feedback formatter to output a deterministic idle-streak metadata block derived from persisted streak state.
