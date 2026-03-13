@@ -2945,3 +2945,12 @@
   - Development feedback: current feedback path is over-dependent on degraded history APIs; add an auth-health preflight gate and explicitly downgrade confidence when key validation fails.
   - Failure mode + retry recommendation: verify BUJU_API_KEY freshness/scope and API base alignment first, then retry authenticated status+log probes next cycle; if `401` persists for >=2 cycles, rotate/regenerate key and pause policy changes that rely on win/defeat evidence.
 - [2026-03-14 01:26 KST] Next 30-min actionable TODO: implement `auth_preflight_check` in hourly collector (`/api/status` + one log endpoint), emit `auth_state=ok|invalid|missing` in OPS output, and short-circuit outcome inference when `auth_state!=ok`.
+
+- [2026-03-14 02:28 KST] Hourly gameplay-feedback cycle executed (`.env` BUJU_API_KEY loaded via runtime loader; key masked).
+  - Evidence: `npm run -s activity:fetch` => `source=fallback:local_replay`, `progress_delta={0,0,0}`, outcomes `win=0/defeat=0/unknown=0`; endpoint probe: `/api/status=200`, activity/log/history candidates `6x 404`.
+  - Live status (`GET /api/status` with `X-GQ-API-Key`): `level=19`, `gold=309`, `hp=211/370`, `mp=194/194`, season=`active`; rate-limit headroom mostly full (`buy 29/30`, others `30/30`).
+  - Last-hour gameplay signals (daemon tail evidence): EXP rose steadily (`1277 -> 1391`, `+114`) with repeated `combat_start` success (`code=200`), periodic `rest`, and occasional `surrender_dangerous_combat` (2+ events observed); resource loop shows MP buy-induced gold sawtooth (`344 -> 309` resets).
+  - Anomalies: telemetry blind spot persists for canonical win/defeat because recent-activity/log endpoints still `404` (probe failure streak now 7).
+  - Dev feedback: progression is healthy but combat-start throttle waits and danger-surrender pockets suggest survivability pressure remains; keep conservative pacing and prioritize better outcome observability before aggressiveness increases.
+  - API failure mode + retry recommendation: continue hourly retry of history endpoints; if 404 streak reaches `>=8`, run endpoint-contract refresh and add fallback parsing from daemon/worker logs for provisional win/defeat confidence labels.
+- [2026-03-14 02:28 KST] Next 30-min actionable TODO: implement `daemon_signal_extractor` to parse last 60 min of `logs/live-runner-daemon.log` and emit `{exp_delta, rest_count, surrender_danger_count, combat_start_success_count}` into hourly feedback output.

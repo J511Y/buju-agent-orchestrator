@@ -844,3 +844,10 @@ Track A/B and policy experiments.
 - Metric(s): Number of hourly cycles with unresolved outcome cause (`404` vs `401`) ambiguity; time-to-diagnose credential failures; false-positive gameplay anomaly notes.
 - Result: Current cycle observed history endpoints `404` from fetcher plus direct authenticated probes returning `401 Missing or invalid API key`, leaving win/defeat unresolved.
 - Decision: Run in next 30-min dev cycle; promote if ambiguity drops for 4 consecutive hourly cycles.
+
+- Date: 2026-03-14 02:28 KST
+- Hypothesis: A lightweight daemon-log signal extractor can recover high-utility last-hour outcome proxies (progression cadence + danger churn) when Buju recent-history APIs return persistent `404`.
+- Change: Add hourly parser over `logs/live-runner-daemon.log` (lookback 60m) to compute `exp_delta`, `combat_start_success_count`, `rest_count`, and `surrender_danger_count`, then attach confidence=`medium` when API history is unavailable.
+- Metric(s): % hourly cycles with non-empty gameplay signal section during API outages; mismatch rate vs canonical API outcome counts after recovery; false anomaly rate.
+- Result: Current cycle had API history blind spot (`6x 404`) while daemon evidence still showed actionable progression/churn (`exp +114`, repeated combat-start success, periodic rest, danger surrender events).
+- Decision: Implement in next 30-min cycle; evaluate over 6 hourly runs before promoting to default fallback.
