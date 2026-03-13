@@ -525,3 +525,6 @@
   - Mid game: weapon-first enhancement only after reserve + scroll + blacksmith + action-budget prerequisites are all satisfied.
   - Late game: broaden to armor/accessory with reserve margin, cooldown, and failure-risk controls.
 - Minimal safe enhancement path remains implemented and gated (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance` only when scroll+npc+resource prerequisites are satisfiable).
+- 2026-03-14 04:32 KST: For hourly gameplay feedback, treat paginated `GET /api/logs` as the primary outage fallback when `/api/*/recent` probes return `404`, instead of relying on local replay-only summaries.
+  - Justification: live evidence this hour showed `/api/logs` healthy (`200`) with sufficient 60m signal (359 events, 251 wins, 0 defeats) while `activity:fetch` recent-endpoint probes stayed `404` and underreported gameplay.
+  - Scope: feedback/telemetry path only; no gameplay policy/action-loop behavior change.

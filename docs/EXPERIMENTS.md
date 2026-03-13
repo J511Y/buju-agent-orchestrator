@@ -858,3 +858,10 @@ Track A/B and policy experiments.
 - Metric(s): % hourly cycles with non-empty outcome section during `404` outages; mismatch rate vs canonical recent endpoints once recovered; false anomaly notes per 24h.
 - Result: This cycle had persistent `404` on all 6 recent endpoints, while direct logs endpoints were healthy (`200`) and provided defeat recency evidence.
 - Decision: Implement in next 30-min cycle and validate over 6 hourly runs.
+
+- Date: 2026-03-14 04:32 KST
+- Hypothesis: When `/api/*/recent` endpoints are `404`, a paginated `/api/logs` 60-minute aggregator (`limit=100`, `page++ until timestamp cutoff`) will recover high-confidence hourly gameplay outcomes and reduce fallback no-signal cycles.
+- Change: Add `logs_paged_hourly_fallback` path to hourly collector; compute `wins/defeats/rest/surrender/action_mix` and resource-pressure proxies (`damage_taken_sum`, recovery-action density), with confidence=`medium` and explicit source tag.
+- Metric(s): % hourly cycles with non-empty outcome section during recent-endpoint outages; mismatch rate vs canonical recent endpoints after recovery; false anomaly notes/day.
+- Result: Current cycle had `/api/status` and `/api/logs` healthy (`200`) with 359 last-hour events and clear outcomes (251 wins, 0 defeats), while recent endpoints remained `404`.
+- Decision: Run in next 30-min dev cycle; promote if actionable signal coverage stays >95% for 6 consecutive outage cycles.

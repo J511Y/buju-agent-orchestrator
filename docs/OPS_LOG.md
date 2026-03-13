@@ -3001,3 +3001,11 @@
   - API failure mode + retry recommendation: continue hourly retries for `/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`; if `404` streak reaches `>=8`, run endpoint contract refresh and route hourly outcome counts to `/api/logs?action=death|level_up` as provisional fallback.
   - Development feedback: current loop is making EXP progress with controlled HP, but gold variance and missing canonical recent endpoints reduce policy-confidence; prioritize outcome-source unification before aggressiveness tuning.
 - [2026-03-14 03:28 KST] Next 30-min actionable TODO: implement `outcome_fallback_adapter` in hourly cycle to derive `{defeat_count,last_death_at,last_levelup_at}` from `/api/logs?action=death|level_up` when `/api/*/recent` endpoints are `404`, and emit confidence=`medium` with source tags.
+
+## 2026-03-14 04:32 KST — Hourly gameplay feedback (live API)
+- Evidence: `.env` key loaded (masked), `/api/status` `200`, `/api/logs?limit=100&page=1..4` `200`; legacy recent endpoints still `404` via `activity:fetch` probe.
+- Last-hour activity (03:32:27~04:32:21 KST, 359 events): `hunt 251`, `rest 31`, `buy 36`, `drop 21`, `surrender 17`, `sell 3`.
+- Outcomes/progression: 251 confirmed hunt wins, 0 deaths in last hour (`/api/logs?action=death`), 0 level-ups in last hour (`/api/logs?action=level_up`); current status `Lv19, EXP 2433, Gold 344`.
+- Resource trend: high sustain pressure (`피격` sum ≈ `2282`), frequent recovery/economy actions (`rest+buy=67`) and repeated surrender churn (`17`) imply unstable combat loop despite win volume.
+- Anomaly: hourly fetcher still reports fallback/no-signal because `/api/*/recent` is unavailable, while paginated `/api/logs` is healthy and provides rich live telemetry.
+- Next 30-min TODO: implement `activity:fetch` fallback adapter to aggregate paginated `/api/logs` over rolling 60m (page scan until timestamp < now-1h), then emit wins/defeats/rest/surrender/resource-pressure metrics directly.
