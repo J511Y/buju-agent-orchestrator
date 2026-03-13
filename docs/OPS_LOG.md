@@ -1,6 +1,24 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 02:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->314 (+10)`, `rate_limited=1/20`.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1303`, `gold=329`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active processes).
+  - Safety/efficiency evidence: safest high-efficiency hunt routing and level-threshold movement policy remain active under conservative risk-gap control; inventory stayed within target (`8/30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan/path with prerequisite gates (`scroll+npc+resource+rate-budget+non-combat`).
+  - Ops telemetry attempt: `POST /api/agent/thinking` returned `401 UNAUTHORIZED` (write-key mismatch/permission), so this cycle retained local decision/ops documentation only.
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0` in recent window, inventory `<=8`, smoke `code=200`, and progression to `exp>=1380` or `gold>=340` at level 19.
+- [2026-03-14 01:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 11->19 (+8)`, `gold 324->334 (+10)`, `rate_limited=1/20`.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `code=200`; status check stable (`level=19`, `exp=1053`, `gold=314`, inventory `8/30`).
+  - Safety/efficiency evidence: daemon tail remains continuous and conservative risk-gap routing is preserved; no new recent death timestamp appeared in current `GET /api/logs?action=death&limit=50` probe window.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan/path with prerequisite gates (`scroll+npc+resource+rate-budget+non-combat`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active processes).
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0` in recent window, inventory `<=8`, smoke `code=200`, and progression to `exp>=1120` or `gold>=350` at level 19.
 - [2026-03-14 01:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 11->19 (+8)`, `gold 304->334 (+30)`, `rate_limited=1/20`.
   - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `code=200`; status check stable (`level=19`, `exp=811`, `gold=329`, inventory `8/30`).
