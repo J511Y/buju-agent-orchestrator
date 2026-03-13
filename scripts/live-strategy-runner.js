@@ -55,7 +55,8 @@ const CFG = {
   useCombatStart: String(process.env.BUJU_USE_COMBAT_START || '1') !== '0',
   enhanceMidLevel: Number(process.env.BUJU_ENHANCE_MID_LEVEL || 10),
   enhanceGoldReserve: Number(process.env.BUJU_ENHANCE_GOLD_RESERVE || 600),
-  enhanceCooldownTicks: Number(process.env.BUJU_ENHANCE_COOLDOWN_TICKS || 12)
+  enhanceCooldownTicks: Number(process.env.BUJU_ENHANCE_COOLDOWN_TICKS || 12),
+  combatStrategyRefreshTicks: Number(process.env.BUJU_COMBAT_STRATEGY_REFRESH_TICKS || 12)
 };
 
 const stallState = new Map();
@@ -750,7 +751,7 @@ async function step() {
     };
     const strategySignature = JSON.stringify(strategyBody);
     const strategyRefreshNeeded = (strategySignature !== lastCombatStrategySignature)
-      || ((tickCounter - lastCombatStrategyTick) >= 8);
+      || ((tickCounter - lastCombatStrategyTick) >= CFG.combatStrategyRefreshTicks);
 
     if (strategyRefreshNeeded) {
       const strategy = await req('/combat/strategy', { method: 'POST', body: JSON.stringify(strategyBody) });

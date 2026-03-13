@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 08:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level +2` (`18->20`), `exp +0` (`1->1`), `gold -25` (`334->309`), `death +0` (window `2026-03-13 21:49:20` -> `2026-03-14 08:19:25`), with throttle signal still persistent (`20/20`), so KEEP was rejected.
+  - Logic change applied: `scripts/live-strategy-runner.js` now uses configurable strategy refresh ticks (`BUJU_COMBAT_STRATEGY_REFRESH_TICKS`) and runtime is set to `12` (from hardcoded `8`) to reduce `POST /combat/strategy` churn under throttle pressure.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=20`, `exp=1`, `gold=309`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement path (early safe accumulation, mid weapon-first, late armor/accessory with risk controls); minimal safe enhancement path remains prerequisite-gated.
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `wait_combat_start_rate_limit<=25%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and economy recovery to `gold>=320` or `exp>=50`.
+
 - [2026-03-14 08:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level +2` (`18->20`), `gold -20` (`329->309`), `death +0` (window `2026-03-13 21:20:10` -> `2026-03-14 07:49:43`), with throttle signal still present (`13/20`), so KEEP was rejected.
   - Logic change applied: `scripts/live-strategy-runner.js` now sends `POST /combat/strategy` only when payload changes or every 8 ticks (refresh), instead of every combat-start attempt, to reduce rate-limit collisions while keeping safety behavior unchanged.

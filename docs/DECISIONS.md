@@ -1,6 +1,12 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (08:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 21:49:20 -> 2026-03-14 08:19:25`): `level +2` (`18->20`), `exp +0` (`1->1`), `gold -25` (`334->309`), `death +0`, with persistent throttle signal (`20/20`), so KEEP was rejected.
+- Logic change applied (minimal, reversible): in `scripts/live-strategy-runner.js`, combat strategy refresh interval is now configurable and set to `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=12` (was hardcoded `8`), reducing `POST /combat/strategy` churn while preserving safest-monster routing, level-threshold movement gating, and defeat-risk controls.
+- Hard constraints locked unchanged: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+- Equipment progression contract reaffirmed: best-in-slot evaluation by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan retained (early safe accumulation, mid weapon-first, late armor/accessory with failure-risk controls) with prerequisite-gated minimal enhancement path (`scroll + npc + resource + rate budget + non-combat`).
+- KPI target (next 30 min): defeats `=0`, inventory `<=8`, reduce `wait_combat_start_rate_limit` share to `<=25%`, maintain smoke `code=200`, and recover economy (`gold>=320` or `exp>=50`).
+
 - 30-min STRATEGY DIRECTOR (08:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43`): `level +2` (`18->20`) but `gold -20` (`329->309`) with persistent throttle pressure (`rate-limit signal 13/20`), so KEEP was rejected.
 - Logic change applied (minimal, reversible): in `scripts/live-strategy-runner.js`, `POST /combat/strategy` is now sent only when strategy payload changes or refresh interval (`8 ticks`) elapses, instead of every combat-start attempt; expected effect is lower action-budget collision while preserving hunt safety behavior.
 - Safety/efficiency policy kept: safest high-efficiency monster routing and level-threshold movement gates remain unchanged to avoid defeat loops and premature risk expansion.
