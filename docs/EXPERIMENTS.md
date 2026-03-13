@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-13 22:27 KST
+- Hypothesis: Adding a secondary combat-log query variant when `GET /api/logs?action=combat&limit=50` returns `400` will recover partial win/defeat evidence and reduce low-confidence hourly summaries during history endpoint outages.
+- Change: Extend hourly collector to try one fallback combat-log query contract after `400` and emit `win_defeat_confidence` (`low|medium|high`) based on source availability.
+- Metric(s): % hourly cycles with non-empty combat outcome evidence while history endpoints are degraded; false-positive win/defeat classifications vs recovered history API data.
+- Result: This cycle had `/api/status` `200` with useful deltas, but history endpoints were all `404` and direct combat-log probe returned `400`, leaving outcomes unresolved.
+- Decision: Run in next 30-min dev cycle; promote if confidence improves (low->medium+) for 4 consecutive degraded-history cycles.
+
 - Date: 2026-03-13 21:29 KST
 - Hypothesis: Persisting an hourly status snapshot cache (with explicit previous-pointer metadata) will make fallback gameplay deltas deterministic and reduce manual OPS cross-referencing when history APIs remain `404`.
 - Change: Add a tiny cache artifact (`logs/status-hourly-cache.json`) written by hourly cycle and consumed by summary generator for `Δexp/Δgold/Δhp`.

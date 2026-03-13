@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-13
+- [2026-03-13 22:27 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`, failure streak `7`).
+  - Direct status probe (`GET /api/status`, key loaded from `.env` and masked): `level=18`, `exp=2623`, `gold=319`, `hp=194/355`, `mp=186/186`, `area=talking_island_field`.
+  - Last-hour gameplay signals (vs 21:29 KST snapshot): progression positive (`Δexp=+500`, `Δlevel=0`), economy negative (`Δgold=-20`), survivability negative (`Δhp=-13`, hp ratio `0.58->0.55`).
+  - Wins/defeats confidence: unresolved (`win=0`, `defeat=0`, confidence=low) because history streams stayed unavailable and direct combat-log probe returned `400` for `GET /api/logs?action=combat&limit=50`.
+  - Retry recommendation (API failure mode): continue hourly retries for history endpoints; for combat outcomes, test alternate log query contract (same endpoint family) and keep status-delta fallback as primary evidence until a 200-series history stream is restored.
+  - 30-min TODO: patch hourly fetcher to attempt a secondary combat-log query variant when `action=combat` returns `400`, then emit `win/defeat_confidence` explicitly (`low|medium|high`) in fallback summaries.
 - [2026-03-13 22:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` and computed deltas (`level +17`, `gold +221`, `rate_limited 1/20`).
   - Live status delta evidence (run window): `exp 1529->2543`, `gold 334->329` (progression spend), death delta `0` (`/api/logs?action=combat&limit=50` shows no defeat records).
