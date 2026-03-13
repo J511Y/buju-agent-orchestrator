@@ -368,18 +368,21 @@ function recentDefeatCount(windowSize = 8) {
   return recentCombatOutcomes.slice(-windowSize).filter(x => x === 'defeat').length;
 }
 
-function chooseMonster(monsters, player) {
+function chooseMonster(monsters, player, equipped = {}) {
   if (!monsters.length) return 'rabbit';
   const level = Number(player?.level || 1);
   const pAtk = Number(player?.atk || 1);
   const pDef = Number(player?.def || 1);
   const defeatPressure = recentDefeatCount(8);
-  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(1, defeatPressure));
+  const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
+  const armorRiskPenalty = hasArmor ? 0 : 1;
+  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, defeatPressure + armorRiskPenalty));
 
   const safetyFiltered = monsters.filter(m => {
     const mLevel = Number(m.level || level);
     const mAtk = Number(m.atk || 0);
-    return mLevel <= level + dynamicGap && mAtk <= (pDef * 1.75);
+    const atkGuard = hasArmor ? (pDef * 1.75) : (pDef * 1.45);
+    return mLevel <= level + dynamicGap && mAtk <= atkGuard;
   });
   const pool = safetyFiltered.length ? safetyFiltered : monsters;
 
@@ -645,11 +648,13 @@ async function step() {
   }
 
   const targetArea = pickArea(c.level || 1);
-  if (!inCombat && c.current_area !== targetArea && !shouldSkipAction('move') && hasRateBudget(rateLimits, 'move')) {
-    const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: targetArea }) });
+  const safeAreaOverride = (!hasArmor && (c.level || 1) < CFG.moveLv2) ? CFG.area1 : null;
+  const desiredArea = safeAreaOverride || targetArea;
+  if (!inCombat && c.current_area !== desiredArea && !shouldSkipAction('move') && hasRateBudget(rateLimits, 'move')) {
+    const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: desiredArea }) });
     recordActionResult('move', r.status);
     if (r.status === 200) {
-      return { ok: true, action: 'move', area: targetArea, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      return { ok: true, action: safeAreaOverride ? 'move_safe_fallback' : 'move', area: desiredArea, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
     // 400 soft-fail => continue hunting in current area.
   }
@@ -663,7 +668,7 @@ async function step() {
 
   const areaMon = await req(`/areas/${c.current_area}/monsters`);
   const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
-  const monsterId = chooseMonster(monsters, c);
+  const monsterId = chooseMonster(monsters, c, equipped);
 
   if (CFG.useCombatStart) {
     // 시즌2 자동전투: 전투 시작 전 전략을 항상 갱신
