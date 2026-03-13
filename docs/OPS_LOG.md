@@ -3064,3 +3064,12 @@
 - Resource/anomaly signal: high combat pressure persists (`피격` sum `2265` in 1h) despite zero defeats; canonical `*/recent` endpoints still unavailable, so outcome confidence remains `medium` (logs fallback).
 - API failure mode + retry recommendation: current failure mode is persistent `404` on recent-history routes while status/paged logs are healthy. Continue hourly retries for recent routes; if still `404` after next 4 cycles, prioritize endpoint-contract refresh and temporarily treat paged-log fallback as primary source with explicit confidence tag.
 - [2026-03-14 06:28 KST] Next 30-min actionable TODO: add `surrender_pressure_guard` to hourly feedback (`surrender_rate = surrender/hunt`, trigger when `>2.5%`) and auto-emit one conservative tuning recommendation (`rest threshold +1 step` or `target monster tier down`) before any aggression increase.
+
+## 2026-03-14 07:26 KST — Hourly gameplay feedback (auth-failure mode)
+- Evidence: `.env` loaded and `BUJU_API_KEY` detected (masked); `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`, `/api/status=200`, and recent endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (failure streak `6`).
+- Direct authenticated probes (same env key): `/api/status`, `/api/logs?limit=100&page=1`, `/api/logs?action=death&limit=50`, `/api/logs?action=level_up&limit=50` all returned `401 UNAUTHORIZED (Missing or invalid API key)`.
+- Last-hour gameplay signals: progression/win-defeat/resource telemetry is **unresolved this cycle** (no trusted authenticated status/log stream available); confidence forced to `low`.
+- Anomaly: credential drift or key-scope mismatch is now the primary blocker (supersedes normal `*/recent` 404-only degradation path).
+- Development feedback: hold policy/aggression changes until auth preflight passes; prioritize restoring authenticated read path to recover outcome/resource observability.
+- API failure mode + retry recommendation: validate key freshness and base-url alignment, then retry `/api/status` + one `/api/logs` endpoint next cycle; if `401` persists for >=2 hourly cycles, rotate/regenerate BUJU_API_KEY and rerun hourly probe.
+- [2026-03-14 07:26 KST] Next 30-min actionable TODO: implement `auth_preflight_gate` in hourly job (hard-fail outcome synthesis on `401`, emit `auth_state`, and auto-log key-rotation checklist link) before gameplay inference.

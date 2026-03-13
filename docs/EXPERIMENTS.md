@@ -879,3 +879,10 @@ Track A/B and policy experiments.
 - Metric(s): surrender_rate/hour, `Δgold/hour`, and `defeat_count/hour` before vs after guard enablement.
 - Result: Current hour shows `248` wins, `7` surrenders (`2.82%`), `0` defeats, `ΔEXP +500`, and mild gold drift (`-20`) under high incoming-damage pressure (`피격 2265`).
 - Decision: Run in next 30-min dev cycle and evaluate over 6 hourly windows.
+
+- Date: 2026-03-14 07:26 KST
+- Hypothesis: A strict hourly `auth_preflight_gate` (`/api/status` + `/api/logs` with loaded key) will reduce false gameplay interpretations under credential drift by forcing confidence=`low` and blocking downstream policy suggestions when auth fails.
+- Change: Add preflight stage before hourly synthesis; require authenticated `200` on at least one status/log endpoint to allow progression/outcome reporting.
+- Metric(s): Number of hourly summaries produced with unresolved auth cause; false-positive gameplay anomaly/policy notes during `401` windows; time-to-diagnose key failures.
+- Result: Current cycle observed `.env` key present but direct authenticated probes returned `401` across status/log endpoints, while fallback probe still showed `*/recent` `404` + replay no-signal.
+- Decision: Execute in next 30-min dev cycle; promote if auth-cause ambiguity drops for 4 consecutive hourly cycles.
