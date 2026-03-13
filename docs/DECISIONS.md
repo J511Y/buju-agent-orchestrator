@@ -1,5 +1,14 @@
 # Engineering Decisions
 
+## 2026-03-13
+- 30-min STRATEGY DIRECTOR (adaptive mode) KEEP decision with hard-evidence deltas from latest 20 thinking logs: `level +17`, `gold +221`, `rate_limited 1/20`; smoke remained healthy (`ok=1/1`, `code=200`) with progression on live status (`exp 1529->2543`, deaths delta `0` from combat-log probe).
+- Hard constraints are treated as code-level invariants (not env-overridable in execution path): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidate unequipped gear worse than equipped first.
+- Equipment progression contract is now explicitly staged for operations:
+  - Early game: prioritize gold accumulation + safe hunt; avoid risky enhancement spam.
+  - Mid game: when `level>=BUJU_ENHANCE_MID_LEVEL` and gold reserve threshold is met, enhance main weapon first.
+  - Late game: expand enhancement to armor/accessory only with risk controls (cooldown, reserve, prerequisite gates).
+- Enhancement runtime path remains minimal-safe and prerequisite-gated (`scroll + blacksmith NPC + gold reserve + not in combat + rate budget`), so enhancement is skipped when prerequisites are unsatisfied rather than forcing risk.
+
 ## 2026-03-03
 - Adopted hot-path deterministic decisioning (FSM + safety gates), with async advisor path for strategy updates.
 - Separated periodic autonomous execution from user-facing chat via cron isolated runs.
@@ -453,3 +462,10 @@
   - Late game (Lv20+): expand to armor/accessory enhancement only after weapon baseline, with reserve margin (`+400`), cooldown gate (`BUJU_ENHANCE_COOLDOWN_TICKS`), and stall/rate-limit controls.
 - Enhancement action path status: minimal safe API path remains active and prerequisite-gated (`/npc/list` -> select blacksmith -> `/npc/{npc_id}/enhance`), skipped when any prerequisite is missing.
 - KPI target (next 30 min): keep defeats `=0`, maintain inventory slots `<=8`, reduce `wait_combat_start_rate_limit` share to `<=45%`, and reach `level>=19` or `gold>=350` with smoke `code=200`.
+
+- Adaptive step-91 (2026-03-13 21:47 KST): read `GET /api/agent/thinking/j211y?limit=20` and recomputed deltas: `level 1->18 (+17)`, `gold 113->334 (+221)`, no new death-event increase in the recent window, and `rate_limited=1/20`.
+- KEEP (evidence-based): latest smoke stayed healthy (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `code=200`, `exp 2283->2285`, `gold 329->334`) and daemon tail wait-pressure was acceptable (`wait_combat_start_rate_limit` share `7/20=0.35`).
+- Constraint integrity preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with slots>=10 selling unequipped worse-than-equipped first.
+- Equipment progression policy kept active: every tick best-in-slot by `equipSlot` + `score(maxDamage+defBonus)`; staged enhancement plan (early safe accumulation/no spam -> mid weapon-first on prereqs -> late armor/accessory with reserve+cooldown risk controls).
+- Enhancement action path remains minimal and safe (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance`) and executes only when prerequisites are simultaneously satisfied (scroll+npc+resource+budget).
+- KPI target (next 30 min): `wait_combat_start_rate_limit<=40%`, deaths `=0`, inventory `<=8`, smoke `code=200`, and progression to `level>=19` or `gold>=350`.

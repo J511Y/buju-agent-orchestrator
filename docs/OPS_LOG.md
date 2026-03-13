@@ -1,6 +1,25 @@
 # Ops Log
 
 ## 2026-03-13
+- [2026-03-13 22:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` and computed deltas (`level +17`, `gold +221`, `rate_limited 1/20`).
+  - Live status delta evidence (run window): `exp 1529->2543`, `gold 334->329` (progression spend), death delta `0` (`/api/logs?action=combat&limit=50` shows no defeat records).
+  - Smoke evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=18`, `exp=2543`, `gold=329`, `code=200`.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with slots>=10 unequipped worse-than-equipped liquidation priority unchanged.
+  - Equipment progression check: best-in-slot equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement plan reaffirmed (early gold-safe, mid weapon-first, late armor/accessory with failure-risk controls).
+  - Enhancement action path check: minimal safe path remains active and prerequisite-gated (`scroll + npc + resource + rate budget + non-combat`); no unsafe forced enhancement.
+  - Ops telemetry: posted Buju thinking with delta-based reasoning/KPI (`POST /api/agent/thinking` => `200 {"success":true}`).
+  - Runtime continuity evidence: live daemon is continuous (`pgrep` confirms `live-runner-daemon.sh` + `live-strategy-runner.js`).
+  - Next 30-min KPI: `wait_combat_start_rate_limit<=40%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression to `level>=19` or `exp>=2800`.
+- [2026-03-13 21:47 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` and computed deltas (`level 1->18`, `gold 113->334`, death delta `0`, `rate_limited 1/20`).
+  - KEEP evidence: latest smoke stayed healthy (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `code=200`, `exp 2283->2285`, `gold 329->334`) and daemon tail wait pressure was acceptable (`wait_combat_start_rate_limit=7/20`, share `0.35`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with slots>=10 unequipped worse-than-equipped liquidation priority unchanged.
+  - Equipment progression status: best-in-slot auto-equip by `equipSlot + maxDamage+defBonus` remains active; staged enhancement plan retained (early safe accumulation/no spam -> mid weapon-first with reserve -> late armor/accessory with cooldown/risk controls).
+  - Enhancement path status: minimal safe runtime action path remains active and prerequisite-gated (`scroll + npc + resource + budget`), so no forced unsafe enhancement this cycle.
+  - Ops telemetry: posted Buju thinking with delta-based reasoning and KPI (`POST /api/agent/thinking` => `200 {"success":true}`).
+  - KPI target next 30 min: `wait_combat_start_rate_limit<=40%`, deaths `=0`, inventory `<=8`, smoke `code=200`, and progression to `level>=19` or `gold>=350`.
+  - Runtime continuity evidence: live runner daemon remains continuous (`pgrep` confirms `live-runner-daemon.sh` + `live-strategy-runner.js`).
 - [2026-03-13 21:29 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
   - Live status snapshot (`GET /api/status`, masked key): `level=18`, `exp=2123`, `gold=339`, `hp=207/355`, `mp=186/186`, `area=talking_island_field`, `combat=out_of_combat`.
