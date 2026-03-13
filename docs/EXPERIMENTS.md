@@ -830,3 +830,10 @@ Track A/B and policy experiments.
 - Metric(s): Wait-share %, `Δexp/hour`, `Δhp/hour`, 429 incidence per 30-min window.
 - Result: Baseline this cycle shows meaningful progression (`Δexp=+1606`, `Δgold=+15`) with notable survivability cost (`Δhp=-47`) and ongoing throttle-wait dominance in thinking logs.
 - Decision: Run for next 4 cycles; promote if wait-share drops without reducing `Δexp/hour`.
+
+- Date: 2026-03-14 00:26 KST
+- Hypothesis: Adding a deterministic `hp_drawdown_guard` (`Δhp <= -40` with `Δexp > 0`) to hourly feedback will reduce survivability regressions without materially reducing progression pace during history-endpoint outages.
+- Change: Extend status-delta feedback classifier to emit guard state and recovery-first recommendation when threshold is hit.
+- Metric(s): Guard-hit frequency per 24h, next-cycle HP recovery rate, and `Δexp/hour` retention after guard-triggered recommendations.
+- Result: Current cycle showed positive progression/economy (`Δexp=+338`, `Δgold=+25`) with meaningful HP decline (`Δhp=-53`) while all history endpoints remained `404`.
+- Decision: Implement in next 30-min dev cycle and validate over 8 hourly runs.

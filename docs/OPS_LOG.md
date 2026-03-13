@@ -2890,3 +2890,12 @@
   - Ops telemetry: posted Buju thinking (`POST /api/agent/thinking`) with delta-based reasoning and next KPI target, response `200 {"success":true}`.
   - KPI target (next 30 min): `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression (`gold>=340` or `exp>=300`).
   - Runtime continuity evidence: daemon continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` both active via `pgrep`).
+
+- [2026-03-14 00:26 KST] Hourly gameplay-feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live API checks.
+  - Evidence: `npm run -s activity:fetch -- --hours 1` -> source=`fallback:local_replay`; `/api/status`=`200`; history/activity endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (failure streak `6`).
+  - Live status snapshot (`GET /api/status`): `level=19`, `exp=385/3610`, `gold=344`, `hp=177/370` (47.8%), `mp=194/194`.
+  - Last-hour gameplay signals (status-derived, compared to latest prior ops snapshot at 23:47 KST): progression positive (`Δexp=+338`, `Δlevel=0`), economy positive (`Δgold=+25`), survivability down (`Δhp=-53`); wins/defeats unresolved due to history endpoint outage.
+  - Anomalies: persistent history API degradation (`404`) keeps win/defeat confidence low; available recent thinking probe was status-heavy and did not add battle-outcome evidence.
+  - API failure mode + retry recommendation: maintain hourly retries for history endpoints and continue status-delta fallback; if `404` streak reaches `>=8`, trigger endpoint contract revalidation run before changing gameplay policy.
+  - Development feedback: current loop is progressing/gaining gold but at notable HP drawdown; prioritize defensive stabilization signals before raising action aggressiveness.
+- [2026-03-14 00:26 KST] Next 30-min actionable TODO: add `hp_drawdown_guard` in hourly feedback path (`if Δhp <= -40 and Δexp > 0 => recommend shield/regen-first`) and emit guard hit count in OPS output.
