@@ -1,5 +1,12 @@
 # Engineering Decisions
 
+## 2026-03-14
+- 30-min STRATEGY DIRECTOR (00:46 KST, adaptive mode + equipment progression) KEEP decision with mandatory evidence from latest 20 thinking logs: `level +10` (`9->19`), `gold +20` (`314->334`), `rate_limited 1/20`.
+- Live validation stayed healthy in this cycle (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `code=200`) and status remained stable at `level=19`, `gold=334`, inventory `7/30`.
+- Defeat-risk check on supported endpoint `GET /api/logs?action=death&limit=50` showed no new recent death signal in the current window; safety policy remains conservative (safest high-efficiency monster selection + level-threshold movement).
+- Hard constraints were revalidated as invariants and kept unchanged: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+- Equipment progression requirements remain active and explicit: best-in-slot auto-equip by `equipSlot` + `score(maxDamage+defBonus)` every cycle, staged enhancement plan (early safe gold/no spam -> mid weapon-first with reserve -> late armor/accessory with failure-risk controls), and minimal safe enhancement path gated by `scroll + blacksmith npc + resource + rate budget + non-combat`.
+
 ## 2026-03-13
 - 30-min STRATEGY DIRECTOR (00:16 KST, adaptive mode + equipment progression) KEEP decision with hard evidence from latest 20 thinking logs: `level +17` (`2->19`), `gold +190` (`134->324`), `rate_limited 1/20`; latest status/smoke kept stability (`level=19`, `exp 299->301`, `gold 329->334`, `ok=1/1`, `code=200`).
 - Defeat telemetry now uses supported endpoint `GET /api/logs?action=death&limit=50` (HTTP 200); no new recent death signal observed in the latest cycle window, while unsupported `action=combat` remains `400` and is no longer used for death checks.
