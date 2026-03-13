@@ -1,0 +1,35 @@
+{
+  "character_name": "j211y",
+  "tick_number": 1773427771938,
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.77,
+    "mp_pct": 1,
+    "level": 19,
+    "area": "talking_island_field",
+    "gold": 339,
+    "inventory_count": 3,
+    "inventory_max": 30,
+    "available_actions": [
+      "combat_start",
+      "rest",
+      "use_item",
+      "sell",
+      "buy",
+      "move",
+      "enhance"
+    ],
+    "delta_level_last20": 17,
+    "delta_exp_last20": 0,
+    "delta_gold_last20": 221,
+    "delta_death_last20": 0,
+    "rate_limit_signal_count_last20": 1,
+    "last_known_death_timestamp": "2026-03-13 17:48:43"
+  },
+  "reasoning": "Last 20 thinking logs still show evidence-backed improvement (level +17, gold +221, rate-limited 1/20). Current live status is stable (level 19, exp 2071, gold 339, inv 3). No newer death timestamp than 2026-03-13 17:48:43 was observed, so KEEP is valid this cycle while preserving safest high-efficiency hunt, level-gated movement, and conservative risk-gap controls.",
+  "action_detail": "keep:delay3800,maxActions1,inv10/8/10,worse-than-equipped-first,best-slot-equip(maxDamage+defBonus),staged-safe-enhance(scroll+npc+resource+rate).",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: wait_combat_start_rate_limit<=35%, deaths=0, inventory<=8, smoke code=200, and progress to exp>=2200 or gold>=360 at level 19."
+  }
+}

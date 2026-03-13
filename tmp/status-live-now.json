@@ -1,0 +1,46 @@
+{
+  "status": 200,
+  "invStatus": 200,
+  "character": {
+    "id": "8402b5bf-7f8b-4493-84dc-a414e9a334a7",
+    "username": "j211y",
+    "level": 19,
+    "exp": 2071,
+    "exp_to_next": 3610,
+    "hp": {
+      "current": 285,
+      "max": 370
+    },
+    "mp": {
+      "current": 194,
+      "max": 194
+    },
+    "atk": 64,
+    "def": 41,
+    "gold": 339,
+    "current_area": "talking_island_field",
+    "weapon": "short_sword",
+    "armor": null,
+    "shield": null,
+    "helmet": null,
+    "gloves": null,
+    "boots": null,
+    "accessory": null,
+    "weapon_element": "neutral",
+    "active_buffs": [],
+    "combat": {
+      "in_progress": false
+    },
+    "character_class": "knight",
+    "stats": {
+      "str": 10,
+      "dex": 10,
+      "con": 10,
+      "int_stat": 10,
+      "wis": 10
+    },
+    "elf_element": null
+  },
+  "inventoryCount": 3,
+  "inventoryMax": 30
+}
