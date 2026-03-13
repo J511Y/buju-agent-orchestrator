@@ -1,6 +1,23 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 08:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level +2` (`18->20`), `gold -20` (`329->309`), `death +0` (window `2026-03-13 21:20:10` -> `2026-03-14 07:49:43`), with throttle signal still present (`13/20`), so KEEP was rejected.
+  - Logic change applied: `scripts/live-strategy-runner.js` now sends `POST /combat/strategy` only when payload changes or every 8 ticks (refresh), instead of every combat-start attempt, to reduce rate-limit collisions while keeping safety behavior unchanged.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=1`, `gold=309`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement path (early safe accumulation, mid weapon-first, late armor/accessory with risk controls); minimal safe enhancement path remains prerequisite-gated.
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `wait_combat_start_rate_limit<=30%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and economy recovery to `gold>=320`.
+
+- [2026-03-14 07:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level +2` (`18->20`), `gold -10` (`319->309`), with persistent rate-limit signal in window (`20/20`), so KEEP was rejected.
+  - Logic change applied: `scripts/live-strategy-runner.js` now attempts direct `/hunt` fallback (`hunt_on_combat_cooldown`) when `combat_start` enters cooldown/skip, instead of pure wait, to preserve progression throughput under throttle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped gear first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan (early safe accumulation, mid weapon-first, late armor/accessory with failure-risk controls); safe enhancement path remains prerequisite-gated.
+  - Safety policy unchanged: safest high-efficiency monster selection with conservative risk gap + level-threshold movement gates retained to avoid repeated defeats.
+
 - [2026-03-14 07:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level +1`, `gold -15`, `death +0` (window `2026-03-13 20:20:01` -> `2026-03-14 06:49:30`), so KEEP was rejected.
   - Logic change applied: in `scripts/live-strategy-runner.js`, dangerous-combat surrender HP trigger changed from fixed `0.55` to `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` to reduce repeated `combat_start -> surrender_dangerous_combat -> rest` churn while preserving high-risk overrides (`tooHighLevel`/`tooHighDamage`).

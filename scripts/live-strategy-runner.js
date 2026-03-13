@@ -358,6 +358,8 @@ function chooseBestSkill(skills, currentMp) {
 }
 
 const recentCombatOutcomes = [];
+let lastCombatStrategySignature = '';
+let lastCombatStrategyTick = 0;
 
 function pushCombatOutcome(outcome) {
   if (!outcome) return;
@@ -717,7 +719,22 @@ async function step() {
 
   if (CFG.useCombatStart) {
     if (shouldSkipAction('combat_start')) {
-      return { ok: true, action: 'wait_combat_start_cooldown', monster_id: monsterId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      // Adaptive fallback: if combat_start is cooling down (typically after repeated 429/400),
+      // use direct hunt once to keep progression signal instead of pure waiting.
+      const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
+      recordActionResult('hunt', huntFallback.status);
+      pushCombatOutcome(huntFallback.json?.result?.outcome || huntFallback.json?.result || null);
+      return {
+        ok: huntFallback.status === 200,
+        action: huntFallback.status === 200 ? 'hunt_on_combat_cooldown' : 'wait_combat_start_cooldown',
+        monster_id: monsterId,
+        skill_id: skillId,
+        result: huntFallback.json?.result,
+        level: c.level,
+        exp: c.exp,
+        gold: c.gold,
+        code: huntFallback.status
+      };
     }
 
     // 시즌2 자동전투: 전투 시작 전 전략을 항상 갱신
@@ -731,8 +748,18 @@ async function step() {
       pre_combat_buffs: [],
       auto_surrender_threshold: Math.round(CFG.lowHpRatio * 100)
     };
-    const strategy = await req('/combat/strategy', { method: 'POST', body: JSON.stringify(strategyBody) });
-    recordActionResult('combat_strategy', strategy.status);
+    const strategySignature = JSON.stringify(strategyBody);
+    const strategyRefreshNeeded = (strategySignature !== lastCombatStrategySignature)
+      || ((tickCounter - lastCombatStrategyTick) >= 8);
+
+    if (strategyRefreshNeeded) {
+      const strategy = await req('/combat/strategy', { method: 'POST', body: JSON.stringify(strategyBody) });
+      recordActionResult('combat_strategy', strategy.status);
+      if (strategy.status === 200) {
+        lastCombatStrategySignature = strategySignature;
+        lastCombatStrategyTick = tickCounter;
+      }
+    }
 
     if (!hasRateBudget(rateLimits, 'hunt')) {
       return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
