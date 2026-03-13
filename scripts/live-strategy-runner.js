@@ -350,14 +350,32 @@ function chooseBestSkill(skills, currentMp) {
   return pool[0]?.skill_id || 'basic_attack';
 }
 
+const recentCombatOutcomes = [];
+
+function pushCombatOutcome(outcome) {
+  if (!outcome) return;
+  recentCombatOutcomes.push(outcome);
+  if (recentCombatOutcomes.length > 12) recentCombatOutcomes.shift();
+}
+
+function recentDefeatCount(windowSize = 8) {
+  return recentCombatOutcomes.slice(-windowSize).filter(x => x === 'defeat').length;
+}
+
 function chooseMonster(monsters, player) {
   if (!monsters.length) return 'rabbit';
   const level = Number(player?.level || 1);
   const pAtk = Number(player?.atk || 1);
   const pDef = Number(player?.def || 1);
+  const defeatPressure = recentDefeatCount(8);
+  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(1, defeatPressure));
 
-  const filtered = monsters.filter(m => (m.level || level) <= level + CFG.maxSafeMonsterLevelGap);
-  const pool = filtered.length ? filtered : monsters;
+  const safetyFiltered = monsters.filter(m => {
+    const mLevel = Number(m.level || level);
+    const mAtk = Number(m.atk || 0);
+    return mLevel <= level + dynamicGap && mAtk <= (pDef * 1.75);
+  });
+  const pool = safetyFiltered.length ? safetyFiltered : monsters;
 
   pool.sort((a, b) => {
     const ax = Number(a.exp_reward ?? a.exp ?? 0);
@@ -369,13 +387,15 @@ function chooseMonster(monsters, player) {
     const aDef = Number(a.def || 0);
     const bDef = Number(b.def || 0);
 
-    const aKillPressure = Math.max(1, pAtk - aDef);
-    const bKillPressure = Math.max(1, pAtk - bDef);
-    const aDanger = Math.max(0, aAtk - pDef) + Math.max(0, al - level) * 4;
-    const bDanger = Math.max(0, bAtk - pDef) + Math.max(0, bl - level) * 4;
+    const aKill = Math.max(1, pAtk - aDef);
+    const bKill = Math.max(1, pAtk - bDef);
+    const aDanger = (Math.max(0, aAtk - pDef) * 1.4) + (Math.max(0, al - level) * 5);
+    const bDanger = (Math.max(0, bAtk - pDef) * 1.4) + (Math.max(0, bl - level) * 5);
+    const aEfficiency = ax / Math.max(1, 1 + aDanger);
+    const bEfficiency = bx / Math.max(1, 1 + bDanger);
 
-    const aScore = (ax * 2) + aKillPressure - (aDanger * 3);
-    const bScore = (bx * 2) + bKillPressure - (bDanger * 3);
+    const aScore = (aEfficiency * 3) + aKill - (aDanger * 2.5);
+    const bScore = (bEfficiency * 3) + bKill - (bDanger * 2.5);
     return bScore - aScore;
   });
 
@@ -661,10 +681,12 @@ async function step() {
     if (combat.status === 404 || (combat.status === 400 && String(combat.json?.code || '') === 'API_DEPRECATED')) {
       const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
       recordActionResult('hunt', huntFallback.status);
+      pushCombatOutcome(huntFallback.json?.result?.outcome || huntFallback.json?.result || null);
       return { ok: huntFallback.status === 200, action: 'hunt_fallback', monster_id: monsterId, skill_id: skillId, result: huntFallback.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: huntFallback.status };
     }
 
     const rewards = combat.json?.rewards || {};
+    pushCombatOutcome(combat.json?.result?.outcome || combat.json?.result || null);
     return {
       ok: combat.status === 200,
       action: 'combat_start',
@@ -680,6 +702,7 @@ async function step() {
 
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
   recordActionResult('hunt', hunt.status);
+  pushCombatOutcome(hunt.json?.result?.outcome || hunt.json?.result || null);
   return { ok: hunt.status === 200, action: 'hunt', monster_id: monsterId, skill_id: skillId, result: hunt.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: hunt.status };
 }
 

@@ -372,3 +372,13 @@
 - Constraint integrity: hard inventory policy kept exactly (`BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`) and worse-than-equipped liquidation priority unchanged.
 - Enhancement progression status: staged plan remains active (early safe farm, mid weapon-first with prereqs, late broadening with risk controls); minimal safe enhancement path remains prerequisite-gated.
 - KPI target (next 30 min): smoke `ok>=1/1` at `code=200`, new `429` probes `=0`, defeats `=0`, level `>=19`, inventory slots `<=8`.
+
+- Adaptive step-81 (2026-03-13 16:46 KST): last-20 thinking logs show net progression but mixed stability; latest run improved level band (`11->18`) while introducing fresh 429 pressure.
+- CHANGE (reversible): lowered safe monster gap from `1` to `0`, widened base delay from `1600` to `2200`, and updated monster selector to prioritize safety-filtered high-efficiency targets (`exp/(1+danger)`) with defeat-aware dynamic gap tightening.
+- Rationale: enforce safest available farm target first, reduce repeated defeat risk, and keep movement strictly level-threshold gated.
+- Equipment progression (staged, active):
+  - Early game: prioritize gold accumulation and safe hunting; no enhancement spam.
+  - Mid game: weapon-first enhancement when reserve/prereqs are satisfied.
+  - Late game: expand to armor/accessory with cooldown/failure-risk guardrails.
+- Enhancement action path: minimal safe path remains implemented with prerequisite gates (`weapon equipped + scroll + blacksmith NPC + gold reserve + enhance rate budget`).
+- KPI target (next 30 min): smoke `ok>=1/1` code `200`, defeats `=0`, rate-limit probes `<=1`, level `>=19`, inventory slots `<=8`.
