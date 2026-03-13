@@ -366,3 +366,9 @@
 - CHANGE (reversible): added minimal safe enhancement path in runner (weapon-first, prerequisite checks, cooldown gate) and explicit `combat/start` payload (`monster_id`, `area`) for compatibility safety.
 - Constraint integrity: mandatory inventory liquidation + rest-first numeric constraints unchanged.
 - KPI target (next 30 min): maintain smoke `ok>=5/5` code=200, deaths=0, and reach `exp>=20`, `gold>=150`, inventory slots `<=8`.
+- Adaptive step-80 (2026-03-13 16:16 KST): last-20 thinking baseline (19 logs) showed prior checkpoint around `level=11`, `gold=324`, `area=talking_island_field`; current state moved to `level=18`, `gold=304`, `area=talking_island_cave`, inventory `8->5`.
+- CHANGE (reversible): a fresh smoke probe surfaced `combat_start` HTTP `429`, so cadence was de-bursted by changing `BUJU_BASE_DELAY_MS` from `1200` to `1600` and `BUJU_MAX_ACTIONS_PER_CYCLE` from `5` to `3`.
+- Rationale: progression exists, but a new immediate rate-limit signal violates KEEP condition; lower burst pressure first before deeper logic changes.
+- Constraint integrity: hard inventory policy kept exactly (`BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`) and worse-than-equipped liquidation priority unchanged.
+- Enhancement progression status: staged plan remains active (early safe farm, mid weapon-first with prereqs, late broadening with risk controls); minimal safe enhancement path remains prerequisite-gated.
+- KPI target (next 30 min): smoke `ok>=1/1` at `code=200`, new `429` probes `=0`, defeats `=0`, level `>=19`, inventory slots `<=8`.

@@ -1,6 +1,20 @@
 # Ops Log
 
 ## 2026-03-09
+- [2026-03-09 19:25 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (current failure streak up to `3`).
+  - Last-hour gameplay signals: no progression/economy movement (`Δlevel=0`, `Δexp=0`, `Δgold=0`), no confirmed wins/defeats (`win=0`, `defeat=0`, source=`fallback:local_replay`).
+  - Resource trend: repeated consumable-only drain (`use_item_remaining 18 -> 14`, `Δ=-4`) while HP/MP/gold/area remained unchanged (`100/100`, `50/50`, `100`, `talking_island_field`).
+  - Anomaly: history APIs remain degraded (`404`), so outcome confidence stays low and status-only inference remains mandatory.
+  - Retry recommendation (API failure mode): continue hourly retries for history endpoints, keep `/api/status` as primary evidence, and escalate only if `/api/status` becomes non-200/unreachable.
+  - 30-min TODO: implement `idle_streak` state file integration plus summary emission (`streak_count`, `severity`, `reset_reason`) in one deterministic formatter.
+- [2026-03-09 15:13 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; activity-history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (failure streak up to `6`).
+  - Last-hour gameplay signals: no progression/economy movement (`Δlevel=0`, `Δexp=0`, `Δgold=0`), with wins/defeats unresolved (`win=0`, `defeat=0`, source=`fallback:local_replay`).
+  - Resource trend: repeated consumable-only drain (`use_item_remaining 18 -> 14`, `Δ=-4`) while HP/MP/gold/area remained unchanged.
+  - Anomaly: history APIs remain degraded (`404`), so status-only interpretation remains required and combat-outcome confidence stays low.
+  - Retry recommendation (API failure mode): keep hourly retries on history endpoints, use `/api/status` as primary evidence, and escalate only when `/api/status` returns non-200/fails.
+  - 30-min TODO: implement a compact `idle_streak` summary line in feedback output (e.g., `idle_streak=12,severity=critical,reset=none`) for easier ops parsing.
 - [2026-03-09 14:09 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (failure streak up to `6`).
   - Last-hour gameplay signals: no progression/economy shift (`Δlevel=0`, `Δexp=0`, `Δgold=0`), with unresolved outcomes (`win=0`, `defeat=0`, source=`fallback:local_replay`).
@@ -2718,3 +2732,12 @@
   - Ops telemetry: posted adaptive thinking with delta-based reasoning and `action_detail=changed:safe_enhancement_path...`, response `{"success":true}`.
   - KPI target next 30m: keep smoke `ok>=5/5` code=200, deaths=0, `exp>=20`, `gold>=150`, inventory slots `<=8`.
   - Runtime continuity: daemon and live runner processes confirmed active.
+- [2026-03-13 16:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): read `GET /api/agent/thinking/j211y?limit=20` (records=`19`) and computed deltas (`level 11->18`, `gold 324->304`, `area field->cave`, `inventory 8->5`, rate_limited logs in window=`0`).
+  - ADAPTIVE DIAGNOSIS: first smoke probe returned `live-strategy ok=0/1 lastAction=combat_start ... code=429`; KEEP rejected because new bottleneck appeared despite level progression.
+  - CHANGE (config, reversible): `config/strategy.env` tuned to reduce burst pressure: `BUJU_BASE_DELAY_MS=1600` (from 1200), `BUJU_MAX_ACTIONS_PER_CYCLE=3` (from 5).
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 worse-than-equipped liquidation priority unchanged.
+  - Equipment progression status: best-in-slot auto-equip (`equipSlot`, `score=maxDamage+defBonus`) remains active; staged enhancement plan in `docs/DECISIONS.md` retained; minimal safe enhancement path remains prerequisite-gated (scroll+npc+resource).
+  - Validation evidence: post-change smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `live-strategy ok=1/1 lastAction=rest level=18 exp=1 gold=304 code=200`.
+  - Ops telemetry: posted adaptive thinking to `POST /api/agent/thinking` with delta-based reasoning and new KPI target, response `200 {"success":true}`.
+  - Runtime continuity evidence: daemon continuous (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js` both active via `pgrep`).
