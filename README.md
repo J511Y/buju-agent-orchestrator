@@ -62,6 +62,7 @@ npm run dev
 - 단발 틱 실행(기본 2틱): `node scripts/live-action-tick.js [ticks]`
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
+  - 단일 인스턴스 가드: `logs/live-runner-daemon.lock` PID 락이 살아있으면 중복 실행을 건너뜀
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
 - 주요 튜닝 키: `BUJU_BASE_DELAY_MS`, `BUJU_MAX_ACTIONS_PER_CYCLE`, `BUJU_MOVE_LEVEL_*`, `BUJU_AREA_LV*`, `BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_BUY_QTY`, `BUJU_MIN_GOLD_RESERVE`, `BUJU_POTION_USE_MAX_QUANTITY`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`, `BUJU_BACKOFF_*`, `BUJU_USE_COMBAT_START`, `BUJU_ENHANCE_*`
 - 하드 인벤토리 안전 불변식(환경변수로 오버라이드하지 않음): 판매 트리거/목표 슬롯은 10→8, 정리 반복 상한은 tick당 10회로 고정
