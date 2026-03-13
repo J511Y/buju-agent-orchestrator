@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-13 21:29 KST
+- Hypothesis: Persisting an hourly status snapshot cache (with explicit previous-pointer metadata) will make fallback gameplay deltas deterministic and reduce manual OPS cross-referencing when history APIs remain `404`.
+- Change: Add a tiny cache artifact (`logs/status-hourly-cache.json`) written by hourly cycle and consumed by summary generator for `Δexp/Δgold/Δhp`.
+- Metric(s): % fallback cycles with non-empty deterministic deltas; mismatch rate vs manual OPS comparisons; time-to-write hourly feedback.
+- Result: Current cycle still had history endpoints `404` while `/api/status` remained `200` and usable; live deltas required manual comparison against earlier OPS snapshot.
+- Decision: Run in next 30-min dev cycle; promote if deterministic deltas are emitted for 6 consecutive degraded-history cycles.
+
 - Date: 2026-03-13 18:28 KST
 - Hypothesis: Normalizing `/api/status.character.hp/mp` object fields into scalar telemetry in the hourly fallback summary will improve actionability when history APIs are degraded.
 - Change: Add parser/mapper in activity summarizer for nested `hp.current/max` and `mp.current/max` (with legacy scalar fallback) and include normalized status fields in output.

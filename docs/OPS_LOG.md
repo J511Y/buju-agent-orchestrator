@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-13
+- [2026-03-13 21:29 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
+  - Live status snapshot (`GET /api/status`, masked key): `level=18`, `exp=2123`, `gold=339`, `hp=207/355`, `mp=186/186`, `area=talking_island_field`, `combat=out_of_combat`.
+  - Last-hour gameplay signals: status-delta vs prior 19:27 snapshot indicates progression/economy gain (`Δexp=+1128`, `Δgold=+0` vs 19:27 gold already 339), survivability drift (`Δhp=-4`), wins/defeats unresolved (`win=0`, `defeat=0`) due to missing history stream.
+  - Resource/anomaly note: all major action quotas reset to full headroom (`hunt/use_item/move/buy/sell/enhance/surrender=30/30`), while recent-agent logs endpoint returned empty data (`/api/agent/thinking/*` total=0), limiting confidence on anomaly attribution.
+  - Retry recommendation (API failure mode): keep hourly retries for history endpoints; if `404` persists, continue using `/api/status.character` deltas as primary evidence and treat outcome confidence as low.
+  - 30-min TODO: add a small status-snapshot cache file (hourly) with explicit `prev_ts` linkage so fallback summaries compute deterministic `Δexp/Δgold/Δhp` without relying on manual OPS-log comparisons.
 - [2026-03-13 19:27 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
   - Live status snapshot (`GET /api/status`, direct probe): `level=18`, `exp=995`, `gold=339`, `hp=211/355`, `mp=186/186`, `area=talking_island_field`, `combat=in_progress(skeleton)`.
