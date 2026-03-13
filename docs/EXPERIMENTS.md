@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-13 23:28 KST
+- Hypothesis: During history endpoint outages (`404`), querying `/api/logs` with allowed action enums (`death`, `level_up`) will provide partial outcome evidence and improve hourly win/defeat confidence over the current `action=combat` (`400`) probe.
+- Change: Extend hourly fetcher fallback to test `GET /api/logs?action=death&limit=50` and `GET /api/logs?action=level_up&limit=50`, then map to `outcome_confidence` (`low|medium|high`).
+- Metric(s): % hourly cycles with non-empty outcome evidence while history endpoints are degraded; false-positive outcome inferences vs later recovered history streams.
+- Result: Current cycle had `/api/status` `200` with useful deltas, history endpoints all `404`, and `GET /api/logs?action=combat&limit=50` returned `400 INVALID_INPUT`.
+- Decision: Run in next 30-min dev cycle; promote if confidence improves (low->medium+) for 4 consecutive degraded-history cycles.
+
 - Date: 2026-03-13 22:27 KST
 - Hypothesis: Adding a secondary combat-log query variant when `GET /api/logs?action=combat&limit=50` returns `400` will recover partial win/defeat evidence and reduce low-confidence hourly summaries during history endpoint outages.
 - Change: Extend hourly collector to try one fallback combat-log query contract after `400` and emit `win_defeat_confidence` (`low|medium|high`) based on source availability.
