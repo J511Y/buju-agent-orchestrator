@@ -2792,3 +2792,13 @@
   - Retry recommendation (API failure mode): keep hourly retries on history endpoints; continue status+thinking fallback and keep win/defeat confidence capped at `medium` until history APIs recover for >=2 consecutive cycles.
   - Development feedback: progression is occurring but with high throttle-wait overhead and HP drawdown; next iteration should optimize combat-start pacing before increasing action volume.
 - [2026-03-13 20:28 KST] Next 30-min actionable TODO: implement `combat_start_dynamic_cooldown` (increase cooldown when recent wait-rate-limit share >50%, relax when <25%) and log `cooldown_ms`, wait-share, and `Δexp/Δhp` per cycle.
+
+- [2026-03-13 20:47 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP/CHANGE loop: read trailing 20 thinking logs (`GET /api/agent/thinking/j211y?limit=20`) and computed deltas: `level 1->18`, `gold 113->334`, `death delta=0`, `rate_limited=1/20`.
+  - ADAPTIVE DIAGNOSIS: long-window growth exists, but immediate KPI remained below target (`level=18`, `gold<350`) with recurring combat-start wait pressure; KEEP rejected.
+  - CHANGE (config, reversible): `BUJU_BASE_DELAY_MS: 3600 -> 3800` in `config/strategy.env`.
+  - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=2 node scripts/live-strategy-runner.js` => `live-strategy ok=2/2 lastAction=wait_combat_start_rate_limit level=18 exp=1781 gold=314 code=200`; post-check `GET /api/status` => `level=18 exp=1783 gold=319`.
+  - KEEP (hard constraints): preserved exactly — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, including `slots>=10` worse-than-equipped-first liquidation.
+  - KEEP (equipment progression): best-slot auto-equip (`equipSlot`, `maxDamage+defBonus`) active; staged enhancement plan (early safe/no spam -> mid weapon-first -> late armor/accessory risk-controlled) retained; safe enhancement path remains prerequisite-gated (`scroll+npc+resource`).
+  - CHANGE (ops telemetry): posted delta-based Buju thinking to `POST /api/agent/thinking`, response `200 {"success":true}`.
+  - KPI target next 30 min: combined combat-start wait share `<=45%`, defeats `=0`, inventory `<=8`, and progression to `level>=19` or `gold>=350` with smoke `code=200`.
