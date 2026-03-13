@@ -388,3 +388,10 @@
 - Constraint integrity: hard inventory constraints unchanged and still enforced (`trigger=10`, `target=8`, `max-iterations=10`), with worse-than-equipped liquidation priority preserved.
 - Equipment progression plan remains active in docs and runtime (early safe farm, mid weapon-first enhancement on prerequisite gates, late armor/accessory broadening with cooldown/risk controls).
 - KPI target (next 30 min): reduce `combat_start` 429 appearances in daemon tail to <=1 per 5 cycles, keep defeats `=0`, hold inventory slots `<=8`, and reach `level>=19` or `gold>=330`.
+
+- Adaptive step-83 (2026-03-13 17:46 KST): last-20 thinking logs still show historical growth (`level 1->18`, `gold 113->304`) but current daemon window is flat (`level=18`, `exp=1`, `gold=304`) with repeating `combat_start 429` and `surrender_dangerous_combat` churn.
+- CHANGE (reversible): reduced per-cycle burst from `BUJU_MAX_ACTIONS_PER_CYCLE=3` to `2`, and tightened area progression gate by raising `BUJU_MOVE_LEVEL_2` from `18` to `20` to stay in safer field routing until threshold is actually met.
+- Rationale: KEEP rejected due no near-term KPI lift + repeated risk/throttle pattern; this change lowers request pressure and risk gap without touching mandatory inventory constraints.
+- Constraint integrity: hard inventory policy preserved exactly (`BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`) and worse-than-equipped liquidation priority unchanged.
+- Equipment progression policy (explicit): (a) early game = gold accumulation, no enhancement spam; (b) mid game = weapon-first enhancement when reserve+scroll+NPC prerequisites are satisfied; (c) late game = widen to armor/accessory with cooldown/failure-risk controls.
+- KPI target (next 30 min): daemon tail `combat_start 429 <=1` per 6 cycles, dangerous-surrender events `<=1` per 6 cycles, defeats `=0`, inventory slots `<=8`, and progression to `level>=19` or `gold>=320`.
