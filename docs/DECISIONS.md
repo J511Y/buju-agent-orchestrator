@@ -443,3 +443,13 @@
 - Constraint integrity: hard inventory rules preserved exactly (`BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`) with `slots>=10` worse-than-equipped liquidation priority unchanged.
 - Equipment progression status: best-in-slot equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement plan remains explicit (early safe gold/no spam -> mid weapon-first on reserve+scroll+npc -> late armor/accessory with cooldown/failure controls); minimal safe enhancement path remains prerequisite-gated.
 - KPI target (next 30 min): keep combined combat-start wait share `<=45%`, defeats `=0`, inventory slots `<=8`, and progress to `level>=19` or `gold>=350` with smoke `code=200`.
+
+- Adaptive step-90 (2026-03-13 21:18 KST): parsed last-20 thinking logs (`GET /api/agent/thinking/j211y?limit=20`) and computed deltas `level 1->18 (+17)`, `gold 113->319 (+206)`, `rate_limited 1/20`; current status check showed `level=18`, `exp=2035`, `gold=329`, `inventory=8`, `area=talking_island_field`.
+- KEEP (evidence-based): improvement is still present in the mandatory window, so no pacing/config churn this cycle; keep conservative cadence and monitor immediate `combat_start` 429 wait pressure.
+- Hard constraints re-validated in runtime code path (env-override immune): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with slots>=10 liquidation priority = unequipped worse-than-equipped first.
+- Equipment progression plan detail (staged, explicit):
+  - Early game (Lv1~9): safe gold/EXP farming only, auto-equip best-in-slot each cycle by `equipSlot` and `score=maxDamage+defBonus`, no enhancement spam.
+  - Mid game (Lv10+): weapon-first enhancement only when all prerequisites are satisfied (`weapon equipped + scroll available + blacksmith npc + gold reserve >= BUJU_ENHANCE_GOLD_RESERVE + action budget`).
+  - Late game (Lv20+): expand to armor/accessory enhancement only after weapon baseline, with reserve margin (`+400`), cooldown gate (`BUJU_ENHANCE_COOLDOWN_TICKS`), and stall/rate-limit controls.
+- Enhancement action path status: minimal safe API path remains active and prerequisite-gated (`/npc/list` -> select blacksmith -> `/npc/{npc_id}/enhance`), skipped when any prerequisite is missing.
+- KPI target (next 30 min): keep defeats `=0`, maintain inventory slots `<=8`, reduce `wait_combat_start_rate_limit` share to `<=45%`, and reach `level>=19` or `gold>=350` with smoke `code=200`.

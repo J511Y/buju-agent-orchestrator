@@ -2802,3 +2802,12 @@
   - KEEP (equipment progression): best-slot auto-equip (`equipSlot`, `maxDamage+defBonus`) active; staged enhancement plan (early safe/no spam -> mid weapon-first -> late armor/accessory risk-controlled) retained; safe enhancement path remains prerequisite-gated (`scroll+npc+resource`).
   - CHANGE (ops telemetry): posted delta-based Buju thinking to `POST /api/agent/thinking`, response `200 {"success":true}`.
   - KPI target next 30 min: combined combat-start wait share `<=45%`, defeats `=0`, inventory `<=8`, and progression to `level>=19` or `gold>=350` with smoke `code=200`.
+- [2026-03-13 21:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 1->18`, `gold 113->319`, `rate_limited 1/20`; evidence supports KEEP (improvement present).
+  - Live status probe (`GET /api/status`): `level=18`, `exp=2035`, `gold=329`, `hp=182/355`, `mp=186/186`, `area=talking_island_field`, `combat=inactive`.
+  - Validation smoke: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `code=200`.
+  - KEEP (hard constraints): invariant maintained in code path — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 keeps worse-than-equipped unequipped sell priority first.
+  - Equipment progression status: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` active; staged enhancement policy remains explicit (early safe farm, mid weapon-first, late armor/accessory with reserve+cooldown risk controls); minimal safe enhancement API path remains prerequisite-gated.
+  - Ops telemetry: posted KEEP reasoning to `POST /api/agent/thinking` with delta-based rationale and next KPI; response `200 {"success":true}`.
+  - KPI target (next 30 min): `wait_combat_start_rate_limit` share `<=45%`, defeats `=0`, inventory `<=8`, and progression to `level>=19` or `gold>=350` with smoke `code=200`.
+  - Runtime continuity evidence: daemon continuous (`pgrep` confirmed `live-runner-daemon.sh` + `live-strategy-runner.js` active).
