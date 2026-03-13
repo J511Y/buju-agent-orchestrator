@@ -837,3 +837,10 @@ Track A/B and policy experiments.
 - Metric(s): Guard-hit frequency per 24h, next-cycle HP recovery rate, and `Δexp/hour` retention after guard-triggered recommendations.
 - Result: Current cycle showed positive progression/economy (`Δexp=+338`, `Δgold=+25`) with meaningful HP decline (`Δhp=-53`) while all history endpoints remained `404`.
 - Decision: Implement in next 30-min dev cycle and validate over 8 hourly runs.
+
+- Date: 2026-03-14 01:26 KST
+- Hypothesis: An explicit `auth_preflight_check` (key validity + base-url alignment) before hourly probes will reduce false gameplay interpretations during auth drift (`401`) and improve operator response speed.
+- Change: Add preflight step that probes `/api/status` and one `/api/logs` endpoint using loaded env key, emits `auth_state`, and forces outcome confidence to `low` when preflight fails.
+- Metric(s): Number of hourly cycles with unresolved outcome cause (`404` vs `401`) ambiguity; time-to-diagnose credential failures; false-positive gameplay anomaly notes.
+- Result: Current cycle observed history endpoints `404` from fetcher plus direct authenticated probes returning `401 Missing or invalid API key`, leaving win/defeat unresolved.
+- Decision: Run in next 30-min dev cycle; promote if ambiguity drops for 4 consecutive hourly cycles.

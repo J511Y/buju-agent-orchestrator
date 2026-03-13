@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 01:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 11->19 (+8)`, `gold 304->334 (+30)`, `rate_limited=1/20`.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `code=200`; status check stable (`level=19`, `exp=811`, `gold=329`, inventory `8/30`).
+  - Safety/efficiency evidence: latest daemon tail shows continuous safe loop without new defeat-indicative churn, so safest high-efficiency monster selection + level-threshold movement policy kept.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan/path with prerequisite gates (`scroll+npc+resource+rate-budget+non-combat`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active processes).
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression to `gold>=360` or `exp>=900` at level 19.
 - [2026-03-14 00:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 9->19 (+10)`, `gold 314->334 (+20)`, `rate_limited=1/20`.
   - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `code=200`; status stable (`level=19`, `gold=334`, inventory `7/30`).
@@ -2910,3 +2919,11 @@
   - API failure mode + retry recommendation: maintain hourly retries for history endpoints and continue status-delta fallback; if `404` streak reaches `>=8`, trigger endpoint contract revalidation run before changing gameplay policy.
   - Development feedback: current loop is progressing/gaining gold but at notable HP drawdown; prioritize defensive stabilization signals before raising action aggressiveness.
 - [2026-03-14 00:26 KST] Next 30-min actionable TODO: add `hp_drawdown_guard` in hourly feedback path (`if Δhp <= -40 and Δexp > 0 => recommend shield/regen-first`) and emit guard hit count in OPS output.
+
+- [2026-03-14 01:26 KST] Hourly gameplay-feedback cycle executed with `.env` BUJU_API_KEY loaded (masked) and live probes.
+  - Evidence (`npm run -s activity:fetch -- --hours 1`): source=`fallback:local_replay`; `/api/status`=`200`; recent activity/history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (probe-summary failure streak `7`).
+  - Direct auth probe (`/api/status`, `/api/logs?action=death&limit=50`, `/api/logs?action=level_up&limit=50` via loaded env key) returned `401` (`Missing or invalid API key`), so win/defeat and level-up counts are unresolved for this hour.
+  - Last-hour gameplay signals: progression/win-defeat/resource trends remain non-observable from replay fallback (`Δlevel=0`, `Δexp=0`, `Δgold=0`, outcomes `win=0/defeat=0/unknown=0`); anomaly state is sustained telemetry blindness (history `404` + authenticated probes `401`).
+  - Development feedback: current feedback path is over-dependent on degraded history APIs; add an auth-health preflight gate and explicitly downgrade confidence when key validation fails.
+  - Failure mode + retry recommendation: verify BUJU_API_KEY freshness/scope and API base alignment first, then retry authenticated status+log probes next cycle; if `401` persists for >=2 cycles, rotate/regenerate key and pause policy changes that rely on win/defeat evidence.
+- [2026-03-14 01:26 KST] Next 30-min actionable TODO: implement `auth_preflight_check` in hourly collector (`/api/status` + one log endpoint), emit `auth_state=ok|invalid|missing` in OPS output, and short-circuit outcome inference when `auth_state!=ok`.
