@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 07:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level +1`, `gold -15`, `death +0` (window `2026-03-13 20:20:01` -> `2026-03-14 06:49:30`), so KEEP was rejected.
+  - Logic change applied: in `scripts/live-strategy-runner.js`, dangerous-combat surrender HP trigger changed from fixed `0.55` to `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` to reduce repeated `combat_start -> surrender_dangerous_combat -> rest` churn while preserving high-risk overrides (`tooHighLevel`/`tooHighDamage`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=20`, `exp=1`, `gold=309`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement path (early safe accumulation, mid weapon-first, late armor/accessory with risk controls); minimal safe enhancement path remains prerequisite-gated.
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `surrender_dangerous_combat<=1/6 cycles`, `wait_combat_start_rate_limit<=40%`, defeats `=0`, inventory `<=8`, smoke `code=200`.
 - [2026-03-14 05:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 309->309 (+0)`, `rate_limited=0/20` (window `2026-03-13 19:21:18` -> `2026-03-14 05:20:07`).
   - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=3055`, `gold=339`, `code=200`.

@@ -559,3 +559,13 @@
 - 2026-03-14 04:32 KST: For hourly gameplay feedback, treat paginated `GET /api/logs` as the primary outage fallback when `/api/*/recent` probes return `404`, instead of relying on local replay-only summaries.
   - Justification: live evidence this hour showed `/api/logs` healthy (`200`) with sufficient 60m signal (359 events, 251 wins, 0 defeats) while `activity:fetch` recent-endpoint probes stayed `404` and underreported gameplay.
   - Scope: feedback/telemetry path only; no gameplay policy/action-loop behavior change.
+
+- Adaptive step-93 (2026-03-14 07:16 KST): read `GET /api/agent/thinking/j211y?limit=20` and recomputed deltas `level +1`, `gold -15`, `death +0`, with persistent throttle/wait pressure in latest daemon tail.
+- CHANGE (evidence-based): to reduce repeated `combat_start -> surrender_dangerous_combat -> rest` churn, tuned dangerous-combat surrender HP gate from fixed `0.55` to dynamic `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` while preserving high-risk monster/atk override surrender conditions.
+- Constraint integrity preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots>=10, liquidate unequipped worse-than-equipped first before any other inventory cleanup.
+- Equipment progression requirements remain active:
+  - Early game: safe gold accumulation, no risky enhancement spam.
+  - Mid game: weapon-first enhancement only when scroll+npc+resource prerequisites are satisfiable.
+  - Late game: expand to armor/accessory with cooldown/failure-risk controls.
+- Minimal safe enhancement action path remains implemented (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance`) and executes only under prerequisite gates.
+- KPI target (next 30 min): `surrender_dangerous_combat<=1/6 cycles`, `wait_combat_start_rate_limit<=40%`, `deaths=0`, `inventory<=8`, smoke `code=200`.

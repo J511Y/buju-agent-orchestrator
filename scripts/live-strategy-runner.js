@@ -599,7 +599,8 @@ async function step() {
         const mAtk = Number(curMon.atk || 0);
         const tooHighLevel = mLevel > (Number(c.level || 1) + 2);
         const tooHighDamage = mAtk > Number(c.def || 1) * 1.6;
-        if (hpRatio < 0.55 || tooHighLevel || tooHighDamage) {
+        const combatSurrenderHpRatio = Math.max(0.4, CFG.lowHpRatio + 0.05);
+        if (hpRatio < combatSurrenderHpRatio || tooHighLevel || tooHighDamage) {
           const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
           recordActionResult('danger_surrender', sr.status);
           if (sr.status === 200) {
