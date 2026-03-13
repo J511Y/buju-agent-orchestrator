@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-13
+- [2026-03-13 19:27 KST] Hourly gameplay-feedback cycle (live API check) completed.
+  - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
+  - Live status snapshot (`GET /api/status`, direct probe): `level=18`, `exp=995`, `gold=339`, `hp=211/355`, `mp=186/186`, `area=talking_island_field`, `combat=in_progress(skeleton)`.
+  - Last-hour gameplay signals (status-delta vs prior 18:28 KST snapshot): progression positive (`Δlevel=0`, `Δexp=+598`), economy positive (`Δgold=+35`), survivability slightly down (`Δhp=-6`, `hp_ratio≈0.59`), wins/defeats unresolved (`win=0`, `defeat=0`, history API unavailable).
+  - Resource/anomaly note: hunt/use-item quotas reset to high headroom (`hunt=30/30`, `use_item=30/30`) while `surrender` remained consumed (`28/30`), indicating recent combat churn but no battle-log visibility.
+  - Retry recommendation (API failure mode): continue hourly retries on history endpoints; until recovery, treat `/api/status.character` deltas as primary signal and keep win/defeat confidence low.
+  - 30-min TODO: patch `scripts/lib/activity/summarizer.js` to ingest `/api/status.character` fields (level/exp/gold/hp/mp/area/combat) and emit provisional delta + confidence tags in fallback summaries.
 - [2026-03-13 18:28 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`).
   - Last-hour gameplay signals: no confirmed progression or combat outcomes from history stream (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `win=0`, `defeat=0`, `unknown=0`) because activity-history APIs remained unavailable.

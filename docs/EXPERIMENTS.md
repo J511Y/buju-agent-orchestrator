@@ -794,3 +794,11 @@ Track A/B and policy experiments.
 - Metric(s): % hourly cycles with non-empty outcome/anomaly section; false-positive anomaly rate vs later recovered activity API data; time-to-detect recurring 429 churn.
 - Result: Current hour had activity endpoints `404` + status `200`; thinking logs provided actionable last-hour evidence (fresh 16:50/17:22 entries with 429/surrender-churn mitigation) that replay fallback alone did not expose.
 - Decision: Implement in next 30-min cycle and validate across 6 hourly runs.
+
+- Date: 2026-03-13 19:27 KST
+- Hypothesis: Using direct `/api/status.character` deltas against prior OPS snapshot can recover actionable progression/economy feedback during persistent history-endpoint `404` outages.
+- Change: Validate fallback with live status probe + prior-cycle snapshot comparison (`18:28 -> 19:27`) and include confidence-labeled outcome limits.
+- Metric(s): Cycles with non-zero progression/economy signals while history endpoints fail; mismatch rate once history APIs recover.
+- Result: Current cycle produced clear status-derived movement (`Δexp=+598`, `Δgold=+35`, `Δhp=-6`) while all history endpoints remained `404`.
+- Decision: Continue for next 6 hourly cycles; promote to default fallback if non-zero status-derived signals remain stable and no major mismatches appear.
+
