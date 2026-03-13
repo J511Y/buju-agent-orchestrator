@@ -715,6 +715,10 @@ async function step() {
   const monsterId = chooseMonster(monsters, c, equipped);
 
   if (CFG.useCombatStart) {
+    if (shouldSkipAction('combat_start')) {
+      return { ok: true, action: 'wait_combat_start_cooldown', monster_id: monsterId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+
     // 시즌2 자동전투: 전투 시작 전 전략을 항상 갱신
     const strategyBody = {
       skill_priority: [skillId || 'basic_attack', 'basic_attack'],
