@@ -1,6 +1,13 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (06:46 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`2026-03-13 19:49:11 -> 2026-03-14 05:49:15`): `level +1` (`18->19`), `gold +0` (`324->324`), `rate_limited 0/20`, and no newer death timestamp than `2026-03-13 17:48:43` from `GET /api/logs?action=death&limit=50`.
+- Safety/efficiency remained aligned with constraints in this cycle: safest high-efficiency monster selection is still active under dynamic risk-gap control, and movement remains level-threshold gated (`BUJU_MOVE_LEVEL_2=20`, current level 19) to avoid premature risk expansion.
+- Hard constraints reaffirmed as invariants (non-env-overridable in execution path): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation prioritizes unequipped gear worse than equipped before general low-tier cleanup.
+- Equipment progression contract remains active: best-in-slot scan by `equipSlot` + `score(maxDamage+defBonus)` with auto-equip, staged enhancement strategy (early safe gold/no-spam -> mid weapon-first at reserve threshold -> late armor/accessory with failure-risk controls), and minimal safe enhancement path gated by `scroll + blacksmith npc + resource reserve + rate budget + non-combat`.
+- Live smoke validation this run: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=surrender_dangerous_combat`, `level=19`, `exp=3551`, `gold=319`, `code=200`; live runner daemon continuity confirmed active.
+- KPI target (next 30 min): defeats `=0`, inventory `<=8`, dangerous-surrender events `<=1` per 6 cycles, and progression to `exp>=3650` or `gold>=340` while maintaining smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (06:16 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log check (`2026-03-13 19:49:11 -> 2026-03-14 05:49:15`): `level +1` (`18->19`), `gold +0` (`324->324`), `rate_limited 0/20`, with no new death signal in current probe window (`/api/logs?action=death&limit=50` returned empty/new-none).
 - Safety/efficiency remains conservative and aligned with runtime behavior: safest high-efficiency routing remains active on currently available low-risk pool, and movement remains level-threshold gated (`BUJU_MOVE_LEVEL_2=20`, current level 19) to avoid risk-gap expansion.
 - Hard constraints re-locked as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when inventory slots `>=10`, liquidation prioritizes unequipped gear worse than equipped first.
