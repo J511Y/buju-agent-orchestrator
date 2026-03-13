@@ -886,3 +886,10 @@ Track A/B and policy experiments.
 - Metric(s): Number of hourly summaries produced with unresolved auth cause; false-positive gameplay anomaly/policy notes during `401` windows; time-to-diagnose key failures.
 - Result: Current cycle observed `.env` key present but direct authenticated probes returned `401` across status/log endpoints, while fallback probe still showed `*/recent` `404` + replay no-signal.
 - Decision: Execute in next 30-min dev cycle; promote if auth-cause ambiguity drops for 4 consecutive hourly cycles.
+
+- Date: 2026-03-14 08:28 KST
+- Hypothesis: A hard `death_loop_breaker` (triggered by last-hour defeat concentration) will reduce repeated `death/surrender/rest` churn and restore positive progression within 1-2 cycles.
+- Change: Add guard condition `death_count_last_60m >= 5 OR death_share >= 10%`; when hit, force conservative combat profile (lower monster tier, strict pre-combat HP floor, cooldown backoff) and suppress aggression recommendations.
+- Metric(s): `death_count/hour`, `hunt_count/hour`, `exp_delta/hour`, and guard-hit frequency over next 6 hourly cycles.
+- Result: Current hour showed severe loop signature from live logs (`death=136`, `surrender=136`, `rest=136`, `hunt=0`) with status at `Lv20, EXP=1`, confirming recovery churn without net progression.
+- Decision: Execute in next 30-min dev cycle; promote to default safeguard if defeats drop by >=80% and hunts recover (>30/hour) for 3 consecutive cycles.

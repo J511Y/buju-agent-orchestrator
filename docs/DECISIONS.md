@@ -584,3 +584,9 @@
   - Late game: expand to armor/accessory with cooldown/failure-risk controls.
 - Minimal safe enhancement action path remains implemented (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance`) and executes only under prerequisite gates.
 - KPI target (next 30 min): `surrender_dangerous_combat<=1/6 cycles`, `wait_combat_start_rate_limit<=40%`, `deaths=0`, `inventory<=8`, smoke `code=200`.
+
+- 2026-03-14 08:28 KST: Adopt `death_loop_breaker` as a mandatory safety-policy gate in hourly feedback/runner orchestration when last-hour defeat concentration is abnormal.
+  - Trigger baseline: `death_count_last_60m >= 5` or `death_share >= 10%` from paginated `/api/logs` fallback.
+  - Enforced behavior under trigger: freeze aggression increases, force conservative hunt profile + pre-combat HP floor + cooldown backoff until recovery criteria are met.
+  - Justification: live 1-hour evidence showed pathological loop (`death=136`, `surrender=136`, `rest=136`, `hunt=0`) with no progression signal, so normal adaptive tuning is unsafe.
+  - Scope: orchestration safety policy only; does not change secret handling or external API auth flow.

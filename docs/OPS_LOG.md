@@ -3090,3 +3090,12 @@
 - Development feedback: hold policy/aggression changes until auth preflight passes; prioritize restoring authenticated read path to recover outcome/resource observability.
 - API failure mode + retry recommendation: validate key freshness and base-url alignment, then retry `/api/status` + one `/api/logs` endpoint next cycle; if `401` persists for >=2 hourly cycles, rotate/regenerate BUJU_API_KEY and rerun hourly probe.
 - [2026-03-14 07:26 KST] Next 30-min actionable TODO: implement `auth_preflight_gate` in hourly job (hard-fail outcome synthesis on `401`, emit `auth_state`, and auto-log key-rotation checklist link) before gameplay inference.
+
+## 2026-03-14 08:28 KST — Hourly gameplay feedback (live API)
+- Evidence: loaded `.env` `BUJU_API_KEY` (masked); direct probes with `X-GQ-API-Key` succeeded (`/api/status=200`, `/api/logs=200`). `npm run -s activity:fetch -- --hours 1` still reports fallback path with `*/recent` endpoints `404`.
+- Last-hour gameplay signals (07:28~08:28 KST, paged `/api/logs` fallback): `408` events, action mix `death=136`, `surrender=136`, `rest=136`, `hunt=0`, `buy=0`.
+- Progression/resources: status snapshot `Lv20`, `EXP=1`, `Gold=309`, `HP=269/385`, `MP=202/202`; no positive progression signal in this window and no win evidence.
+- Anomaly (critical): defeat-loop pattern detected (death/surrender/rest triad repeating at high frequency, no hunt completions), indicating unstable combat policy after level-state transition.
+- Development feedback: block aggressiveness changes and shift to recovery-safe mode until death-rate collapses; current loop is spending cycles on failure recovery rather than progression.
+- API failure mode + retry recommendation: recent-history family remains unavailable (`404`), so continue hourly retries on `*/recent` while using paginated `/api/logs` as provisional truth source with confidence=`medium`.
+- [2026-03-14 08:28 KST] Next 30-min actionable TODO: implement `death_loop_breaker` guard in runner (`if death_count_last_60m >= 5 or death_share >= 10% => force low-risk hunt tier + mandatory pre-combat HP floor + cooldown backoff`) and emit guard-hit counter in hourly report.
