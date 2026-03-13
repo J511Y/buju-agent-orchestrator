@@ -41,9 +41,10 @@ const CFG = {
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
   backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
-  invSellTriggerSlots: Number(process.env.BUJU_INV_SELL_TRIGGER_SLOTS || 10),
-  invSellTargetSlots: Number(process.env.BUJU_INV_SELL_TARGET_SLOTS || 24),
-  invSellMaxIterationsPerTick: Number(process.env.BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK || 3),
+  // Hard constraints (strategy director): keep invariant regardless of env drift.
+  invSellTriggerSlots: 10,
+  invSellTargetSlots: 8,
+  invSellMaxIterationsPerTick: 10,
   invMaxSlots: Number(process.env.BUJU_INV_MAX_SLOTS || 30),
   invSurrenderSlots: Number(process.env.BUJU_INV_SURRENDER_SLOTS || 28),
   potionUseMaxQuantity: Number(process.env.BUJU_POTION_USE_MAX_QUANTITY || 3),
@@ -378,13 +379,37 @@ function chooseMonster(monsters, player, equipped = {}) {
   const armorRiskPenalty = hasArmor ? 0 : 1;
   const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, defeatPressure + armorRiskPenalty));
 
+  const atkGuard = hasArmor ? (pDef * 1.75) : (pDef * 1.45);
   const safetyFiltered = monsters.filter(m => {
     const mLevel = Number(m.level || level);
     const mAtk = Number(m.atk || 0);
-    const atkGuard = hasArmor ? (pDef * 1.75) : (pDef * 1.45);
     return mLevel <= level + dynamicGap && mAtk <= atkGuard;
   });
-  const pool = safetyFiltered.length ? safetyFiltered : monsters;
+
+  const scoreMonster = (m) => {
+    const mx = Number(m.exp_reward ?? m.exp ?? 0);
+    const ml = Number(m.level || level);
+    const mAtk = Number(m.atk || 0);
+    const mDef = Number(m.def || 0);
+    const kill = Math.max(1, pAtk - mDef);
+    const danger = (Math.max(0, mAtk - pDef) * 1.4) + (Math.max(0, ml - level) * 5);
+    const efficiency = mx / Math.max(1, 1 + danger);
+    return (efficiency * 3) + kill - (danger * 2.5);
+  };
+
+  // No "blind fallback": if nothing passes safety filter, prefer the globally least-danger option.
+  const pool = safetyFiltered.length
+    ? safetyFiltered
+    : [...monsters].sort((a, b) => {
+        const al = Number(a.level || level);
+        const bl = Number(b.level || level);
+        const aAtk = Number(a.atk || 0);
+        const bAtk = Number(b.atk || 0);
+        const aDanger = (Math.max(0, aAtk - pDef) * 1.6) + (Math.max(0, al - level) * 6);
+        const bDanger = (Math.max(0, bAtk - pDef) * 1.6) + (Math.max(0, bl - level) * 6);
+        if (aDanger !== bDanger) return aDanger - bDanger;
+        return scoreMonster(b) - scoreMonster(a);
+      }).slice(0, Math.min(3, monsters.length));
 
   pool.sort((a, b) => {
     const ax = Number(a.exp_reward ?? a.exp ?? 0);
@@ -415,15 +440,7 @@ async function ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimit
   if (inCombat) return null;
   if ((c.level || 1) < CFG.enhanceMidLevel) return null;
   if (!hasRateBudget(rateLimits, 'enhance')) return null;
-  if (shouldSkipAction('enhance_weapon')) return null;
   if ((c.gold || 0) < CFG.enhanceGoldReserve) return null;
-
-  const weaponId = (equipped?.weapon && (equipped.weapon.item_id || equipped.weapon)) || null;
-  if (!weaponId) return null;
-
-  const scrollIds = ['weapon_enchant_scroll', 'enhance_scroll', 'blessed_weapon_enchant_scroll'];
-  const scrollId = scrollIds.find(id => qty(inventory, id) > 0);
-  if (!scrollId) return null;
 
   const npcs = await req('/npc/list');
   if (npcs.status !== 200) return null;
@@ -435,13 +452,40 @@ async function ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimit
   });
   if (!smith?.npc_id) return null;
 
-  const payload = { item_id: weaponId, scroll_item_id: scrollId };
-  const e = await req(`/npc/${smith.npc_id}/enhance`, { method: 'POST', body: JSON.stringify(payload) });
-  recordActionResult('enhance_weapon', e.status);
-  if (e.status !== 200) return null;
+  const isLateGame = (c.level || 1) >= 20 && (c.gold || 0) >= (CFG.enhanceGoldReserve + 400);
 
-  stallState.set('enhance_weapon', { fails400: 0, untilTick: tickCounter + CFG.enhanceCooldownTicks });
-  return { ok: true, action: 'enhance_weapon_safe', item_id: weaponId, scroll_item_id: scrollId, npc_id: smith.npc_id, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+  const targets = [];
+  const weaponId = (equipped?.weapon && (equipped.weapon.item_id || equipped.weapon)) || null;
+  if (weaponId) {
+    targets.push({ actionKey: 'enhance_weapon', itemId: weaponId, scrollIds: ['weapon_enchant_scroll', 'enhance_scroll', 'blessed_weapon_enchant_scroll'], actionName: 'enhance_weapon_safe' });
+  }
+
+  if (isLateGame) {
+    const armorId = (equipped?.armor && (equipped.armor.item_id || equipped.armor)) || null;
+    const accessoryId = (equipped?.accessory && (equipped.accessory.item_id || equipped.accessory)) || null;
+    if (armorId) {
+      targets.push({ actionKey: 'enhance_armor', itemId: armorId, scrollIds: ['armor_enchant_scroll', 'enhance_scroll', 'blessed_armor_enchant_scroll'], actionName: 'enhance_armor_safe' });
+    }
+    if (accessoryId) {
+      targets.push({ actionKey: 'enhance_accessory', itemId: accessoryId, scrollIds: ['accessory_enchant_scroll', 'enhance_scroll', 'blessed_accessory_enchant_scroll'], actionName: 'enhance_accessory_safe' });
+    }
+  }
+
+  for (const target of targets) {
+    if (shouldSkipAction(target.actionKey)) continue;
+    const scrollId = target.scrollIds.find(id => qty(inventory, id) > 0);
+    if (!scrollId) continue;
+
+    const payload = { item_id: target.itemId, scroll_item_id: scrollId };
+    const e = await req(`/npc/${smith.npc_id}/enhance`, { method: 'POST', body: JSON.stringify(payload) });
+    recordActionResult(target.actionKey, e.status);
+    if (e.status !== 200) continue;
+
+    stallState.set(target.actionKey, { fails400: 0, untilTick: tickCounter + CFG.enhanceCooldownTicks });
+    return { ok: true, action: target.actionName, item_id: target.itemId, scroll_item_id: scrollId, npc_id: smith.npc_id, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+  }
+
+  return null;
 }
 
 async function ensureMutationShield(c, inventory, inCombat, rateLimits) {
@@ -691,6 +735,10 @@ async function step() {
 
     const combat = await req('/combat/start', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, area: c.current_area }) });
     recordActionResult('combat_start', combat.status);
+
+    if (combat.status === 429) {
+      return { ok: true, action: 'wait_combat_start_rate_limit', monster_id: monsterId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
 
     if (combat.status === 404 || (combat.status === 400 && String(combat.json?.code || '') === 'API_DEPRECATED')) {
       const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });

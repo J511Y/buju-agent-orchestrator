@@ -409,3 +409,17 @@
 - Equipment progression status: best-in-slot equip evaluation by `equipSlot` + `(maxDamage+defBonus)` remains active; staged enhancement plan kept (early safe gold/no spam -> mid weapon-first with reserve/prereq gates -> late armor/accessory expansion with cooldown/failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`weapon+scroll+npc+reserve+rate budget`).
 - Validation evidence: one-cycle smoke after change returned `live-strategy ok=1/2`, `lastAction=combat_start`, `code=200`, daemon continuity preserved.
 - KPI target (next 30 min): `combat_start 429 <=1` per 8 cycles, `surrender_dangerous_combat <=1` per 8 cycles, defeats `=0`, inventory slots `<=8`, and progress to `level>=19` or `gold>=340`.
+
+- Adaptive step-86 (2026-03-13 19:16 KST): parsed trailing thinking window (`/api/agent/thinking/j211y?limit=20`) and computed deltas across window edges: `level 1->18`, `gold 113->304`, `deaths 0->0` (no defeat increase), while immediate smoke still repeated `combat_start` throttle (`code=429`) before adaptation.
+- CHANGE (reversible):
+  - Enforced hard inventory constraints as code invariants (`trigger=10`, `target=8`, `maxIterations=10`) to avoid env drift.
+  - Tightened safest-target selection fallback: if no monster passes strict safety filter, choose least-danger candidates first (no blind fallback to high-risk mobs).
+  - Enhancement progression implementation extended to staged runtime path: mid-game weapon-first safe enhancement, late-game optional armor/accessory safe enhancement only when `level>=20` and reserve margin is met.
+  - Added combat-start throttle guard: `combat_start=429` now yields `wait_combat_start_rate_limit` (graceful wait, avoids fail-loop churn) instead of hard failing the tick.
+  - Pacing tuned `BUJU_BASE_DELAY_MS 3000->3200` to reduce burst pressure.
+- Enhancement strategy plan (staged, explicit):
+  - Early game: prioritize safe gold/EXP accumulation; no risky enhancement spam.
+  - Mid game: enhance main weapon first after reserve threshold + scroll + blacksmith + rate budget prerequisites.
+  - Late game: broaden to armor/accessory only with extra reserve and cooldown/failure-risk controls.
+- Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=wait_combat_start_rate_limit level=18 exp=919 gold=309 code=200`.
+- KPI target (next 30 min): keep defeats `=0`, keep inventory slots `<=8`, reduce `wait_combat_start_rate_limit` share to `<=50%` of ticks, and reach `level>=19` or `gold>=360`.
