@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 05:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->309 (+5)`, `rate_limited=0/20` (window `2026-03-13 18:49:29` -> `2026-03-14 04:49:24`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=19`, `exp=2813`, `gold=314`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon process).
+  - Defeat/risk evidence: no newer death timestamp than `2026-03-13 17:48:43`; current available monsters (`rabbit`, `skeleton`) stay under safest high-efficiency routing and movement remains level-threshold gated (`moveLv2=20`, current level 19).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement path with prerequisite gates (`scroll+npc+resource+rate-budget+non-combat`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression to `exp>=2950` or `gold>=330` at level 19.
 - [2026-03-14 04:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->339 (+35)`, `rate_limited=17/20` (window `2026-03-13 17:49:39` -> `2026-03-14 03:49:43`).
   - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=2323`, `gold=309`, `code=200`.
@@ -3009,3 +3018,12 @@
 - Resource trend: high sustain pressure (`피격` sum ≈ `2282`), frequent recovery/economy actions (`rest+buy=67`) and repeated surrender churn (`17`) imply unstable combat loop despite win volume.
 - Anomaly: hourly fetcher still reports fallback/no-signal because `/api/*/recent` is unavailable, while paginated `/api/logs` is healthy and provides rich live telemetry.
 - Next 30-min TODO: implement `activity:fetch` fallback adapter to aggregate paginated `/api/logs` over rolling 60m (page scan until timestamp < now-1h), then emit wins/defeats/rest/surrender/resource-pressure metrics directly.
+
+## 2026-03-14 05:27 KST — Hourly gameplay feedback (live API)
+- Evidence: `.env` key loaded at runtime (masked); `npm run -s activity:fetch -- --hours 1` => `source=fallback:local_replay`; `/api/status` `200`; `/api/activity/recent?hours=1`, `/api/logs/recent?hours=1`, `/api/battle/logs/recent?hours=1` all `404`; direct `/api/logs?action=death&limit=100` and `/api/logs?action=level_up&limit=100` both `200`.
+- Live status snapshot (`GET /api/status`): `level=19`, `exp=2885/3610`, `gold=334`, `hp=207/370` (55.9%), `mp=194/194`, area `talking_island_field`.
+- Last-hour gameplay signals (vs 04:32 KST snapshot): progression positive (`Δexp=+850`, `Δlevel=0`), economy flat-positive (`Δgold=-10` vs 04:32 gold 344; still above 03:28 baseline), survivability improved (`Δhp=+25`), defeats in last hour `0` (from `action=death` log window), wins unresolved because canonical recent endpoints remain unavailable.
+- Anomaly: telemetry split persists (`/api/status` + action logs healthy, `/api/*/recent` still `404`), so strict win/defeat aggregation confidence remains capped at `medium`.
+- API failure mode + retry recommendation: keep hourly retries for recent endpoints; continue using paginated/action-log fallback for provisional outcomes, and only restore high-confidence outcome reporting after >=2 consecutive successful recent-endpoint responses.
+- Development feedback: current loop shows strong EXP gain with HP recovery and no new defeat signal, indicating pacing is safer; next improvement should target converting this stable window into clearer win-evidence coverage rather than increasing aggression.
+- [2026-03-14 05:27 KST] Next 30-min actionable TODO: implement `hourly_outcome_confidence_stamp` (`high`=recent endpoints healthy, `medium`=action-log fallback, `low`=status-only) and print it in OPS summaries to prevent overconfident interpretation during endpoint outages.

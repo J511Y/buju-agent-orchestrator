@@ -865,3 +865,10 @@ Track A/B and policy experiments.
 - Metric(s): % hourly cycles with non-empty outcome section during recent-endpoint outages; mismatch rate vs canonical recent endpoints after recovery; false anomaly notes/day.
 - Result: Current cycle had `/api/status` and `/api/logs` healthy (`200`) with 359 last-hour events and clear outcomes (251 wins, 0 defeats), while recent endpoints remained `404`.
 - Decision: Run in next 30-min dev cycle; promote if actionable signal coverage stays >95% for 6 consecutive outage cycles.
+
+- Date: 2026-03-14 05:27 KST
+- Hypothesis: Adding a mandatory hourly `outcome_confidence` stamp (`high|medium|low`) to gameplay summaries will reduce false-positive policy changes during partial telemetry outages.
+- Change: Emit confidence based on source health (`high`=recent endpoints `200`, `medium`=action-log fallback, `low`=status-only), and require `high` before any aggression-increase recommendation.
+- Metric(s): Number of policy-change suggestions made under non-`high` confidence; mismatch rate between provisional and canonical outcomes after endpoint recovery.
+- Result: This cycle had strong progression (`Δexp=+850`) and no last-hour defeat signal, but canonical recent endpoints remained `404`, making this an ideal medium-confidence case.
+- Decision: Run in next 30-min dev cycle and evaluate over 6 hourly runs.
