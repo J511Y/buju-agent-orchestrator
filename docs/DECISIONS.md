@@ -423,3 +423,9 @@
   - Late game: broaden to armor/accessory only with extra reserve and cooldown/failure-risk controls.
 - Validation evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=wait_combat_start_rate_limit level=18 exp=919 gold=309 code=200`.
 - KPI target (next 30 min): keep defeats `=0`, keep inventory slots `<=8`, reduce `wait_combat_start_rate_limit` share to `<=50%` of ticks, and reach `level>=19` or `gold>=360`.
+
+- Adaptive step-87 (2026-03-13 19:46 KST): last-20 thinking logs show long-window progression (`level 1->18`, `gold 113->309`, `exp 3->~1195`) with stable no-defeat operation, but rate-limit pressure still appears (`decision_type=rate_limited` present and daemon tail dominated by `wait_combat_start_rate_limit`), so KEEP was rejected.
+- CHANGE (reversible): reduced per-cycle burst from `BUJU_MAX_ACTIONS_PER_CYCLE=2` to `1` and widened pacing from `BUJU_BASE_DELAY_MS=3200` to `3400` to lower combat-start collision pressure while preserving continuous daemon operation.
+- Constraint integrity: hard inventory constraints remain invariant (`BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`), and `slots>=10` still prioritizes selling unequipped gear worse than equipped before general low-tier cleanup.
+- Equipment/enhancement policy status: best-in-slot auto-equip by `equipSlot` + `score(maxDamage+defBonus)` remains active; staged enhancement plan preserved (early safe gold/no spam -> mid weapon-first on reserve+scroll+npc gates -> late armor/accessory with cooldown/risk controls) with minimal safe enhancement path still prerequisite-gated.
+- KPI target (next 30 min): `wait_combat_start_rate_limit` share `<=40%`, `surrender_dangerous_combat <=1` per 10 cycles, defeats `=0`, inventory slots `<=8`, and progression to `level>=19` or `gold>=360`.
