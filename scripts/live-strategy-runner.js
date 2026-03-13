@@ -49,6 +49,7 @@ const CFG = {
   potionUseMaxQuantity: Number(process.env.BUJU_POTION_USE_MAX_QUANTITY || 3),
   stall400Threshold: Number(process.env.BUJU_STALL_400_THRESHOLD || 2),
   stallCooldownTicks: Number(process.env.BUJU_STALL_COOLDOWN_TICKS || 8),
+  stall429CooldownTicks: Number(process.env.BUJU_STALL_429_COOLDOWN_TICKS || 4),
   retryMaxAttempts: Number(process.env.BUJU_RETRY_MAX_ATTEMPTS || 4),
   useCombatStart: String(process.env.BUJU_USE_COMBAT_START || '1') !== '0',
   enhanceMidLevel: Number(process.env.BUJU_ENHANCE_MID_LEVEL || 10),
@@ -81,6 +82,11 @@ function recordActionResult(actionKey, status) {
     } else {
       stallState.set(key, { fails400, untilTick: prev.untilTick || 0 });
     }
+    return;
+  }
+
+  if (status === 429) {
+    stallState.set(key, { fails400: prev.fails400 || 0, untilTick: tickCounter + CFG.stall429CooldownTicks });
     return;
   }
 
@@ -497,6 +503,9 @@ async function step() {
 
   const hasWeapon = !!(equipped?.weapon && (equipped.weapon.item_id || equipped.weapon));
   const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
+  const emergencyEquipPlan = (!hasWeapon || !hasArmor)
+    ? await chooseBestEquip(inventory, equipped)
+    : null;
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
   // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
@@ -523,7 +532,7 @@ async function step() {
   if (sellResult) return sellResult;
 
   // 시즌 초기화 직후 안전장치: 무기/방어구 미착용 상태면 전투보다 장착을 최우선
-  if ((!hasWeapon || !hasArmor) && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_for_equip')) {
+  if ((!hasWeapon || !hasArmor) && emergencyEquipPlan && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_for_equip')) {
     const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
     recordActionResult('surrender_for_equip', sr.status);
     if (sr.status === 200) {
@@ -568,7 +577,7 @@ async function step() {
   }
 
   if (!inCombat && (!hasWeapon || !hasArmor)) {
-    const emergencyEquip = await chooseBestEquip(inventory, equipped);
+    const emergencyEquip = emergencyEquipPlan;
     if (emergencyEquip) {
       if (!hasRateBudget(rateLimits, 'use_item')) {
         return { ok: true, action: 'wait_use_item_rate_limit_for_equip', level: c.level, exp: c.exp, gold: c.gold, code: 200 };

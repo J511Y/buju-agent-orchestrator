@@ -382,3 +382,9 @@
   - Late game: expand to armor/accessory with cooldown/failure-risk guardrails.
 - Enhancement action path: minimal safe path remains implemented with prerequisite gates (`weapon equipped + scroll + blacksmith NPC + gold reserve + enhance rate budget`).
 - KPI target (next 30 min): smoke `ok>=1/1` code `200`, defeats `=0`, rate-limit probes `<=1`, level `>=19`, inventory slots `<=8`.
+- Adaptive step-82 (2026-03-13 17:16 KST): last-20 thinking logs (latest checkpoint 16:20 KST) and daemon tail showed no KPI lift after step-81 (`level=18`, `exp=1`, `gold=304`, inventory `5`), while `combat_start` 429 recurred and an in-combat surrender loop appeared when armor slot was empty.
+- CHANGE (reversible): added action-level 429 cooldown gating (`BUJU_STALL_429_COOLDOWN_TICKS`, default 6) and tightened `surrender_for_equip` precondition to require a real emergency equip candidate (prevents repeated surrender when no equippable armor exists).
+- Evidence: one full-cycle smoke after patch returned `ok=2/3`, `code=200`, with no new 429 in that sample; daemon continuity preserved.
+- Constraint integrity: hard inventory constraints unchanged and still enforced (`trigger=10`, `target=8`, `max-iterations=10`), with worse-than-equipped liquidation priority preserved.
+- Equipment progression plan remains active in docs and runtime (early safe farm, mid weapon-first enhancement on prerequisite gates, late armor/accessory broadening with cooldown/risk controls).
+- KPI target (next 30 min): reduce `combat_start` 429 appearances in daemon tail to <=1 per 5 cycles, keep defeats `=0`, hold inventory slots `<=8`, and reach `level>=19` or `gold>=330`.
