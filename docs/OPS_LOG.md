@@ -3036,3 +3036,13 @@
 - API failure mode + retry recommendation: keep hourly retries for recent endpoints; continue using paginated/action-log fallback for provisional outcomes, and only restore high-confidence outcome reporting after >=2 consecutive successful recent-endpoint responses.
 - Development feedback: current loop shows strong EXP gain with HP recovery and no new defeat signal, indicating pacing is safer; next improvement should target converting this stable window into clearer win-evidence coverage rather than increasing aggression.
 - [2026-03-14 05:27 KST] Next 30-min actionable TODO: implement `hourly_outcome_confidence_stamp` (`high`=recent endpoints healthy, `medium`=action-log fallback, `low`=status-only) and print it in OPS summaries to prevent overconfident interpretation during endpoint outages.
+
+- [2026-03-14 06:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP/CHANGE loop (mandatory): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas over last window `2026-03-13 19:49:11 -> 2026-03-14 05:49:15`: `level 18->19 (Δ+1)`, `gold 324->324 (Δ+0)`, `rate_limited=0/20`.
+  - KEEP (evidence-based): improvement criterion satisfied (level gain present) with no new immediate defeat signal from current death-log probe (`/api/logs?action=death&limit=50` returned no new events).
+  - Hard constraints re-validated as invariant: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped liquidation remains first.
+  - Safety/efficiency policy kept: safest high-efficiency monster selection remains active; movement remains level-threshold gated (`BUJU_MOVE_LEVEL_2=20`, current level 19) to avoid risky relocation before threshold.
+  - Equipment progression kept active: best-in-slot by `equipSlot + score(maxDamage+defBonus)` each cycle; staged enhancement plan unchanged (early safe accumulation -> mid weapon-first on reserve/prereqs -> late armor/accessory with failure-risk controls).
+  - Enhancement path status: minimal safe enhancement API route remains implemented and prerequisite-gated (`scroll+npc+resource+rate-budget+non-combat`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` both active via `ps`).
+  - KPI target (next 30 min): defeats `=0`, inventory `<=8`, `wait_combat_start_rate_limit<=35%`, and progression to `exp>=3350` or `gold>=350`.

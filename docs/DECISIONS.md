@@ -1,6 +1,13 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (06:16 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log check (`2026-03-13 19:49:11 -> 2026-03-14 05:49:15`): `level +1` (`18->19`), `gold +0` (`324->324`), `rate_limited 0/20`, with no new death signal in current probe window (`/api/logs?action=death&limit=50` returned empty/new-none).
+- Safety/efficiency remains conservative and aligned with runtime behavior: safest high-efficiency routing remains active on currently available low-risk pool, and movement remains level-threshold gated (`BUJU_MOVE_LEVEL_2=20`, current level 19) to avoid risk-gap expansion.
+- Hard constraints re-locked as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when inventory slots `>=10`, liquidation prioritizes unequipped gear worse than equipped first.
+- Equipment progression requirements remain enforced in runtime: best-in-slot scan by `equipSlot` and `score(maxDamage+defBonus)` every cycle with auto-equip when better gear exists.
+- Enhancement strategy (staged plan in effect): (a) early game -> safe gold accumulation / no risky enhancement spam, (b) mid game -> weapon-first enhancement only after reserve/prereqs, (c) late game -> armor/accessory broadening with cooldown + failure-risk controls.
+- Minimal safe enhancement action path remains implemented and prerequisite-gated (`scroll + blacksmith npc + resource reserve + rate budget + non-combat`), so enhancement is skipped safely when prerequisites are not satisfiable.
+- KPI target (next 30 min): defeats `=0`, inventory `<=8`, `wait_combat_start_rate_limit<=35%`, and progression to `exp>=3350` or `gold>=350` at level 19.
 - 30-min STRATEGY DIRECTOR (05:46 KST, adaptive mode + equipment progression) KEEP decision with mandatory evidence from latest 20 thinking logs (`2026-03-13 19:21:18 -> 2026-03-14 05:20:07`): `level +1` (`18->19`), `gold +0` (`309->309`), `rate_limited 0/20`; no newer death timestamp than `2026-03-13 17:48:43`.
 - Live validation healthy this cycle (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=3055`, `gold=339`, `code=200`) and live runner daemon continuity remains active.
 - Safety/efficiency policy kept with evidence: currently available monsters are low-risk (`rabbit`, `skeleton`) and safest high-efficiency routing stays active; movement remains level-threshold gated (`BUJU_MOVE_LEVEL_2=20`, current level 19) to avoid risk-gap expansion.
