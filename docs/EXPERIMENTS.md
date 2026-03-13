@@ -851,3 +851,10 @@ Track A/B and policy experiments.
 - Metric(s): % hourly cycles with non-empty gameplay signal section during API outages; mismatch rate vs canonical API outcome counts after recovery; false anomaly rate.
 - Result: Current cycle had API history blind spot (`6x 404`) while daemon evidence still showed actionable progression/churn (`exp +114`, repeated combat-start success, periodic rest, danger surrender events).
 - Decision: Implement in next 30-min cycle; evaluate over 6 hourly runs before promoting to default fallback.
+
+- Date: 2026-03-14 03:28 KST
+- Hypothesis: Using `/api/logs?action=death|level_up` as a structured fallback when `/api/*/recent` endpoints return `404` will restore actionable hourly outcome visibility without overstating certainty.
+- Change: Add `outcome_fallback_adapter` that computes `defeat_count(last 60m)`, `last_death_at`, `last_levelup_at`, and marks confidence=`medium` with explicit `source=logs_action_fallback`.
+- Metric(s): % hourly cycles with non-empty outcome section during `404` outages; mismatch rate vs canonical recent endpoints once recovered; false anomaly notes per 24h.
+- Result: This cycle had persistent `404` on all 6 recent endpoints, while direct logs endpoints were healthy (`200`) and provided defeat recency evidence.
+- Decision: Implement in next 30-min cycle and validate over 6 hourly runs.

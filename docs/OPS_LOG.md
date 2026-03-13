@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 03:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->334 (+30)`, `rate_limited=1/20`.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1813`, `gold=344`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active processes).
+  - Safety/efficiency evidence: safest high-efficiency monster routing + level-threshold movement + conservative risk-gap policy remained active; no new recent death timestamp in current window.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan/path with prerequisite gates (`scroll+npc+resource+rate-budget+non-combat`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression to `exp>=1900` or `gold>=355` at level 19.
 - [2026-03-14 02:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->314 (+10)`, `rate_limited=1/20`.
   - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1563`, `gold=329`, `code=200`.
@@ -2964,3 +2973,13 @@
   - API failure mode + retry recommendation: continue hourly retry of history endpoints; if 404 streak reaches `>=8`, run endpoint-contract refresh and add fallback parsing from daemon/worker logs for provisional win/defeat confidence labels.
 - [2026-03-14 02:28 KST] Next 30-min actionable TODO: implement `daemon_signal_extractor` to parse last 60 min of `logs/live-runner-daemon.log` and emit `{exp_delta, rest_count, surrender_danger_count, combat_start_success_count}` into hourly feedback output.
 - [2026-03-14 02:33:53 KST] Watchdog restarted live-runner-daemon.sh
+
+- [2026-03-14 03:28 KST] Hourly gameplay-feedback cycle executed (`.env` BUJU_API_KEY loaded at runtime; key masked).
+  - Evidence: `npm run -s activity:fetch -- --hours 1` => `source=fallback:local_replay`; endpoint probe: `/api/status=200`, recent activity/history candidates `6x 404` (probe failure streak `6`).
+  - Live status (`GET /api/status`): `level=19`, `exp=1893/3610`, `gold=334`, `hp=215/370` (58.1%), `mp=194/194`, `area=talking_island_field`, `combat=inactive`.
+  - Last-hour gameplay signals (evidence-constrained): progression positive (`thinking window shows level 19 maintained with exp reaching ~1813->1893`), economy mixed (`gold 344 -> 334` in latest window), survivability stable-to-up (`hp ~62% -> 58% now; no critical dip`).
+  - Wins/defeats: no new defeat evidence in last-hour probes (`/api/logs?action=death&limit=100` latest timestamp `2026-03-13 17:48:43`), while canonical recent battle endpoints remain unavailable (`404`), so win counts remain unresolved.
+  - Anomalies: telemetry split-brain persists (`/api/status` and `/api/logs?action=*` healthy, but `/api/*/recent` family still `404`), lowering confidence for strict hourly outcome aggregation.
+  - API failure mode + retry recommendation: continue hourly retries for `/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`; if `404` streak reaches `>=8`, run endpoint contract refresh and route hourly outcome counts to `/api/logs?action=death|level_up` as provisional fallback.
+  - Development feedback: current loop is making EXP progress with controlled HP, but gold variance and missing canonical recent endpoints reduce policy-confidence; prioritize outcome-source unification before aggressiveness tuning.
+- [2026-03-14 03:28 KST] Next 30-min actionable TODO: implement `outcome_fallback_adapter` in hourly cycle to derive `{defeat_count,last_death_at,last_levelup_at}` from `/api/logs?action=death|level_up` when `/api/*/recent` endpoints are `404`, and emit confidence=`medium` with source tags.
