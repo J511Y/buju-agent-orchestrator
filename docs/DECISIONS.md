@@ -1,6 +1,13 @@
 # Engineering Decisions
 
 ## 2026-03-13
+- 30-min STRATEGY DIRECTOR (00:16 KST, adaptive mode + equipment progression) KEEP decision with hard evidence from latest 20 thinking logs: `level +17` (`2->19`), `gold +190` (`134->324`), `rate_limited 1/20`; latest status/smoke kept stability (`level=19`, `exp 299->301`, `gold 329->334`, `ok=1/1`, `code=200`).
+- Defeat telemetry now uses supported endpoint `GET /api/logs?action=death&limit=50` (HTTP 200); no new recent death signal observed in the latest cycle window, while unsupported `action=combat` remains `400` and is no longer used for death checks.
+- KEEP rationale: improvement criterion is satisfied and near-term risk is controlled (inventory slots 5, safe-area hunting, conservative pacing), so no parameter churn this cycle.
+- Hard constraints reaffirmed as execution invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped gear worse than equipped is liquidated first.
+- Equipment progression contract remains active and unchanged: best-in-slot evaluation by `equipSlot` + `score(maxDamage+defBonus)` each cycle, staged enhancement plan (early safe accumulation -> mid weapon-first with reserve/prereqs -> late armor/accessory with cooldown/failure-risk controls), and minimal safe enhancement path gated by `scroll + blacksmith npc + resource + non-combat + rate budget`.
+- 30-min STRATEGY DIRECTOR (22:46 KST, adaptive mode + equipment progression) KEEP decision with evidence of improvement: latest thinking-window deltas remained positive (`level +17`, `gold +216`) and current smoke progressed (`exp 2787->2793`, `gold 319->334`, `ok=1/1`, `code=200`).
+- Combat-log endpoint currently returns `400` for direct defeat counting, so death delta is treated as unresolved in telemetry while safety policy remains conservative (dynamic risk-gap + safest fallback + level-gated movement).
 - 30-min STRATEGY DIRECTOR (adaptive mode) KEEP decision with hard-evidence deltas from latest 20 thinking logs: `level +17`, `gold +221`, `rate_limited 1/20`; smoke remained healthy (`ok=1/1`, `code=200`) with progression on live status (`exp 1529->2543`, deaths delta `0` from combat-log probe).
 - Hard constraints are treated as code-level invariants (not env-overridable in execution path): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidate unequipped gear worse than equipped first.
 - Equipment progression contract is now explicitly staged for operations:
@@ -469,3 +476,12 @@
 - Equipment progression policy kept active: every tick best-in-slot by `equipSlot` + `score(maxDamage+defBonus)`; staged enhancement plan (early safe accumulation/no spam -> mid weapon-first on prereqs -> late armor/accessory with reserve+cooldown risk controls).
 - Enhancement action path remains minimal and safe (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance`) and executes only when prerequisites are simultaneously satisfied (scroll+npc+resource+budget).
 - KPI target (next 30 min): `wait_combat_start_rate_limit<=40%`, deaths `=0`, inventory `<=8`, smoke `code=200`, and progression to `level>=19` or `gold>=350`.
+
+- Adaptive step-92 (2026-03-13 23:16 KST): mandatory check on `GET /api/agent/thinking/j211y?limit=20` yielded positive deltas (`level 1->18`, `gold 113->319`, `rate_limited 1/20`) with no new death-signal increase in current probes, so KEEP selected.
+- KEEP (evidence-valid): no parameter churn this cycle; preserve continuous daemon cadence and monitor immediate wait-pressure trend before any future reversible tuning.
+- Constraint lock preserved: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots>=10, sell unequipped worse-than-equipped gear first.
+- Equipment progression (explicit staged plan):
+  - Early game: prioritize safe gold/EXP accumulation; avoid risky enhancement spam.
+  - Mid game: weapon-first enhancement only after reserve + scroll + blacksmith + action-budget prerequisites are all satisfied.
+  - Late game: broaden to armor/accessory with reserve margin, cooldown, and failure-risk controls.
+- Minimal safe enhancement path remains implemented and gated (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance` only when scroll+npc+resource prerequisites are satisfiable).

@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-13
+- [2026-03-14 00:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 2->19 (+17)`, `gold 134->324 (+190)`, `rate_limited=1/20`.
+  - Live evidence: `GET /api/status` shows `level=19`, `exp=299`, `gold=329`, `area=talking_island_field`; smoke validation `node scripts/live-strategy-runner.js` => `ok=1/1 lastAction=wait_combat_start_rate_limit level=19 exp=301 gold=334 code=200`.
+  - Defeat signal check: switched to supported endpoint `GET /api/logs?action=death&limit=50` (`200`); no new recent death signal in current cycle window. Unsupported `action=combat` remains `400`.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with slots>=10 enforcing worse-than-equipped-first liquidation.
+  - Equipment progression preserved: best-slot auto-equip (`equipSlot` + `maxDamage+defBonus`) and staged safe enhancement gates (`scroll+npc+resource+reserve+non-combat+rate-budget`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` includes active runner process).
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression `gold>=340` or `exp>=600` at level 19.
 - [2026-03-13 23:28 KST] Hourly gameplay-feedback cycle (live API check) completed.
   - Evidence: `npm run -s activity:fetch -- --hours 1` -> `/api/status` `200`; history endpoints (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404` (`source=fallback:local_replay`, failure streak `6`).
   - Direct status probe (`GET /api/status`, key loaded from `.env` and masked): `level=18`, `exp=3129`, `gold=324`, `hp=216/355`, `mp=186/186`, `area=talking_island_field`, `combat=out_of_combat`.
@@ -2871,3 +2880,13 @@
   - Enhancement policy (staged) re-affirmed in ops: early safe accumulation/no spam -> mid weapon-first on reserve+scroll+npc -> late armor/accessory with cooldown/failure-risk controls; minimal safe enhancement action path remains prerequisite-gated.
   - Ops telemetry: posted Buju thinking to `POST /api/agent/thinking` with concrete deltas and KPI target, response `200 {"success":true}`.
   - KPI target (next 30 min): `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression to `level>=19` or `exp>=3300`.
+- [2026-03-13 23:47 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP/CHANGE loop: fetched `GET /api/agent/thinking/j211y?limit=20` and computed mandatory deltas: `level 1->18 (Δ+17)`, `gold 113->334 (Δ+221)`, inventory `3->5`; improvement evidence present, so KEEP is valid.
+  - Current status evidence (`GET /api/status`): `level=19`, `exp=47`, `gold=319`, `hp=230/370`, `area=talking_island_field`, `combat=inactive`.
+  - Validation smoke: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `live-strategy ok=1/1 lastAction=wait_combat_start_rate_limit level=19 exp=49 gold=324 code=200`.
+  - Safety/efficiency evidence: daemon recent-20 action window wait-share `7/20 (=35%)` while preserving safest high-efficiency monster routing + risk-gap tightening; movement remains level-threshold-gated.
+  - KEEP (hard constraints): preserved invariant — `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, and `slots>=10` keeps worse-than-equipped-first liquidation.
+  - KEEP (equipment progression): best-in-slot auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early no-spam -> mid weapon-first with reserve/prereqs -> late armor/accessory with cooldown/failure-risk controls); safe enhancement path stays prerequisite-gated (`scroll+npc+resource`).
+  - Ops telemetry: posted Buju thinking (`POST /api/agent/thinking`) with delta-based reasoning and next KPI target, response `200 {"success":true}`.
+  - KPI target (next 30 min): `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression (`gold>=340` or `exp>=300`).
+  - Runtime continuity evidence: daemon continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` both active via `pgrep`).
