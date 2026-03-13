@@ -42,6 +42,7 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
    - Live runner(`scripts/live-action-tick.js`, `scripts/live-strategy-runner.js`, `scripts/live-runner-daemon.sh`) 변경 시: dry-run 출력 확인 + 로그 경로(`logs/live-runner-daemon.log`) 및 단일 인스턴스 PID 락(`logs/live-runner-daemon.lock`) 동작 확인 + 전투 진입 계약(`combat/strategy` 갱신 + `combat/start`의 `monster_id`,`area` + 필요 시 `hunt` 폴백 `monster_id`,`skill_id`) 유지 확인
    - 인벤토리 정리/슬롯 판단 로직 변경 시: `inventory.slots.used` 우선 사용 계약과 폴백(`inventory_count`/목록 길이), 전투 중 판매 불가 시 surrender 경유 정리 경로를 README 정책과 동기화
    - 시즌 리셋 안전장치(장비 공백 시 전투 중단/재장착, 위험 전투 즉시 항복) 변경 시 surrender 트리거 기준(HP/몬스터 위험도)과 README 운영 정책을 함께 갱신
+   - 저체력 항복 게이트는 `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` 계약을 기본으로 유지하고, 수식 변경 시 README/DECISIONS 동시 갱신
    - 인벤토리 매각 정책 변경 시: 장착 대비 열위 장비 우선 정리, 장착본(item_id 중복 스택) 예약 보전, trigger/target 슬롯(예: 10→8) 의도를 README와 함께 동기화
    - `config/strategy.env` 튜닝 변경 시: 기본 페이싱(`BUJU_BASE_DELAY_MS`)/사이클 쿼터(`BUJU_MAX_ACTIONS_PER_CYCLE`)/이동 임계(`BUJU_MOVE_LEVEL_*`, `BUJU_AREA_LV*`)/안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)/인벤토리 임계값(`BUJU_INV_*`)/포션 사용량(`BUJU_POTION_USE_MAX_QUANTITY`)·재고/최소 구매 수량(`BUJU_MIN_BUY_QTY`)/골드 예비금(`BUJU_MIN_GOLD_RESERVE`)/anti-stall(`BUJU_STALL_*`)/재시도·백오프(`BUJU_RETRY_MAX_ATTEMPTS`, `BUJU_BACKOFF_*`)/전투 진입 토글(`BUJU_USE_COMBAT_START`)/강화 안전장치(`BUJU_ENHANCE_*`) 의도와 README Live Strategy Runner 정책 설명을 함께 동기화
    - 단, 인벤토리 안전 불변식(판매 트리거/목표 10→8, tick당 정리 10회)은 코드 하드제약이다. 관련 env 값이 존재해도 실행 경로에서 오버라이드되지 않음을 문서에 명시한다.
