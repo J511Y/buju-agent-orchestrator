@@ -3046,3 +3046,12 @@
   - Enhancement path status: minimal safe enhancement API route remains implemented and prerequisite-gated (`scroll+npc+resource+rate-budget+non-combat`).
   - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` both active via `ps`).
   - KPI target (next 30 min): defeats `=0`, inventory `<=8`, `wait_combat_start_rate_limit<=35%`, and progression to `exp>=3350` or `gold>=350`.
+
+## 2026-03-14 06:28 KST — Hourly gameplay feedback (live API)
+- Evidence: `.env` BUJU_API_KEY loaded at runtime (masked); `/api/status` `200`; `/api/logs?limit=100&page=1..4` `200`; `/api/logs/recent?hours=1` and `/api/activity/recent?hours=1` both `404`.
+- Live status snapshot: `Lv19`, `EXP 3385/3610`, `Gold 314`, `HP 217/370 (58.6%)`, `MP 194/194`, area `talking_island_field`, combat inactive.
+- Last-hour signals (05:28~06:28 KST, paged `/api/logs` fallback): `346` events total; `hunt 248` (wins), `death 0`, `rest 31`, `buy 36`, `surrender 7`, `drop 21`, `sell 3`.
+- Trend vs prior hourly snapshot (05:27 KST): progression positive (`ΔEXP +500`, level hold), survivability stable-up (`ΔHP +10`), economy mildly negative (`ΔGold -20`) with active sustain spending.
+- Resource/anomaly signal: high combat pressure persists (`피격` sum `2265` in 1h) despite zero defeats; canonical `*/recent` endpoints still unavailable, so outcome confidence remains `medium` (logs fallback).
+- API failure mode + retry recommendation: current failure mode is persistent `404` on recent-history routes while status/paged logs are healthy. Continue hourly retries for recent routes; if still `404` after next 4 cycles, prioritize endpoint-contract refresh and temporarily treat paged-log fallback as primary source with explicit confidence tag.
+- [2026-03-14 06:28 KST] Next 30-min actionable TODO: add `surrender_pressure_guard` to hourly feedback (`surrender_rate = surrender/hunt`, trigger when `>2.5%`) and auto-emit one conservative tuning recommendation (`rest threshold +1 step` or `target monster tier down`) before any aggression increase.

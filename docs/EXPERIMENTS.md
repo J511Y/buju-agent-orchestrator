@@ -872,3 +872,10 @@ Track A/B and policy experiments.
 - Metric(s): Number of policy-change suggestions made under non-`high` confidence; mismatch rate between provisional and canonical outcomes after endpoint recovery.
 - Result: This cycle had strong progression (`Δexp=+850`) and no last-hour defeat signal, but canonical recent endpoints remained `404`, making this an ideal medium-confidence case.
 - Decision: Run in next 30-min dev cycle and evaluate over 6 hourly runs.
+
+- Date: 2026-03-14 06:28 KST
+- Hypothesis: A `surrender_pressure_guard` using last-hour `surrender_rate = surrender/hunt` will reduce avoidable churn and improve net economy when wins are high but surrender noise remains non-zero.
+- Change: In hourly analyzer, compute `surrender_rate`; when `>2.5%`, emit conservative recommendation set (`rest threshold +1` or temporary monster-tier down) and block aggression-increase suggestions until rate normalizes.
+- Metric(s): surrender_rate/hour, `Δgold/hour`, and `defeat_count/hour` before vs after guard enablement.
+- Result: Current hour shows `248` wins, `7` surrenders (`2.82%`), `0` defeats, `ΔEXP +500`, and mild gold drift (`-20`) under high incoming-damage pressure (`피격 2265`).
+- Decision: Run in next 30-min dev cycle and evaluate over 6 hourly windows.
