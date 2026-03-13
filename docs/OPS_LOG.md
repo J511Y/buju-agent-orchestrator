@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 02:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->314 (+10)`, `rate_limited=1/20`.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1563`, `gold=329`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active processes).
+  - Safety/efficiency evidence: safest high-efficiency monster routing + level-threshold movement + conservative risk-gap policy remained active; no repeated defeat pattern reappeared in current window.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan/path with prerequisite gates (`scroll+npc+resource+rate-budget+non-combat`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `wait_combat_start_rate_limit<=35%`, defeats `=0`, inventory `<=8`, smoke `code=200`, and progression to `exp>=1640` or `gold>=345` at level 19.
 - [2026-03-14 02:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas `level 18->19 (+1)`, `gold 304->314 (+10)`, `rate_limited=1/20`.
   - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1303`, `gold=329`, `code=200`.
@@ -2954,3 +2963,4 @@
   - Dev feedback: progression is healthy but combat-start throttle waits and danger-surrender pockets suggest survivability pressure remains; keep conservative pacing and prioritize better outcome observability before aggressiveness increases.
   - API failure mode + retry recommendation: continue hourly retry of history endpoints; if 404 streak reaches `>=8`, run endpoint-contract refresh and add fallback parsing from daemon/worker logs for provisional win/defeat confidence labels.
 - [2026-03-14 02:28 KST] Next 30-min actionable TODO: implement `daemon_signal_extractor` to parse last 60 min of `logs/live-runner-daemon.log` and emit `{exp_delta, rest_count, surrender_danger_count, combat_start_success_count}` into hourly feedback output.
+- [2026-03-14 02:33:53 KST] Watchdog restarted live-runner-daemon.sh

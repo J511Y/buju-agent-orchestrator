@@ -1,6 +1,11 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (02:46 KST, adaptive mode + equipment progression) KEEP decision with mandatory evidence from latest 20 thinking logs: `level +1` (`18->19`), `gold +10` (`304->314`), `rate_limited 1/20`.
+- Live validation remained healthy in this cycle (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1563`, `gold=329`, `code=200`) and runner continuity stayed active (`live-runner-daemon.sh` + `live-strategy-runner.js` processes present).
+- Safety/efficiency policy remains KEEP with evidence: safest high-efficiency monster routing + level-threshold movement gate + conservative risk-gap control continued without new near-term defeat signals.
+- Hard constraints remain invariant and unchanged: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+- Equipment progression requirements remain active and explicit: best-in-slot auto-equip by `equipSlot` + `score(maxDamage+defBonus)` every cycle, staged enhancement plan (early safe gold/no spam -> mid weapon-first with reserve/prereqs -> late armor/accessory with failure-risk controls), and minimal safe enhancement path gated by `scroll + blacksmith npc + resource + rate budget + non-combat`.
 - 30-min STRATEGY DIRECTOR (02:16 KST, adaptive mode + equipment progression) KEEP decision with mandatory evidence from latest 20 thinking logs: `level +1` (`18->19`), `gold +10` (`304->314`), `rate_limited 1/20`.
 - Live validation stayed healthy in this cycle (`BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=19`, `exp=1303`, `gold=329`, `code=200`) and runner continuity remained active (`live-runner-daemon.sh` + `live-strategy-runner.js` processes present).
 - Safety/efficiency policy remains KEEP with evidence: safest high-efficiency monster routing, level-threshold movement gate, conservative risk gap, and inventory control (`8/30`) remain stable; no new repeated defeat pattern surfaced in the latest run window.
