@@ -738,7 +738,12 @@ async function step() {
       };
     }
 
-    // 시즌2 자동전투: 전투 시작 전 전략을 항상 갱신
+    // 시즌2 자동전투: hunt 액션 예산이 없으면 전략 갱신 호출까지 생략해 제어 호출 churn을 줄인다.
+    if (!hasRateBudget(rateLimits, 'hunt')) {
+      return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    }
+
+    // 시즌2 자동전투: 전투 시작 전 전략을 조건부 갱신
     const strategyBody = {
       skill_priority: [skillId || 'basic_attack', 'basic_attack'],
       hp_potion_threshold: Math.round(CFG.lowHpPotionRatio * 100),
@@ -760,10 +765,6 @@ async function step() {
         lastCombatStrategySignature = strategySignature;
         lastCombatStrategyTick = tickCounter;
       }
-    }
-
-    if (!hasRateBudget(rateLimits, 'hunt')) {
-      return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
 
     const combat = await req('/combat/start', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, area: c.current_area }) });

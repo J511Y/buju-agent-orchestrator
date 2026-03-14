@@ -1,6 +1,13 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (09:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 22:18:53 -> 2026-03-14 08:19:25`): `level +2` (`18->20`) but `gold -20` (`329->309`), `exp` effectively flat at the latest band, and no positive economy lift with repeated throttle-wait signature, so KEEP was rejected.
+- Logic change applied (minimal, reversible): in `scripts/live-strategy-runner.js`, when `hunt` action budget is unavailable, the runner now returns `wait_hunt_rate_limit` before attempting `/combat/strategy`, cutting avoidable control-call churn while keeping safest-monster routing and level-threshold movement unchanged.
+- Hard constraints locked unchanged: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression staged plan reaffirmed: (a) early game safe gold accumulation/no risky enhancement spam, (b) mid game weapon-first enhancement after reserve/prereqs, (c) late game armor/accessory expansion with cooldown/failure-risk controls.
+- Minimal safe enhancement action path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`) and safely skips when prerequisites are not satisfiable.
+- KPI target (next 30 min): defeats `=0`, inventory `<=8`, reduce `wait_combat_start_rate_limit` share to `<=25%`, maintain smoke `code=200`, and recover economy (`gold>=320` or `exp>=50`).
+
 - 30-min STRATEGY DIRECTOR (09:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43`): `level +2` (`18->20`) but `gold -20` (`329->309`), `exp +0` (window edge snapshots), `death +0` (death logs in-window), and recurring throttle/cooldown pressure in latest loop signals, so KEEP was rejected.
 - Logic change applied (minimal, reversible): in `scripts/live-strategy-runner.js`, `combat_start` `429` now attempts one safe direct `/hunt` fallback in the same tick (`action=hunt_on_combat_start_rate_limit`) before waiting, reusing the already-selected safest high-efficiency monster + skill.
 - Hard constraints locked unchanged: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.

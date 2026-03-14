@@ -1,6 +1,13 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 09:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched last-20 thinking logs and computed deltas for `2026-03-13 22:18:53 -> 2026-03-14 08:19:25`: `level +2` (`18->20`), `gold -20` (`329->309`), and flat/no-lift economy trend with repeated throttle-wait signature; KEEP rejected.
+  - Logic change applied: `scripts/live-strategy-runner.js` now short-circuits to `wait_hunt_rate_limit` before `/combat/strategy` when `hunt` action budget is unavailable, reducing avoidable control-call churn.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement policy/path (early safe accumulation, mid weapon-first, late armor/accessory with failure-risk controls; prerequisite-gated enhancement only).
+  - Next 30m KPI: defeats `=0`, inventory `<=8`, reduce `wait_combat_start_rate_limit` share to `<=25%`, keep smoke `code=200`, recover `gold>=320` or `exp>=50`.
+
 - [2026-03-14 09:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): fetched last-20 thinking logs and computed deltas for `2026-03-13 21:20:10 -> 2026-03-14 07:49:43`: `level +2` (`18->20`), `gold -20` (`329->309`), `exp +0` (edge snapshots), and `death +0` in-window from `GET /api/logs?action=death&limit=50`; mixed trend + throttle pressure => KEEP rejected.
   - Logic change applied: `scripts/live-strategy-runner.js` now performs one same-tick `/hunt` fallback when `/combat/start` returns `429` (`action=hunt_on_combat_start_rate_limit`) before falling back to wait.
