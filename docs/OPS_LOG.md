@@ -1,6 +1,24 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 21:29 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; never printed), then queried `GET /api/status` (`200`) and paged `GET /api/logs?page=1..5&limit=100` (`200`) to cover a 60-minute window (`20:29:17~21:29:10 KST`, `325` events). `activity:fetch` still showed `*/recent` endpoints `404` and fallback source.
+  - Last-hour gameplay signals: progression resumed with strong combat throughput (`hunt=246`, inferred wins `246`, defeats `0`, surrender `1`), current status `Lv21`, `EXP=817`, `Gold=339`, `HP=264/400`, `area=talking_island_field`.
+  - Resource trend: spend-heavy but stable loop (`buy=35`, `sell=2`, `rest=24`, `drop=17`), estimated trade cashflow `buy -1400G`, `sell +140G`, net `-1260G` while progression stayed positive.
+  - Anomalies: canonical hourly-recent endpoints remain degraded (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*` => `404`), so paged `/api/logs` remains the only high-confidence hourly signal source.
+  - Dev feedback: keep paged-log aggregation as primary hourly path; avoid strategy/aggression changes based on `activity:fetch` fallback zeros alone when status/logs are healthy.
+  - Next 30m actionable TODO: implement `scripts/hourly-log-kpis.js` to emit one JSON block (`wins, defeats, surrenders, buy_spent, sell_gain, rest_count, hunt_count`) directly from paged `/api/logs` and wire OPS entry generation to it.
+
+- [2026-03-14 21:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 10:50:05 -> 2026-03-14 20:49:42`) with deltas `level +1` (`20->21`), `gold +15` (`309->324`), and `inventory +2` (`0->2`); improvement evidence exists so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement policy retained; minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+non-combat+rate budget`) and safely skipped this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: `GET /api/status` => `200` (`level=21`, `exp=727`, `gold=314`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters` confirms current safe pool (`rabbit`, `skeleton`), and smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=729`, `gold=319`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=820` or `gold>=335` with smoke `code=200`.
+
 - [2026-03-14 20:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 10:19:49 -> 2026-03-14 19:50:06`) with deltas `level +1` (`20->21`), `gold +20` (`309->329`), `inventory +4` (`3->7`), and throttle/rate-limit wording `17/20`; improvement evidence exists so CHANGE was not applied.
   - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.

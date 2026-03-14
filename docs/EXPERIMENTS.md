@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-14 21:29 KST
+- Hypothesis: Replacing fallback-zero hourly summaries with a dedicated paged-log KPI extractor (`/api/logs?page=n&limit=100` until 60m cutoff) will produce consistently high-confidence gameplay signals despite persistent `*/recent` 404 outages.
+- Change: Add `hourly-log-kpis` helper that outputs `hunt/win/defeat/surrender/rest/buy/sell/drop` plus `buy_spent/sell_gain/net_trade` in one structured payload for OPS ingestion.
+- Metric(s): % hourly cycles with non-empty high-confidence outcomes; mismatch rate vs manual probe counts; time-to-write OPS summary.
+- Result: This cycle recovered complete 60-minute evidence from paged logs (`325` events, `wins=246`, `defeats=0`) while `activity:fetch` remained fallback due to `*/recent` 404.
+- Decision: Implement in next 30-min dev cycle; promote if high-confidence coverage stays >=95% for 6 consecutive hourly cycles.
+
 - Date: 2026-03-14 19:28 KST
 - Hypothesis: A strict read-auth preflight gate (`/api/status` + `/api/logs?limit=1`) before hourly aggregation will cut false gameplay interpretations during token drift by failing fast with explicit `auth_blocked` state.
 - Change: Add preflight step that loads masked key from `.env`, runs both probes, and blocks outcome/resource inference whenever either probe returns `401/403`.
