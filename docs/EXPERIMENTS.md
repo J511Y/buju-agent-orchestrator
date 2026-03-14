@@ -1033,3 +1033,10 @@ Track A/B and policy experiments.
 - Metric(s): auth-parity failure count/day; low-auth-blocked cycles/day; mean time to recover from `401` episodes.
 - Result: Current cycle reproduced divergence (`activity:fetch` saw `/api/status=200` while direct authenticated status/log probes both returned `401`).
 - Decision: Implement in next 30-min dev cycle; promote if parity failures remain zero for 6 consecutive hourly windows.
+
+- Date: 2026-03-15 05:28 KST
+- Hypothesis: Hard-gating hourly synthesis behind `auth_preflight_gate_v2` (canonical header + paired `/api/status` and `/api/logs?limit=1`) will eliminate low-confidence cycles caused by contradictory auth outcomes.
+- Change: Add one deterministic parity preflight stage and block gameplay inference when either endpoint is non-200.
+- Metric(s): `auth_gate_failures/day`, `% hourly cycles with inferred gameplay while auth invalid`, time-to-diagnose auth incidents.
+- Result: This cycle reproduced inconsistency (`direct /api/status=401` while `activity:fetch` observed `/api/status=200`; recent-history endpoints remained `404`).
+- Decision: Implement in next 30-min dev cycle; promote if contradictory auth outcomes drop to zero for 6 consecutive hourly runs.

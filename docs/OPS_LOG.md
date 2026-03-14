@@ -3564,3 +3564,13 @@
 - Development feedback: block policy/aggression tuning until read-path auth is consistent; prioritize deterministic preflight and one canonical credential/header path shared by `activity:fetch` and direct probes.
 - Retry recommendation: next cycle run masked preflight (`/api/status` + `/api/logs?limit=1`) using the same header scheme as production fetcher, then only synthesize gameplay feedback after both return `200`.
 - [2026-03-15 04:26 KST] Next 30-min actionable TODO: add `auth_path_parity_check_v1` to hourly flow (compare `activity:fetch` vs direct-probe auth result, emit `auth_parity=pass|fail`, and hard-stop inference on `fail`).
+
+## 2026-03-15 05:28 KST — Hourly gameplay feedback (auth blocked / inference paused)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed).
+- Live probes: direct authenticated `GET /api/status` returned `401 UNAUTHORIZED` (`Missing or invalid API key`); direct `/api/logs` aggregation was skipped because auth preflight failed.
+- Cross-check: `activity:fetch` still reported `/api/status=200` while all recent-history endpoints remained `404` (`failure_streak=5`), indicating continuing auth-path inconsistency.
+- Last-hour gameplay signals: progression, wins/defeats, and resource trends are **unavailable** this cycle (confidence=`none_auth_blocked`).
+- Failure mode: `auth_preflight_failed` with suspected `credential_source_or_header_parity_drift`.
+- Development feedback: keep gameplay policy tuning blocked until a single canonical auth/header path produces consistent `200` for both `/api/status` and `/api/logs?limit=1`.
+- Retry recommendation: next cycle run masked parity preflight on the same runtime key+header contract; only synthesize hourly gameplay metrics after both read endpoints pass.
+- [2026-03-15 05:28 KST] Next 30-min actionable TODO: implement `auth_preflight_gate_v2` (paired checks for `/api/status` and `/api/logs?limit=1`, emit `auth_gate=pass|fail`, and hard-stop summary generation on `fail`).
