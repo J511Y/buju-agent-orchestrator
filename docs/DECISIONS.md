@@ -1,6 +1,57 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (23:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 12:50:18 -> 2026-03-14 22:49:55`): `level +0` (`21->21`), `exp +0` (`1707->1707`), `gold +0` (`324->324`), `inventory +0`, `death +0`, and throttle/rate-limit mentions `5/20`; no measurable progression evidence, so KEEP was rejected.
+- Minimal/reversible parameter change applied: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 1->2` to recover progression signal while preserving safety gates (safest-monster selection, level-threshold movement, surrender/risk controls).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained: early safe gold accumulation/no risky enhancement spam -> mid weapon-first enhancement after reserve/prerequisites -> late armor/accessory broadening with failure-risk controls.
+- Minimal safe enhancement path remains implemented and prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`); this cycle remains safe-skip when prerequisites are missing.
+- KPI target (next 30m): achieve at least one measurable progression signal (`exp +>=80` or `gold +>=10`) with `death delta=0`, inventory `<=8`, and smoke `code=200`.
+
+- 30-min STRATEGY DIRECTOR (22:46 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 12:19:46 -> 2026-03-14 22:19:31`): `level +1` (`20->21`), `gold +5` (`309->314`), `inventory +3` (`0->3`), with no fresh defeat-burst escalation in current status area; improvement evidence exists so CHANGE was not applied.
+- Safety/efficiency policy kept with live evidence: `GET /api/status` (`200`) shows `level=21`, `exp=1461`, `gold=319`, `area=talking_island_field`; `GET /api/areas/talking_island_field/monsters` (`200`) confirms safe available pool (`rabbit`, `skeleton`), so safest high-efficiency hunt remains area1 under strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`, current level 21).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained in this document: early safe gold accumulation/no risky spam -> mid weapon-first enhancement after reserve/prerequisites -> late armor/accessory broadening with failure-risk controls.
+- Minimal safe enhancement path remains implemented and prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`); current probe still indicates safe skip path is valid when prerequisites are missing.
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=1467`, `gold=334`, `code=200`), and daemon continuity remains active (`live-runner-daemon.sh` + runner process present).
+- KPI target (next 30m): `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=1540` or `gold>=345` with smoke `code=200`.
+
+- 30-min STRATEGY DIRECTOR (22:16 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 11:49:24 -> 2026-03-14 21:49:50`): `level +1` (`20->21`), `gold +35` (`304->339`), `exp +0` (thinking-window sparse), throttle/rate-limit wording `18/20`; improvement evidence exists so CHANGE was not applied.
+- Safety/efficiency policy kept with live evidence: `GET /api/status` (`200`) shows `level=21`, `exp=1227`, `gold=314`, `area=talking_island_field`; `GET /api/areas/talking_island_field/monsters` (`200`) confirms current safe pool (`rabbit`, `skeleton`), so safest high-efficiency hunt remains area1 with strict level-threshold gate (`BUJU_MOVE_LEVEL_2=22`, current level 21).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained in this doc:
+  1) Best-in-slot auto-equip remains active by `equipSlot + score(maxDamage+defBonus)`.
+  2) Early game: safe gold accumulation and no risky enhancement spam.
+  3) Mid game: weapon-first enhancement only after reserve/prerequisites are met.
+  4) Late game: broaden to armor/accessory with failure-risk controls.
+  5) Minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`); current probe `GET /api/npc/list` => `200` with `npcs=[]`, so safe skip is expected.
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=1221`, `gold=339`, `code=200`), and daemon continuity remains active (`ps -ax` shows `live-runner-daemon.sh`).
+- KPI target (next 30m): `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=1300` or `gold>=345` with smoke `code=200`.
+
+- 30-min STRATEGY DIRECTOR (21:46 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 11:19:46 -> 2026-03-14 21:18:50`): `level +1` (`20->21`), `gold +0` (`319->319`), `inventory +6` (`0->6`), `death +0` (in-window), `rate-limit signal 4/20`; improvement evidence (`level +1`, no death increase) is present, so CHANGE was not applied.
+- Safety/efficiency policy kept with live evidence: current status probe (`GET /api/status`) shows `level=21`, `exp=981`, `gold=339`, `area=talking_island_field`; available monsters remain low-risk/high-efficiency (`rabbit`, `skeleton`), and movement remains strictly threshold-gated (`BUJU_MOVE_LEVEL_2=22`, current level 21).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained:
+  1) Best-in-slot auto-equip remains active by `equipSlot + score(maxDamage+defBonus)`.
+  2) Early game: prioritize safe gold accumulation and avoid risky enhancement spam.
+  3) Mid game: weapon-first enhancement only after reserve threshold/prerequisites are met.
+  4) Late game: broaden to armor/accessory with failure-risk controls.
+  5) Minimal safe enhancement path remains implemented but prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`); this cycle probe shows `/api/npc/list` empty (`npcs=[]`), so safe skip is expected.
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=981`, `gold=339`, `code=200`), and daemon continuity remains active (`live-runner-daemon.sh` + live runner process present).
+- KPI target (next 30m): `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=1060` or `gold>=355` with smoke `code=200`.
+
+- 30-min STRATEGY DIRECTOR (21:16 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 10:50:05 -> 2026-03-14 20:49:42`): `level +1` (`20->21`), `gold +15` (`309->324`), `inventory +2` (`0->2`); improvement evidence exists, so CHANGE was not applied.
+- Safety/efficiency policy kept with live evidence: status probe (`GET /api/status`) shows `level=21`, `exp=727`, `gold=314`, `area=talking_island_field`; available monsters remain low-risk/high-efficiency (`rabbit`, `skeleton`) and strict movement threshold gate stays enforced (`BUJU_MOVE_LEVEL_2=22`, current level 21).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained:
+  1) Best-in-slot auto-equip remains active by `equipSlot + score(maxDamage+defBonus)`.
+  2) Early game: prioritize safe gold accumulation and avoid risky enhancement spam.
+  3) Mid game: weapon-first enhancement only after reserve threshold/prerequisites are met.
+  4) Late game: broaden to armor/accessory with failure-risk controls.
+  5) Minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`); this cycle probe shows `/api/npc/list` empty (`npcs=[]`), so safe skip is expected.
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=729`, `gold=319`, `code=200`), and daemon continuity remains active (`live-runner-daemon.sh` + live runner process present).
+- KPI target (next 30m): `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=820` or `gold>=335` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (20:46 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 10:19:49 -> 2026-03-14 19:50:06`): `level +1` (`20->21`), `gold +20` (`309->329`), `inventory +4` (`3->7`), throttle wording `17/20`; improvement evidence exists, so CHANGE was not applied.
 - Safety/efficiency policy kept with live evidence: current safe area monster pool remains `rabbit(lv1)` + `skeleton(lv2)` (`GET /api/areas/talking_island_field/monsters`), so safest high-efficiency selection stays in area1 while strict level-threshold movement gate is enforced (`BUJU_MOVE_LEVEL_2=22`, current level 21).
 - Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
