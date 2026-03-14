@@ -900,3 +900,10 @@ Track A/B and policy experiments.
 - Metric(s): `death_count/hour`, `hunt_count/hour`, and time-to-first-successful-hunt after breaker trigger; restart-loop frequency per 6 hourly cycles.
 - Result: Current hour repeated critical loop signature (`death=136`, `surrender=136`, `rest=137`, `hunt=0`, `ΔEXP=0`, `ΔGold=0`) with healthy API read-path (`/api/status` + `/api/logs` `200`), confirming issue is policy behavior rather than telemetry outage.
 - Decision: Execute in next 30-min cycle; promote to default safety mechanism if deaths drop by >=80% and hunts recover to >20/hour for 3 consecutive hourly windows.
+
+- Date: 2026-03-14 10:26 KST
+- Hypothesis: An `idle_observability_guard` that adds a secondary probe when hourly recent/log streams are empty will reduce false "no-activity" interpretations caused by telemetry ingestion lag.
+- Change: When `activity:fetch` yields zero signals with `status=200`, run one backup endpoint (`/api/agent/thinking/{username}?limit=20`) and stamp summary confidence as `low-idle` vs `low-unknown`.
+- Metric(s): false idle classifications/day, cycles with unresolved signal source, and time-to-detect telemetry lag.
+- Result: Current cycle had `/api/status=200`, recent endpoints `404`, and `/api/logs` empty at `200`, leaving activity state ambiguous.
+- Decision: Run in next 30-min dev cycle; promote if ambiguity drops for 4 consecutive hourly runs.

@@ -3145,3 +3145,11 @@
 - Development feedback: current policy is trapped in failure-recovery churn; prioritize immediate loop-break execution over tuning. Block any aggression increase until hunt recovery is observed.
 - API failure mode + retry recommendation: `*/recent` route family remains unavailable (`404`), but `/api/status` + paginated `/api/logs` are healthy; continue hourly retry on `*/recent` and keep logs-fallback confidence at `medium` until two consecutive `200` recoveries.
 - [2026-03-14 09:28 KST] Next 30-min actionable TODO: implement `death_loop_breaker_v2` in runner: `if hunt_count_last_60m==0 && death_count_last_60m>=20` then force non-combat recovery mode (`rest/buy only`, no `combat_start`) for 15 minutes, then re-enable conservative hunts with a low-tier target cap and guard-hit telemetry.
+
+## 2026-03-14 10:26 KST — Hourly gameplay feedback (low-signal window)
+- Evidence: loaded `.env` `BUJU_API_KEY` at runtime (masked); `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`; `/api/status=200`; recent-history probes (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) all `404`; direct `/api/logs?limit=5&page=1` returned `200` with empty `data=[]`.
+- Live status snapshot (`/api/status`): `Lv20`, `EXP 1/4000`, `Gold 309`, `HP 192/385`, `MP 202/202`, area `talking_island_cave`, combat inactive.
+- Last-hour gameplay signals: no confirmed action events (`wins=0`, `defeats=0`, progression delta `level/exp/gold = 0/0/0`), so this cycle is treated as **low-signal/idle** rather than active progression.
+- Resource/anomaly signal: character is stable but idle; telemetry fidelity is degraded because canonical recent endpoints are unavailable and logs endpoint currently returns empty payload despite healthy HTTP status.
+- API failure mode + retry recommendation: failure mode is `404` on recent endpoints plus empty logs payload at `200`; retry hourly with the same endpoint set, and add one backup probe (`/api/agent/thinking/{username}?limit=20`) next cycle to distinguish true idle from ingestion lag.
+- [2026-03-14 10:26 KST] Next 30-min actionable TODO: implement `idle_observability_guard` in hourly feedback (`if status=200 && recent/log signals empty for >=2 cycles => emit low-confidence idle flag + backup probe result`) and surface a single conservative action suggestion.
