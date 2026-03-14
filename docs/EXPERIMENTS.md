@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-14 17:28 KST
+- Hypothesis: Replacing `recent` endpoint dependence with deterministic `/api/logs` auto-paging (stop at 60-minute boundary) will keep hourly outcome confidence high even while `recent` routes remain `404`.
+- Change: In hourly cycle, page `GET /api/logs?page=n&limit=100` until oldest event is older than 1h, then compute `wins/defeats/surrenders/potion_spend/rest_count` from that bounded window.
+- Metric(s): % hourly runs with high-confidence win/defeat summary; API error-rate reduction from invalid probes (`400`/`404`); median runtime per cycle.
+- Result: Current live cycle produced complete one-hour evidence from 4 pages (`329` events, `wins=246`, `defeats=0`) while `recent` endpoints stayed `404`.
+- Decision: Run next 2 hourly cycles; promote if confidence remains high and probe-error count drops by >=80% versus current mixed-probe pattern.
+
 - Date: 2026-03-13 23:28 KST
 - Hypothesis: During history endpoint outages (`404`), querying `/api/logs` with allowed action enums (`death`, `level_up`) will provide partial outcome evidence and improve hourly win/defeat confidence over the current `action=combat` (`400`) probe.
 - Change: Extend hourly fetcher fallback to test `GET /api/logs?action=death&limit=50` and `GET /api/logs?action=level_up&limit=50`, then map to `outcome_confidence` (`low|medium|high`).
