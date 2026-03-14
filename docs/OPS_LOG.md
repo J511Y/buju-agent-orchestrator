@@ -3227,3 +3227,13 @@
 - Dev feedback: treat this hour as `outcome_confidence=low` and block policy/aggression changes until auth preflight is green.
 - Retry recommendation: verify `.env` key freshness/format (trim quotes/whitespace), confirm expected auth header scheme with Buju API docs, then rerun preflight (`/api/status` + one `/api/logs` call) before hourly synthesis.
 - Next 30-min TODO: implement `auth_preflight_gate` in hourly cycle to hard-stop gameplay inference on `401` and emit explicit `auth_state` telemetry.
+
+## 2026-03-14 13:28 KST — Hourly gameplay feedback (live API)
+- Evidence: `.env` key loaded at runtime (masked); live probes `GET /api/status=200`, `GET /api/activity/recent?hours=1=404`, `GET /api/logs/recent?hours=1=404`; fallback pagination `GET /api/logs?limit=100&page=1..4` all `200`.
+- Live status snapshot: `Lv20`, `EXP 1075/4000`, `Gold 344`, `HP 241/385 (62.6%)`, `MP 202/202`, area `talking_island_field`, combat inactive.
+- Last-hour gameplay signals (12:28~13:28 KST, `/api/logs` fallback): total `339` events — `hunt=249`, `rest=25`, `buy=36`, `drop=24`, `sell=3`, `surrender=2`, `death=0`.
+- Progression/win-defeat/resource trend: strong recovery from prior degradation windows; wins `249`, defeats `0`, surrender rate low (`2/339`), and economy appears positive (`Gold 344` with active hunt throughput).
+- Anomaly check: canonical recent endpoints remain unavailable (`404`), so confidence remains `medium` despite healthy live status/logs.
+- Development feedback: keep conservative safety gates enabled (do **not** re-open aggressive cave behavior yet), but re-weight tuning toward efficiency (inventory churn and buy/drop overhead) since death-loop pressure is currently resolved.
+- API failure mode + retry recommendation: continue hourly retry of `*/recent`; keep paginated `/api/logs` as source of truth until `*/recent` returns `200` for at least 2 consecutive cycles.
+- [2026-03-14 13:28 KST] Next 30-min actionable TODO: add `efficiency_guard_v1` telemetry in runner (`hunt_share`, `buy+drop_share`, `surrender_share`) and trigger a soft adjustment when `buy+drop_share > 15%` for 2 consecutive windows (reduce non-combat churn before changing combat aggressiveness).

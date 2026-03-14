@@ -921,3 +921,10 @@ Track A/B and policy experiments.
 - Metric(s): Hourly cycles with unresolved auth cause; false gameplay-anomaly notes during auth failures; time-to-recovery after key rotation.
 - Result: This cycle reproduced `401 Missing or invalid API key` on direct authenticated probes for status/log endpoints, while historical recent-endpoint path remained non-actionable (`404`/fallback).
 - Decision: Run in next 30-min dev cycle; promote if auth-cause ambiguity is eliminated for 4 consecutive hourly cycles.
+
+- Date: 2026-03-14 13:28 KST
+- Hypothesis: Keeping strict recovery gates active while shifting optimization target from survivability to non-combat churn will preserve zero-defeat stability and improve net resource velocity.
+- Change: Introduce `efficiency_guard_v1` metrics (`hunt_share`, `buy+drop_share`, `surrender_share`) and apply only soft non-combat adjustments when churn exceeds threshold (`buy+drop_share > 15%` for 2 windows), without raising combat aggressiveness.
+- Metric(s): `death_count/hour`, `hunt_count/hour`, `gold_delta/hour`, `buy+drop_share`, `surrender_share`.
+- Result: Current live window shows stable recovery (`hunt=249`, `death=0`, `surrender=2`, 339 events total) with healthy throughput but non-trivial non-combat overhead (`buy+drop=60`, ~17.7%).
+- Decision: Run in next 30-min cycle; promote if zero-defeat stability holds and `buy+drop_share` drops below 12% for 3 consecutive hourly windows.
