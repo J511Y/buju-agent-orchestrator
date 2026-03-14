@@ -721,9 +721,11 @@ async function step() {
   const defeatPressure = recentDefeatCount(8);
   const surrenderPressure = recentDangerSurrenderCount(8);
   const safetyRetreatArea = (defeatPressure >= 3 || surrenderPressure >= 3) ? CFG.area1 : null;
-  // Strict level-threshold movement gate: below moveLv2, stay/return to area1 regardless of current armor state.
+  // No-armor safety gate: even if level threshold is met, keep/return to area1 until armor is secured.
+  const noArmorAreaOverride = (!hasArmor && c.current_area !== CFG.area1) ? CFG.area1 : null;
+  // Strict level-threshold movement gate: below moveLv2, stay/return to area1.
   const thresholdAreaOverride = ((c.level || 1) < CFG.moveLv2 && c.current_area !== CFG.area1) ? CFG.area1 : null;
-  const desiredArea = safetyRetreatArea || thresholdAreaOverride || targetArea;
+  const desiredArea = safetyRetreatArea || noArmorAreaOverride || thresholdAreaOverride || targetArea;
   if (!inCombat && c.current_area !== desiredArea && !shouldSkipAction('move') && hasRateBudget(rateLimits, 'move')) {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: desiredArea }) });
     recordActionResult('move', r.status);
