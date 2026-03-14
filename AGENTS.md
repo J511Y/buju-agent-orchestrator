@@ -39,7 +39,7 @@ Agent tasks must stay aligned with the Buju objective: maximize in-game score vi
 3. 구현 + 최소 검증
    - 로컬 실행 또는 최소 테스트
    - Activity 수집 경로 변경 시: `npm run verify:activity`, `npm run verify:activity-config`, `npm run verify:activity-log`, `npm run verify:activity-log-rotation`, `npm run verify:activity-probe-summary`
-   - Live runner(`scripts/live-action-tick.js`, `scripts/live-strategy-runner.js`, `scripts/live-runner-daemon.sh`) 변경 시: dry-run 출력 확인 + 로그 경로(`logs/live-runner-daemon.log`) 및 단일 인스턴스 PID 락(`logs/live-runner-daemon.lock`) 동작 확인 + 전투 진입 계약(`combat/start`의 `monster_id`,`area` 기준, `combat/strategy`는 payload 변경/refresh tick에서만 갱신, hunt 예산 0일 때 strategy 호출 생략, `combat/start` 404·`API_DEPRECATED`·429 시 필요 폴백 `hunt` `monster_id`,`skill_id`) 유지 확인
+   - Live runner(`scripts/live-action-tick.js`, `scripts/live-strategy-runner.js`, `scripts/live-runner-daemon.sh`) 변경 시: dry-run 출력 확인 + 로그 경로(`logs/live-runner-daemon.log`) 및 단일 인스턴스 PID 락(`logs/live-runner-daemon.lock`) 동작 확인 + 전투 진입 계약(`combat/start`의 `monster_id`,`area` 기준, `combat/strategy`는 payload 변경/refresh tick에서만 갱신, hunt 예산 0일 때 strategy 호출 생략, `combat/start` 404·`API_DEPRECATED`·429 시 필요 폴백 `hunt` `monster_id`,`skill_id`) 유지 확인 + 안전 후퇴 계약(최근 8틱 패배/위험 항복 누적 3회 이상 시 `move_safety_retreat`로 `BUJU_AREA_LV1` 강제) 유지 확인
    - 인벤토리 정리/슬롯 판단 로직 변경 시: `inventory.slots.used` 우선 사용 계약과 폴백(`inventory_count`/목록 길이), 전투 중 판매 불가 시 surrender 경유 정리 경로를 README 정책과 동기화
    - 시즌 리셋 안전장치(장비 공백 시 전투 중단/재장착, 위험 전투 즉시 항복) 변경 시 surrender 트리거 기준(HP/몬스터 위험도)과 README 운영 정책을 함께 갱신
    - 저체력 항복 게이트는 `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` 계약을 기본으로 유지하고, 수식 변경 시 README/DECISIONS 동시 갱신
