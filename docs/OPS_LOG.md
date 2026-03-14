@@ -3509,3 +3509,20 @@
 - Anomaly watch: surrender volume is elevated (`16`, `4.5%` of events) despite zero deaths, suggesting survivability friction before lethal outcomes.
 - Development feedback: keep conservative combat safety policy, but prioritize reducing surrender churn (pre-combat readiness and disengage thresholds) over aggressive throughput tuning.
 - [2026-03-15 01:29 KST] Next 30-min actionable TODO: implement `surrender_churn_guard_v1` — when `surrender_share >= 4%` with `death=0`, raise pre-combat HP floor by +5% for one cycle and compare (`surrender_count`, `hunt_count`, `gold_delta`) before/after.
+
+- Date: 2026-03-15 02:27 KST
+- Cycle: Hourly gameplay-feedback (cron)
+- Evidence:
+  - Loaded `BUJU_API_KEY` from `.env` (masked; not printed).
+  - Live probe attempt failed before auth stage: `GET /api/status` and `/api/logs` transport error `ENOTFOUND webgame-api.berrysoft.kr`.
+- Last-hour gameplay signals:
+  - Progression / win-defeat / resource trends: unavailable (no reachable live telemetry).
+- Anomalies:
+  - `api_dns_resolution_failure` (host lookup failure), confidence=`none`.
+- Development feedback:
+  - Add preflight DNS/connectivity check before Buju API probes and short-circuit with explicit `telemetry_unreachable` state.
+  - Keep gameplay-policy outputs blocked when transport preflight fails (avoid false inferences).
+- Retry recommendation:
+  - Re-run after verifying API base host resolution/network route (DNS, VPN, firewall) and validate with `GET /api/status` first.
+- TODO (next 30-min dev cycle):
+  - Implement `connectivity_preflight_v1` in hourly pipeline (DNS resolve + 5s status probe + structured failure code) and unit-test ENOTFOUND handling.

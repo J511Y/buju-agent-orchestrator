@@ -1012,3 +1012,10 @@ Track A/B and policy experiments.
 - Metric(s): `surrender_count/hour`, `hunt_count/hour`, `gold_delta/hour`, and end-hour `hp_ratio` before/after guard.
 - Result: Current window showed strong throughput (`hunt=249`) with no deaths, but surrender remained elevated (`16/352`, `4.5%`) alongside non-trivial rest/buy churn.
 - Decision: Run in next 30-min dev cycle; promote if surrender drops below `2%` for 3 consecutive hourly windows without hunt-count regression.
+
+- Date: 2026-03-15 02:27 KST
+- Hypothesis: A lightweight `connectivity_preflight_v1` (DNS resolve + status endpoint reachability) before hourly synthesis will reduce false gameplay summaries and shorten outage triage when Buju API is unreachable.
+- Change: Add preflight that emits `connectivity_state` (`ok|dns_unreachable|network_unreachable|timeout`) and blocks progression/outcome synthesis when non-`ok`.
+- Metric(s): False gameplay inference count during transport outages; mean time to classify outage root cause; % cycles with explicit retry guidance.
+- Result: Current cycle failed with transport `ENOTFOUND webgame-api.berrysoft.kr` before auth/data collection, leaving last-hour gameplay telemetry unavailable.
+- Decision: Run in next 30-min dev cycle; promote if outage classification is explicit for 4 consecutive failure windows.
