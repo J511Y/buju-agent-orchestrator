@@ -75,6 +75,7 @@ npm run dev
   - 현재 전투 몬스터 위험도(레벨/공격력/체력) 초과 시 `POST /combat/surrender`로 즉시 이탈해 연속 사망을 방지
   - 전투 중 저체력 항복 임계는 고정값이 아닌 `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` 적응형 게이트로 유지해 과도한 항복/재진입 반복을 줄임
   - 최근 8틱 기준 패배 또는 위험 항복 누적이 3회 이상이면 `BUJU_AREA_LV1`로 안전 후퇴(`move_safety_retreat`) 후 정상 지역 진행으로 복귀
+  - `level < BUJU_MOVE_LEVEL_2` 구간에서 현재 지역이 `BUJU_AREA_LV1`이 아니면 임계 기반 지역 폴백(`move_threshold_fallback`)으로 저레벨 과위험 이동을 차단
   - 저체력 운영은 rest-first 경제 모드(임계 이하에서 즉시 `rest`), 극저체력 구간에서만 potion 보조 사용 (`rest` 400은 soft-fail로 처리해 루프 정체 방지)
   - 루틴 포션 바닥 보충(`hp_potion_s`, `mp_potion_s`)은 `BUJU_MIN_GOLD_RESERVE`를 침범하지 않는 범위에서만 수행
   - 중반 레벨 이상에서는 블랙스미스 NPC + 주문서 보유 + 골드 예비금 조건을 동시에 만족할 때만 안전 강화(`enhance`)를 수행
