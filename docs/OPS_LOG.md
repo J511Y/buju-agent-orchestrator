@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 12:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): trailing last-20 thinking window (`2026-03-14 00:19:41 -> 2026-03-14 10:50:05`) remained mixed (`level +1`, `exp +0`, `gold -25`) with elevated cave death-burst evidence from recent death-log probes, so KEEP was rejected.
+  - Logic change applied (minimal/reversible): `scripts/live-strategy-runner.js` now enforces strict level-threshold area policy below `BUJU_MOVE_LEVEL_2` (`thresholdAreaOverride`), forcing return/stay to `BUJU_AREA_LV1` regardless of armor state to prevent cave retention risk.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=499`, `gold=324`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` both active).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: no repeat cave-loop death burst, inventory `<=8`, strict no-cave-below-threshold compliance, smoke `code=200`, and progress to `gold>=330` or `exp>=550`.
+
 - [2026-03-14 11:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): local trailing last-20 thinking logs (`tmp/last20-thinking-live.json`) deltas for `2026-03-13 21:49:20 -> 2026-03-14 08:19:25` were mixed: `level +2` (`18->20`) but `exp +0`, `gold -25` (`334->309`), and `death +0` (window check from `tmp/death-log-now.json`), so KEEP was rejected.
   - Parameter change applied (minimal/reversible): `config/strategy.env` updated `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=16` (from `12`) to reduce combat-strategy control-call churn while preserving safety-first routing.
