@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 18:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 08:19:25 -> 2026-03-14 17:49:20`) with deltas `level +0` (`20->20`), `gold +25` (`309->334`), `inventory -1` (`3->2`), and sustained throttle/rate-limit mentions; improvement evidence remains valid, so CHANGE was not applied.
+  - Safety/efficiency evidence: confirmed currently available monsters in active area are low-risk/high-efficiency (`rabbit`, `skeleton`) via `GET /api/areas/talking_island_field/monsters`; strict movement threshold gate retained (`BUJU_MOVE_LEVEL_2=21`, current level 20).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`). Current probe evidence: `GET /api/npc/list` => `200` with empty NPC set and inventory has no enhancement scroll, so action path safely skipped.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=20`, `exp=3455`, `gold=334`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ef | grep -E "live-runner-daemon|live-strategy-runner"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=40%`, dangerous-surrender bursts `<=1/8 cycles`, and progression to `exp>=3520` or `gold>=350` with smoke `code=200`.
+
 - [2026-03-14 17:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded runtime key from `.env` (masked), queried `GET /api/status` (`200`) and paged `GET /api/logs?page=1..4&limit=100` (`200`) for a one-hour window (`16:26:07~17:25:55 KST`, 329 events).
   - Last-hour gameplay signals: progression steady (`level 20` 유지, `exp 3043/4000`), outcomes strongly positive (`hunt=246`, wins=246, defeats=0, surrender=2), resource loop stable-but-thin (`buy=35`, potion spend≈`1400G`, `sell=2`, net gold snapshot `334G`, HP `201/385`).
@@ -3312,3 +3322,12 @@
 - Anomaly: telemetry inconsistency persists (status progression present while logs/recent streams are empty/degraded), indicating ingestion lag or schema/filter mismatch rather than confirmed gameplay inactivity.
 - API failure mode + retry recommendation: continue hourly retries for `*/recent`, keep status-delta fallback active, and add one backup liveness probe (`/api/agent/thinking/{username}?limit=20`) whenever `status` moves but logs window is empty.
 - [2026-03-14 16:28 KST] Next 30-min actionable TODO: implement `signal_reconciliation_guard_v1` — if `ΔEXP>0 || ΔGold!=0` with empty logs window, auto-tag cycle as `low_conflict`, fetch backup thinking probe, and block policy/aggression changes until at least one event source is non-empty.
+
+## 2026-03-14 18:28 KST — Hourly gameplay feedback (live API)
+- Evidence: loaded `BUJU_API_KEY` from `.env` (masked); direct probes succeeded (`GET /api/status=200`, paged `GET /api/logs?limit=100&page=1..4=200`); `npm run -s activity:fetch -- --hours 1` still falls back because `*/recent` endpoints remain `404`.
+- Live status snapshot: `Lv20`, `EXP 3533`, `Gold 329`, `HP 214/385 (55.6%)`, `MP 202/202`.
+- Last-hour gameplay signals (17:28~18:28 KST, paged `/api/logs`): `341` events — `wins/hunt=245`, `defeats/death=0`, `surrender=1`, `rest=25`.
+- Progression/resource trend: strong progression with low-loss profile (win-heavy, zero defeats), but HP ended mid-band (`55.6%`) and gold slipped slightly from prior snapshot (`334 -> 329`), so survivability/economy remain watch items.
+- Anomaly + API failure mode: canonical recent-history route family still unavailable (`404` on `/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) while `/api/status` and paged `/api/logs` are healthy.
+- Retry recommendation: continue hourly retry on `*/recent`; keep paged `/api/logs` as provisional truth source with confidence=`medium` until recent endpoints recover for at least 2 consecutive `200` windows.
+- [2026-03-14 18:28 KST] Next 30-min actionable TODO: add `hp_floor_efficiency_guard_v1` — when last-hour `rest_count >= 20` and end-of-hour `hp_ratio < 0.60`, raise pre-combat HP floor by +5% for one cycle and compare (`rest_count`, `Δgold`, `defeats`) before/after.

@@ -956,3 +956,10 @@ Track A/B and policy experiments.
 - Metric(s): false-idle classification count/day; cycles with unresolved status-vs-log conflict; median time to identify telemetry-lag cause.
 - Result: Current cycle showed clear status movement (`ΔEXP=+496`, `ΔGold=+20`, `ΔHP=+25`) with zero last-hour logs and persistent `*/recent` 404s.
 - Decision: Implement in next 30-min dev cycle; promote if conflict-tagged cycles drop by >=50% and no aggressive recommendation is emitted during unresolved conflicts for 6 consecutive hourly runs.
+
+- Date: 2026-03-14 18:28 KST
+- Hypothesis: A temporary `hp_floor_efficiency_guard_v1` (raise pre-combat HP floor by +5% when `rest>=20/hour` and end-hour HP ratio `<0.60`) will reduce fragile low-HP endings without increasing defeats.
+- Change: Add one-cycle adaptive guard trigger from hourly metrics and log before/after comparison (`rest_count`, `Δgold/hour`, `defeat_count/hour`).
+- Metric(s): End-hour `hp_ratio`, `rest_count/hour`, `defeat_count/hour`, and net `Δgold/hour` across guarded vs unguarded windows.
+- Result: Current hour was win-heavy (`245` wins, `0` defeats) but still ended at `HP 214/385` (`55.6%`) with `rest=25`, indicating survivability margin may be thinner than throughput suggests.
+- Decision: Trial in next 30-min dev cycle; promote if end-hour HP rises above 60% for 3 consecutive windows without increasing defeat count.
