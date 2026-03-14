@@ -1,5 +1,14 @@
 # Ops Log
 
+## 2026-03-15
+- [2026-03-15 00:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; never printed), ran `npm run -s activity:fetch -- --hours 1` (`/api/status=200`, all `*/recent` endpoints `404`), and direct authenticated probes `GET /api/status` + `GET /api/logs?page=1&limit=100` both returned `401 UNAUTHORIZED` this cycle.
+  - Last-hour gameplay signals: unresolved (`progression`, `wins/defeats`, `resource trends` unavailable) because both direct status/log probes failed auth and recent-history routes remained degraded.
+  - Anomaly: telemetry split-brain persists (`activity:fetch` sees status endpoint healthy while direct bearer-key probes fail with `401`), so confidence remains `low` and policy tuning is blocked.
+  - Dev feedback: prioritize credential-path reconciliation before gameplay-policy changes; treat this hour as observability/auth failure, not gameplay regression.
+  - Failure mode + retry recommendation: next cycle re-run masked preflight (`/api/status` + `/api/logs?limit=1`) from the exact runtime credential source, verify key scope/rotation on Buju dashboard, then resume paged-log KPI aggregation only after a `200` preflight.
+  - Next 30m actionable TODO: implement `scripts/auth-source-diff-check.js` to compare env source used by `activity:fetch` vs direct probes and emit one deterministic `auth_state` (`ok|unauthorized|source_mismatch`) gate for hourly feedback.
+
 ## 2026-03-14
 - [2026-03-14 22:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 12:19:46 -> 2026-03-14 22:19:31`) with deltas `level +1` (`20->21`), `gold +5` (`309->314`), and `inventory +3` (`0->3`); improvement evidence exists so CHANGE was not applied.

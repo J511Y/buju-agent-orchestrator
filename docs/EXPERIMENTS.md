@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 00:28 KST
+- Hypothesis: An explicit `auth_source_diff_gate` (same-hour comparison of credential source used by `activity:fetch` vs direct bearer probes) will quickly isolate source mismatch vs true key invalidation and reduce low-confidence hourly cycles.
+- Change: Add a tiny checker that runs `/api/status` + `/api/logs?limit=1` with both credential paths and emits `auth_state` (`ok|unauthorized|source_mismatch`) before hourly synthesis.
+- Metric(s): Time-to-diagnose `401` incidents; % cycles marked low-confidence due to unresolved auth ambiguity; false gameplay-policy recommendations during auth faults.
+- Result: Current cycle reproduced ambiguity (`activity:fetch` reported `/api/status=200` while direct authenticated `/api/status` and `/api/logs` both returned `401`), blocking reliable last-hour gameplay inference.
+- Decision: Run in next 30-min dev cycle; promote if it resolves auth-failure root cause classification within 2 consecutive hourly runs.
+
 - Date: 2026-03-14 21:29 KST
 - Hypothesis: Replacing fallback-zero hourly summaries with a dedicated paged-log KPI extractor (`/api/logs?page=n&limit=100` until 60m cutoff) will produce consistently high-confidence gameplay signals despite persistent `*/recent` 404 outages.
 - Change: Add `hourly-log-kpis` helper that outputs `hunt/win/defeat/surrender/rest/buy/sell/drop` plus `buy_spent/sell_gain/net_trade` in one structured payload for OPS ingestion.
