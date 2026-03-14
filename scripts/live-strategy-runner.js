@@ -720,7 +720,9 @@ async function step() {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: desiredArea }) });
     recordActionResult('move', r.status);
     if (r.status === 200) {
-      const moveAction = safetyRetreatArea ? 'move_safety_retreat' : (safeAreaOverride ? 'move_safe_fallback' : 'move');
+      const moveAction = safetyRetreatArea
+        ? 'move_safety_retreat'
+        : (thresholdAreaOverride ? 'move_threshold_fallback' : 'move');
       return { ok: true, action: moveAction, area: desiredArea, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
     // 400 soft-fail => continue hunting in current area.

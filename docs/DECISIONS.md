@@ -1,6 +1,28 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (13:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43`): `level +2` (`18->20`) but `gold -20` (`329->309`) with high throttle signal (`13/20`), so KEEP was rejected.
+- Minimal/reversible changes applied:
+  1) `config/strategy.env` tuned `BUJU_BASE_DELAY_MS 4000->4200` to lower `combat_start` collision/rate-limit pressure.
+  2) `scripts/live-strategy-runner.js` fixed move fallback bug (`safeAreaOverride` -> `thresholdAreaOverride`) and clarified fallback action tag to `move_threshold_fallback` so strict level-threshold movement remains deterministic on fallback branch.
+- Hard constraints preserved unchanged and treated as invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still sells unequipped gear worse than equipped first.
+- Equipment progression requirements reaffirmed:
+  1) Best-in-slot evaluation remains per `equipSlot + score(maxDamage+defBonus)` with auto-equip when superior.
+  2) Staged enhancement plan remains explicit in this document (early safe gold/no spam -> mid weapon-first at reserve threshold -> late armor/accessory with failure-risk controls).
+  3) Minimal safe enhancement action path stays prerequisite-gated (`scroll + blacksmith npc + resource reserve + rate budget + non-combat`).
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=1003`, `gold=324`, `code=200`) and daemon continuity remains active.
+- KPI target (next 30m): `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit<=25%`, threshold fallback compliance `100%`, and progression to `exp>=1060` or `gold>=335` with smoke `code=200`.
+
+- 30-min STRATEGY DIRECTOR (12:46 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (fallback local last-20 thinking posts because `GET /agent/thinking/j211y?limit=20` returned empty list): `level +2` (`18->20`), `gold +5` (`304->309`), `exp +0` (window edge snapshots), and no `rate_limited` decisions (`0/20`).
+- Safety/efficiency evidence kept: current available monsters in active area are `rabbit` and `skeleton`; selector remains safety-first/high-efficiency and strict level-threshold movement gate remains active (`level 20 < BUJU_MOVE_LEVEL_2=21` => stay/return to `BUJU_AREA_LV1`).
+- Hard constraints locked unchanged in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still sells unequipped gear worse than equipped first.
+- Equipment progression requirements explicitly retained:
+  1) Best-in-slot equip remains evaluated each cycle by `equipSlot + score(maxDamage+defBonus)` and auto-equipped when superior.
+  2) Enhancement staged plan remains (early safe accumulation/no spam -> mid weapon-first at reserve threshold -> late armor/accessory with failure-risk controls).
+  3) Minimal safe enhancement action path remains prerequisite-gated (`scroll + blacksmith npc + resource reserve + rate budget + non-combat`).
+- Live smoke/continuity evidence: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=757`, `gold=329`, `code=200`; daemon kept continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+- KPI target (next 30 min): keep `deaths` trend non-escalating from latest burst window, inventory `<=8`, no cave move below threshold level, and progression to `gold>=340` or `exp>=820` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (12:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-14 00:19:41 -> 2026-03-14 10:50:05` from trailing thinking logs): `level +1` (`19->20`) but `exp +0` (thinking window), `gold -25` (`334->309`), and recent death-feed concentration persisted in cave window (supported `logs?action=death` samples), so KEEP was rejected.
 - Logic change applied (minimal/reversible): in `scripts/live-strategy-runner.js`, tightened movement policy to strict level-threshold gating — while `level < BUJU_MOVE_LEVEL_2`, runner now forces return/stay to `BUJU_AREA_LV1` regardless of armor state (`thresholdAreaOverride`), preventing cave retention risk drift.
 - Hard constraints locked unchanged in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still sells unequipped gear worse than equipped first.

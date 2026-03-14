@@ -1,6 +1,25 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 13:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): used trailing 20 thinking logs (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43`) and computed deltas `level +2` (`18->20`), `gold -20` (`329->309`), `death +0`, `rate-limit signal 13/20`; improvement evidence was mixed, so KEEP was rejected.
+  - Logic/parameter change applied (minimal + reversible): `config/strategy.env` `BUJU_BASE_DELAY_MS 4000->4200` to cut combat-start throttle collision, and `scripts/live-strategy-runner.js` move fallback bug fixed (`safeAreaOverride` -> `thresholdAreaOverride`, action `move_threshold_fallback`) to keep strict level-threshold movement stable on retreat path.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=1003`, `gold=324`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps` confirms `bash ./scripts/live-runner-daemon.sh` active).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: defeats `=0`, inventory `<=8`, `wait_combat_start_rate_limit<=25%`, threshold-move fallback compliance `100%`, and progression to `exp>=1060` or `gold>=335` with smoke `code=200`.
+
+- [2026-03-14 12:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty data in this cycle, so fallback local last-20 thinking posts were used (`tmp/thinking-post-*.json`, sorted by tick). Computed deltas were `level +2` (`18->20`), `gold +5` (`304->309`), `exp +0` (edge snapshots), with `rate_limited 0/20`.
+  - Safety/efficiency evidence: current active-area monster pool is low-risk (`rabbit`, `skeleton`), and runtime selector remains safety-first/high-efficiency with strict level-threshold movement gate (`level 20 < BUJU_MOVE_LEVEL_2=21` => stay/return to `talking_island_field`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=757`, `gold=329`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner process).
+  - Next 30m KPI: inventory `<=8`, no cave move below threshold level, keep smoke `code=200`, and progression to `gold>=340` or `exp>=820` without new defeat burst.
+
 - [2026-03-14 12:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): trailing last-20 thinking window (`2026-03-14 00:19:41 -> 2026-03-14 10:50:05`) remained mixed (`level +1`, `exp +0`, `gold -25`) with elevated cave death-burst evidence from recent death-log probes, so KEEP was rejected.
   - Logic change applied (minimal/reversible): `scripts/live-strategy-runner.js` now enforces strict level-threshold area policy below `BUJU_MOVE_LEVEL_2` (`thresholdAreaOverride`), forcing return/stay to `BUJU_AREA_LV1` regardless of armor state to prevent cave retention risk.
