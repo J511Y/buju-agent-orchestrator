@@ -39,6 +39,7 @@ const CFG = {
   minGoldReserve: Number(process.env.BUJU_MIN_GOLD_RESERVE || 300),
   mutationLevel: Number(process.env.BUJU_MUTATION_PREP_LEVEL || 10),
   mutationCharmStock: Number(process.env.BUJU_MUTATION_CHARM_STOCK || 1),
+  mutationMinGoldReserve: Number(process.env.BUJU_MUTATION_MIN_GOLD_RESERVE || 120),
   backoffBaseMs: Number(process.env.BUJU_BACKOFF_BASE_MS || 1200),
   backoffMaxMs: Number(process.env.BUJU_BACKOFF_MAX_MS || 5000),
   // Hard constraints (strategy director): keep invariant regardless of env drift.
@@ -525,7 +526,10 @@ async function ensureMutationShield(c, inventory, inCombat, rateLimits) {
     if (!hasRateBudget(rateLimits, 'buy')) return null;
     const need = CFG.mutationCharmStock - charmQty;
     const estimatedCost = need * 300;
-    if ((c.gold || 0) - estimatedCost < CFG.minGoldReserve) return null;
+    // Safety-critical exception: mutation-shield prep should not be blocked by a high generic reserve.
+    // Use a dedicated lower floor to prevent repeated movement deaths when no charm is stocked.
+    const mutationReserveFloor = Math.min(CFG.minGoldReserve, CFG.mutationMinGoldReserve);
+    if ((c.gold || 0) - estimatedCost < mutationReserveFloor) return null;
     const buy = await req('/shop/buy', { method: 'POST', body: JSON.stringify({ item_id: 'mutation_shield_charm', quantity: need }) });
     recordActionResult('mutation_shield', buy.status);
     return { ok: buy.status === 200, action: 'buy_mutation_charm', qty: need, code: buy.status, softFail: buy.status === 400 };

@@ -1,6 +1,17 @@
 # Engineering Decisions
 
 ## 2026-03-15
+- 30-min STRATEGY DIRECTOR (05:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 17:18:54 -> 2026-03-15 04:20:01`): nominal improvement existed (`level +1`, `gold +5`), but KEEP was rejected because fresh death pressure re-accelerated right after that window (`GET /api/logs?action=death&limit=100` shows repeated `skeleton_knight` defeats plus mutation-travel deaths at 04:48/04:59/05:09), violating the repeated-defeat safety objective.
+- Minimal/reversible CHANGE set committed:
+  1) `scripts/live-strategy-runner.js` added a safety-critical mutation-charm reserve override (`BUJU_MUTATION_MIN_GOLD_RESERVE`, default `120`) so mutation-shield prep is not blocked by the high generic reserve floor when travel-death risk is active.
+  2) `config/strategy.env` tuned movement threshold `BUJU_MOVE_LEVEL_2 22->30` to enforce safer area1 routing until survivability/equipment improves.
+  3) `config/strategy.env` added `BUJU_MUTATION_MIN_GOLD_RESERVE=120`.
+- Live evidence now: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` returned `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=3`, `gold=369`, `code=200`; follow-up status confirms safe-area alignment `area=talking_island_field`.
+- Hard constraints reaffirmed as invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements revalidated: best-in-slot auto-equip remains `equipSlot + score(maxDamage+defBonus)`; staged enhancement policy remains explicit (early safe accumulation/no spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`).
+- Live runner continuity evidence: daemon remains active (`live-runner-daemon.sh` + `live-strategy-runner.js` present) with no secret exposure.
+- KPI target (next 30m): `death delta<=1` (downtrend from current burst), inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression to `exp>=60` or `gold>=380` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (04:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 17:18:54 -> 2026-03-15 04:20:01`): `level +1` (`20->21`) and `gold +5` (`324->329`) were positive but insufficient because death pressure stayed extreme in the active cave loop (`GET /api/logs?action=death&limit=100` still dominated by repeated `skeleton_knight` defeats), with residual throttle/rate wording (`10/20`). KEEP was rejected on safety grounds.
 - Minimal/reversible logic change committed: `scripts/live-strategy-runner.js` now enforces a **no-armor safety area override** (`!hasArmor => area1`) before normal area progression, so the runner stops lingering in cave while armor slot is empty.
 - Live evidence now: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=move`, `level=22`, `exp=1`, `gold=364`, `code=200`; daemon continuity confirmed (`live-runner-daemon.sh` + `live-strategy-runner.js` process present).
