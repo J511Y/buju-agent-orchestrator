@@ -984,3 +984,10 @@ Track A/B and policy experiments.
 - Metric(s): false-positive strategy recommendations in no-signal windows, unresolved telemetry-conflict cycles/day, time-to-recover once non-empty events resume.
 - Result: Current cycle showed live status (`Lv21`, `EXP 321`, `HP 247/400`) with empty logs and persistent `*/recent` `404`, confirming an observability-conflict pattern.
 - Decision: Implement in next 30-min dev cycle; promote if false-positive recommendations remain zero for 6 consecutive hourly windows.
+
+- Date: 2026-03-14 22:26 KST
+- Hypothesis: A `status_delta_conflict_counter_v1` (status-move + empty-log conflict tracking) will reduce false idle interpretations during telemetry lag windows.
+- Change: In hourly feedback, when `/api/status=200` and `ΔEXP>0 || ΔGold!=0` but paged `/api/logs` is empty, increment a conflict counter, fetch one backup liveness probe, and force `confidence=low_conflict` with policy/aggression recommendations blocked.
+- Metric(s): conflict-window false-idle classification count/day; unresolved conflict duration (hours); false-positive strategy recommendations during conflict windows.
+- Result: Current cycle showed `status` progression (`ΔEXP +978`, `ΔGold +15`) while `/api/logs` pages were all empty (`count=0`) and `*/recent` endpoints remained `404`.
+- Decision: Run in next 30-min dev cycle; promote if false-idle classifications drop for 6 consecutive hourly windows.

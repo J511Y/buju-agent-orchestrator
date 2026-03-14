@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 22:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 11:49:24 -> 2026-03-14 21:49:50`) with deltas `level +1` (`20->21`), `gold +35` (`304->339`), and `exp +0` (thinking-window sparse); improvement evidence exists so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement policy retained; minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+non-combat+rate budget`) and safely skipped this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: `GET /api/status` => `200` (`level=21`, `exp=1227`, `gold=314`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters` confirms current safe pool (`rabbit`, `skeleton`), and smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=1221`, `gold=339`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon process).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=1300` or `gold>=345` with smoke `code=200`.
+
 - [2026-03-14 21:29 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; never printed), then queried `GET /api/status` (`200`) and paged `GET /api/logs?page=1..5&limit=100` (`200`) to cover a 60-minute window (`20:29:17~21:29:10 KST`, `325` events). `activity:fetch` still showed `*/recent` endpoints `404` and fallback source.
   - Last-hour gameplay signals: progression resumed with strong combat throughput (`hunt=246`, inferred wins `246`, defeats `0`, surrender `1`), current status `Lv21`, `EXP=817`, `Gold=339`, `HP=264/400`, `area=talking_island_field`.
@@ -3422,3 +3432,13 @@
 - Development feedback: keep policy/aggression unchanged and prioritize observability integrity over strategy tuning until at least one event stream is non-empty.
 - API retry recommendation: next cycle re-run `/api/status` + paged `/api/logs` + `activity:fetch`; if logs remain empty for >=2 consecutive cycles while status changes, add one backup liveness probe (`/api/agent/thinking/{username}?limit=20`) before inferring gameplay state.
 - [2026-03-14 20:28 KST] Next 30-min actionable TODO: implement `empty_logs_escalation_guard_v1` (trigger when `/api/status=200` and `/api/logs` empty for 2 consecutive hourly windows) to auto-tag `confidence=low_idle`, fetch one backup liveness probe, and suppress strategy-change recommendations.
+
+## 2026-03-14 22:26 KST — Hourly gameplay feedback (status-live / event-stream empty)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked); live probes succeeded on `GET /api/status=200`, `GET /api/logs?limit=100&page=1..4=200`.
+- Recent-endpoint health: `npm run -s activity:fetch -- --hours 1` still reports `404` across `*/recent` family (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) with `/api/status=200`.
+- Live status snapshot: `Lv21`, `EXP 1299`, `Gold 334`, `HP 265/400 (66.3%)`, `MP 210/210`, area `talking_island_field`.
+- Last-hour gameplay signals: no confirmed event-stream evidence (`/api/logs` pages returned `count=0`; wins/defeats unresolved, confidence=`low_idle`).
+- Status-derived trend vs prior 20:28 KST snapshot: `ΔEXP +978`, `ΔGold +15`, `ΔHP +18` (progression visible while event logs remain empty).
+- Anomaly + failure mode: telemetry conflict persists (`status` changing with `logs/recent` empty/degraded), indicating ingestion lag/schema mismatch rather than confirmed inactivity.
+- Retry recommendation: continue hourly retries on `*/recent`; keep status-delta fallback active and re-check paged `/api/logs` next cycle before inferring outcomes.
+- [2026-03-14 22:26 KST] Next 30-min actionable TODO: implement `status_delta_conflict_counter_v1` (increment when `ΔEXP>0 || ΔGold!=0` with empty logs for the same window; auto-attach one backup liveness probe result and suppress policy-change suggestions while counter > 0).
