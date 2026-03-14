@@ -3526,3 +3526,12 @@
   - Re-run after verifying API base host resolution/network route (DNS, VPN, firewall) and validate with `GET /api/status` first.
 - TODO (next 30-min dev cycle):
   - Implement `connectivity_preflight_v1` in hourly pipeline (DNS resolve + 5s status probe + structured failure code) and unit-test ENOTFOUND handling.
+
+## 2026-03-15 03:27 KST — Hourly gameplay feedback (transport outage)
+- Evidence: loaded `BUJU_API_KEY` from `.env` (masked; raw key never printed).
+- Live probes: direct authenticated `GET /api/status` failed at transport layer with `ENOTFOUND webgame-api.berrysoft.kr` (DNS resolution failure), so `/api/logs` collection was skipped as blocked by connectivity.
+- Last-hour gameplay signals: unavailable this cycle (progression, wins/defeats, and resource trends unresolved due to unreachable API).
+- Failure mode: `api_dns_resolution_failure` (`hostname=webgame-api.berrysoft.kr`, confidence=`none`).
+- Development feedback: freeze gameplay-policy/aggression updates while transport preflight is failing; prioritize reliability instrumentation (DNS/connectivity preflight + structured outage state).
+- Retry recommendation: verify DNS/network path for `webgame-api.berrysoft.kr` (resolver/VPN/firewall), then re-run preflight `GET /api/status` before hourly synthesis.
+- [2026-03-15 03:27 KST] Next 30-min actionable TODO: implement `connectivity_preflight_v1.1` to emit `connectivity_state` (`ok|dns_unreachable|network_unreachable|timeout`) and hard-block gameplay inference whenever state != `ok`.

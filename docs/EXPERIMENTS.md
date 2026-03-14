@@ -1019,3 +1019,10 @@ Track A/B and policy experiments.
 - Metric(s): False gameplay inference count during transport outages; mean time to classify outage root cause; % cycles with explicit retry guidance.
 - Result: Current cycle failed with transport `ENOTFOUND webgame-api.berrysoft.kr` before auth/data collection, leaving last-hour gameplay telemetry unavailable.
 - Decision: Run in next 30-min dev cycle; promote if outage classification is explicit for 4 consecutive failure windows.
+
+- Date: 2026-03-15 03:27 KST
+- Hypothesis: A strict `connectivity_preflight_v1.1` (DNS resolve + short status probe classification) will reduce false gameplay summaries during transport outages and speed root-cause triage.
+- Change: Add preflight stage that emits `connectivity_state` (`ok|dns_unreachable|network_unreachable|timeout`) before any status/log aggregation; block gameplay inference when state is non-`ok`.
+- Metric(s): False gameplay-inference count during transport failures; mean time to classify outage cause; % failure cycles with explicit retry guidance.
+- Result: Current cycle failed on authenticated status probe with `ENOTFOUND webgame-api.berrysoft.kr`, leaving last-hour gameplay signals unavailable.
+- Decision: Run in next 30-min dev cycle; promote if outage classification is explicit for 4 consecutive failure windows.
