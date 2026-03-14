@@ -1047,3 +1047,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles with unresolved gameplay KPIs`, `dns_unreachable incidence/day`, and `false inference count during DNS failures`.
 - Result: This cycle produced mixed evidence (`activity:fetch` saw `/api/status=200` while direct probes failed with `Could not resolve host`), leaving last-hour gameplay signals unavailable.
 - Decision: Implement in next 30-min cycle; promote if false inference remains zero across 6 consecutive DNS-failure windows.
+
+- Date: 2026-03-15 07:28 KST
+- Hypothesis: A `buy_efficiency_probe_v1` that records gold-linked buy/sell telemetry each cycle will reduce economy blind spots and prevent low-reserve drift without hurting win throughput.
+- Change: In hourly feedback path, emit deterministic economy fields (`buy_count`, `buy_gold_spent`, `sell_gold_gain`, `net_trade`, `gold_after_cycle`) and raise a caution tag when `buy_share > 15%` for 3 consecutive cycles.
+- Metric(s): consecutive high-buy cycles/day, gold-floor breach frequency (`gold < 300`), and hunt/win regression after caution-tag activation.
+- Result: Current live window showed strong outcomes (`wins=247`, `defeats=0`) but elevated purchase churn (`buy=61/348`, `17.5%`) with low reserve (`gold=349`).
+- Decision: Run in next 30-min dev cycle; promote if gold-floor breaches decrease over 6 hourly windows with no hunt-count regression.

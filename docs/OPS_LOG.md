@@ -3629,3 +3629,13 @@
 - [2026-03-15 06:29 KST] Next 30-min actionable TODO: implement `dns_preflight_gate_v1` (single resolver check + `connectivity_state` flag + early-stop of gameplay summary on DNS failure).
 2026-03-15 06:56:07 KST | watchdog restarted live-runner-daemon.sh
 2026-03-15 07:16:10 KST | watchdog: restarted live-runner-daemon.sh
+
+## 2026-03-15 07:28 KST — Hourly gameplay feedback (live API / high-confidence)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed).
+- Live probes: `GET /api/status=200`; paged `GET /api/logs?page=1..4&limit=100=200`.
+- Live status snapshot: `Lv22`, `EXP 1063/4840`, `Gold 349`, `HP 209/415 (50.4%)`, `MP 218/218`, area `talking_island_field`, combat inactive.
+- Last-hour gameplay signals (06:28~07:28 KST): `348` events — `hunt=247`, `wins=247`, `defeats=0`, `buy=61`, `rest=22`, `drop=16`, `sell=2`.
+- Progression / resource trend: level advanced to `22` with stable low reserve (`gold=349`) and heavy shop interaction (`buy_share=17.5%`).
+- Anomaly watch: sustained high `buy` frequency versus low `sell` (`61:2`) may indicate consumable over-purchase or weak inventory turnover despite strong win-rate.
+- Development feedback: prioritize economy-efficiency instrumentation (buy reason/amount + post-buy impact) over combat-aggression tuning; current combat outcomes are healthy (`defeats=0`).
+- [2026-03-15 07:28 KST] Next 30-min actionable TODO: implement `buy_efficiency_probe_v1` to append per-cycle `buy_count`, `buy_gold_spent`, `sell_gold_gain`, `net_trade`, and `gold_after_cycle`, then alert when `buy_share > 15%` for 3 consecutive cycles.
