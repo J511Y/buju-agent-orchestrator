@@ -942,3 +942,10 @@ Track A/B and policy experiments.
 - Metric(s): false-positive recommendation count per day in empty-log windows; cycles with unresolved signal cause; time-to-recovery detection when events resume.
 - Result: Current cycle produced no actionable event stream (`status=200`, logs empty, recent probes degraded), so confidence gating is needed before making strategy calls.
 - Decision: Implement in next 30-min dev cycle; promote if false-positive recommendation count drops to zero for 6 consecutive hourly cycles.
+
+- Date: 2026-03-14 16:28 KST
+- Hypothesis: A `signal_reconciliation_guard_v1` that detects `status-delta present + logs empty` conflicts will reduce false idle classifications and prevent premature strategy changes during telemetry lag.
+- Change: If `ΔEXP>0 || ΔGold!=0` while last-hour logs are empty, auto-label cycle `confidence=low_conflict`, run one backup thinking probe, and suppress policy/aggression recommendations until at least one event stream is non-empty.
+- Metric(s): false-idle classification count/day; cycles with unresolved status-vs-log conflict; median time to identify telemetry-lag cause.
+- Result: Current cycle showed clear status movement (`ΔEXP=+496`, `ΔGold=+20`, `ΔHP=+25`) with zero last-hour logs and persistent `*/recent` 404s.
+- Decision: Implement in next 30-min dev cycle; promote if conflict-tagged cycles drop by >=50% and no aggressive recommendation is emitted during unresolved conflicts for 6 consecutive hourly runs.

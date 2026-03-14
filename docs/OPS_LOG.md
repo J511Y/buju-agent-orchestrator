@@ -3275,3 +3275,12 @@
 - Dev feedback: hold behavior/policy tuning this cycle; prioritize observability fidelity over strategy changes to avoid false optimization on no-signal windows.
 - Failure mode + retry recommendation: endpoint-family degradation (`404` on `*/recent`) + empty logs payload at `200`; retry next cycle with same probes plus one backup signal (`/api/agent/thinking/{username}?limit=20`) and keep confidence `low` until non-empty event stream resumes.
 - [2026-03-14 15:26 KST] Next 30-min actionable TODO: add `low_signal_guard_v2` to hourly analyzer — when `status=200` and both `recent/log` signals are empty, emit `confidence=low_idle`, include backup probe result, and suppress strategy-change suggestions.
+
+## 2026-03-14 16:28 KST — Hourly gameplay feedback (status-only / logs-empty)
+- Evidence: loaded `BUJU_API_KEY` from `.env` (masked) and probed live endpoints with auth header; `/api/status=200`, while recent-history endpoints remained unavailable (`/api/activity/recent?hours=1=404`, `/api/logs/recent?hours=1=404`, `/api/battle/logs/recent?hours=1=404`).
+- Live status snapshot: `Lv20`, `EXP 2547`, `Gold 334`, `HP 268/385 (69.6%)`, `MP 202/202`.
+- Last-hour gameplay signals: paged `/api/logs` returned no last-hour events (`count=0`), so direct win/defeat evidence is unavailable (`wins=0`, `defeats=0`, confidence=`low_idle`).
+- Status-derived trend vs prior 15:26 KST snapshot: `ΔEXP +496`, `ΔGold +20`, `ΔHP +25` (progress/resource recovery visible despite empty event stream).
+- Anomaly: telemetry inconsistency persists (status progression present while logs/recent streams are empty/degraded), indicating ingestion lag or schema/filter mismatch rather than confirmed gameplay inactivity.
+- API failure mode + retry recommendation: continue hourly retries for `*/recent`, keep status-delta fallback active, and add one backup liveness probe (`/api/agent/thinking/{username}?limit=20`) whenever `status` moves but logs window is empty.
+- [2026-03-14 16:28 KST] Next 30-min actionable TODO: implement `signal_reconciliation_guard_v1` — if `ΔEXP>0 || ΔGold!=0` with empty logs window, auto-tag cycle as `low_conflict`, fetch backup thinking probe, and block policy/aggression changes until at least one event source is non-empty.
