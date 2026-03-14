@@ -3555,3 +3555,12 @@
 - Development feedback: freeze gameplay-policy/aggression updates while transport preflight is failing; prioritize reliability instrumentation (DNS/connectivity preflight + structured outage state).
 - Retry recommendation: verify DNS/network path for `webgame-api.berrysoft.kr` (resolver/VPN/firewall), then re-run preflight `GET /api/status` before hourly synthesis.
 - [2026-03-15 03:27 KST] Next 30-min actionable TODO: implement `connectivity_preflight_v1.1` to emit `connectivity_state` (`ok|dns_unreachable|network_unreachable|timeout`) and hard-block gameplay inference whenever state != `ok`.
+
+## 2026-03-15 04:26 KST — Hourly gameplay feedback (auth blocked / low confidence)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed).
+- Live probes: `npm run -s activity:fetch -- --hours 1` reported `/api/status=200` while all `*/recent` endpoints stayed `404`; direct authenticated probes returned `GET /api/status=401` and `GET /api/logs?page=1&limit=200=401` (`UNAUTHORIZED`).
+- Last-hour gameplay signals: progression/wins-defeats/resource trends unresolved this cycle (`wins=0`, `defeats=0`, confidence=`low_auth_blocked`) because status/log auth outcomes are inconsistent.
+- Anomaly/failure mode: `credential_source_mismatch_or_header_drift` (same runtime key load, conflicting endpoint auth behavior).
+- Development feedback: block policy/aggression tuning until read-path auth is consistent; prioritize deterministic preflight and one canonical credential/header path shared by `activity:fetch` and direct probes.
+- Retry recommendation: next cycle run masked preflight (`/api/status` + `/api/logs?limit=1`) using the same header scheme as production fetcher, then only synthesize gameplay feedback after both return `200`.
+- [2026-03-15 04:26 KST] Next 30-min actionable TODO: add `auth_path_parity_check_v1` to hourly flow (compare `activity:fetch` vs direct-probe auth result, emit `auth_parity=pass|fail`, and hard-stop inference on `fail`).

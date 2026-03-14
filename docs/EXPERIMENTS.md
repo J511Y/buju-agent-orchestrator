@@ -1026,3 +1026,10 @@ Track A/B and policy experiments.
 - Metric(s): False gameplay-inference count during transport failures; mean time to classify outage cause; % failure cycles with explicit retry guidance.
 - Result: Current cycle failed on authenticated status probe with `ENOTFOUND webgame-api.berrysoft.kr`, leaving last-hour gameplay signals unavailable.
 - Decision: Run in next 30-min dev cycle; promote if outage classification is explicit for 4 consecutive failure windows.
+
+- Date: 2026-03-15 04:26 KST
+- Hypothesis: Enforcing `auth_path_parity_check_v1` (same credential source + same header contract across `activity:fetch` and direct probes) will eliminate contradictory auth states and reduce low-confidence hourly summaries.
+- Change: In hourly feedback, execute paired preflight calls (`/api/status`, `/api/logs?limit=1`) through both fetch paths; emit `auth_parity=pass|fail` and block gameplay inference whenever results diverge.
+- Metric(s): auth-parity failure count/day; low-auth-blocked cycles/day; mean time to recover from `401` episodes.
+- Result: Current cycle reproduced divergence (`activity:fetch` saw `/api/status=200` while direct authenticated status/log probes both returned `401`).
+- Decision: Implement in next 30-min dev cycle; promote if parity failures remain zero for 6 consecutive hourly windows.
