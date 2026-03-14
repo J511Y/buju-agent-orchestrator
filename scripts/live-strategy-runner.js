@@ -400,7 +400,8 @@ function chooseMonster(monsters, player, equipped = {}) {
     return (efficiency * 3) + kill - (danger * 2.5);
   };
 
-  // No "blind fallback": if nothing passes safety filter, prefer the globally least-danger option.
+  // No "blind fallback": if nothing passes safety filter, hard-pick the globally least-danger option.
+  // (Do not re-sort by efficiency in this branch; repeated defeats must force safety-first.)
   const pool = safetyFiltered.length
     ? safetyFiltered
     : [...monsters].sort((a, b) => {
@@ -412,7 +413,7 @@ function chooseMonster(monsters, player, equipped = {}) {
         const bDanger = (Math.max(0, bAtk - pDef) * 1.6) + (Math.max(0, bl - level) * 6);
         if (aDanger !== bDanger) return aDanger - bDanger;
         return scoreMonster(b) - scoreMonster(a);
-      }).slice(0, Math.min(3, monsters.length));
+      }).slice(0, 1);
 
   pool.sort((a, b) => {
     const ax = Number(a.exp_reward ?? a.exp ?? 0);
@@ -696,13 +697,16 @@ async function step() {
   }
 
   const targetArea = pickArea(c.level || 1);
+  const defeatPressure = recentDefeatCount(8);
+  const safetyRetreatArea = defeatPressure >= 3 ? CFG.area1 : null;
   const safeAreaOverride = (!hasArmor && (c.level || 1) < CFG.moveLv2) ? CFG.area1 : null;
-  const desiredArea = safeAreaOverride || targetArea;
+  const desiredArea = safetyRetreatArea || safeAreaOverride || targetArea;
   if (!inCombat && c.current_area !== desiredArea && !shouldSkipAction('move') && hasRateBudget(rateLimits, 'move')) {
     const r = await req('/move', { method: 'POST', body: JSON.stringify({ area_id: desiredArea }) });
     recordActionResult('move', r.status);
     if (r.status === 200) {
-      return { ok: true, action: safeAreaOverride ? 'move_safe_fallback' : 'move', area: desiredArea, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      const moveAction = safetyRetreatArea ? 'move_safety_retreat' : (safeAreaOverride ? 'move_safe_fallback' : 'move');
+      return { ok: true, action: moveAction, area: desiredArea, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
     // 400 soft-fail => continue hunting in current area.
   }

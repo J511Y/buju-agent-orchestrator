@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 10:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas for `2026-03-13 23:19:48 -> 2026-03-14 09:48:50`: `level +2` (`18->20`) but `gold -25` (`334->309`) with persistent throttle/rate-limit signal (`20/20`); latest death log feed shows repeated fresh defeats in current minute, so KEEP was rejected.
+  - Logic change applied: `scripts/live-strategy-runner.js` now hard-picks only the least-danger monster when safety-filter is empty (`slice(0,1)`), removing risky efficiency re-ranking in fallback branch.
+  - Logic change applied: added defeat-pressure safety retreat (`recentDefeatCount(8)>=3`) to force `desiredArea=BUJU_AREA_LV1` with `action=move_safety_retreat` until pressure drops; upward area movement still respects level-threshold progression.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=surrender_dangerous_combat`, `level=20`, `exp=1`, `gold=309`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active via `ps`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement path (early safe accumulation, mid weapon-first, late armor/accessory with risk controls; prerequisite-gated enhancement only).
+  - Next 30m KPI: deaths downtrend (`<=2` in next window), inventory `<=8`, smoke `code=200`, maintain safety retreat when defeat pressure recurs, and economy recovery (`gold>=320` or `exp>=50`).
+
 - [2026-03-14 09:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): fetched last-20 thinking logs and computed deltas for `2026-03-13 22:18:53 -> 2026-03-14 08:19:25`: `level +2` (`18->20`), `gold -20` (`329->309`), and flat/no-lift economy trend with repeated throttle-wait signature; KEEP rejected.
   - Logic change applied: `scripts/live-strategy-runner.js` now short-circuits to `wait_hunt_rate_limit` before `/combat/strategy` when `hunt` action budget is unavailable, reducing avoidable control-call churn.
