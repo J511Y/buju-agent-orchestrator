@@ -893,3 +893,10 @@ Track A/B and policy experiments.
 - Metric(s): `death_count/hour`, `hunt_count/hour`, `exp_delta/hour`, and guard-hit frequency over next 6 hourly cycles.
 - Result: Current hour showed severe loop signature from live logs (`death=136`, `surrender=136`, `rest=136`, `hunt=0`) with status at `Lv20, EXP=1`, confirming recovery churn without net progression.
 - Decision: Execute in next 30-min dev cycle; promote to default safeguard if defeats drop by >=80% and hunts recover (>30/hour) for 3 consecutive cycles.
+
+- Date: 2026-03-14 09:28 KST
+- Hypothesis: A hard temporary non-combat circuit breaker (`hunt_count_last_60m==0 && death_count_last_60m>=20`) will collapse repeated death-loop churn faster than parameter-only combat tuning.
+- Change: Add `death_loop_breaker_v2` to force 15-minute recovery-only mode (`rest/buy`, block `combat_start`), then resume with conservative hunt caps and explicit guard-hit telemetry.
+- Metric(s): `death_count/hour`, `hunt_count/hour`, and time-to-first-successful-hunt after breaker trigger; restart-loop frequency per 6 hourly cycles.
+- Result: Current hour repeated critical loop signature (`death=136`, `surrender=136`, `rest=137`, `hunt=0`, `ΔEXP=0`, `ΔGold=0`) with healthy API read-path (`/api/status` + `/api/logs` `200`), confirming issue is policy behavior rather than telemetry outage.
+- Decision: Execute in next 30-min cycle; promote to default safety mechanism if deaths drop by >=80% and hunts recover to >20/hour for 3 consecutive hourly windows.

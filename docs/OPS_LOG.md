@@ -3118,3 +3118,13 @@
 - Development feedback: block aggressiveness changes and shift to recovery-safe mode until death-rate collapses; current loop is spending cycles on failure recovery rather than progression.
 - API failure mode + retry recommendation: recent-history family remains unavailable (`404`), so continue hourly retries on `*/recent` while using paginated `/api/logs` as provisional truth source with confidence=`medium`.
 - [2026-03-14 08:28 KST] Next 30-min actionable TODO: implement `death_loop_breaker` guard in runner (`if death_count_last_60m >= 5 or death_share >= 10% => force low-risk hunt tier + mandatory pre-combat HP floor + cooldown backoff`) and emit guard-hit counter in hourly report.
+
+## 2026-03-14 09:28 KST — Hourly gameplay feedback (live API)
+- Evidence: `.env` `BUJU_API_KEY` loaded at runtime (masked); `/api/status` `200`; paginated `/api/logs?limit=100&page=1..5` `200`; `npm run -s activity:fetch -- --hours 1` still fallback with `*/recent` endpoints `404` and `/api/status=200`.
+- Live status snapshot: `Lv20`, `EXP 1`, `Gold 309`, `HP 269/385`, `MP 202/202`, combat inactive.
+- Last-hour gameplay signals (08:28~09:28 KST, `/api/logs` fallback): `409` events; `rest=137`, `surrender=136`, `death=136`, `hunt=0`, `buy=0`.
+- Progression/win-defeat/resource trend: progression flat (`ΔEXP=0`, `ΔGold=0` vs prior 08:28 snapshot), wins `0`, defeats `136`; recovery-loop pressure remains extreme (`피격` sum `36,949`).
+- Anomaly: critical death-loop persists for a second consecutive hourly cycle (death/surrender/rest triad with no hunt completions).
+- Development feedback: current policy is trapped in failure-recovery churn; prioritize immediate loop-break execution over tuning. Block any aggression increase until hunt recovery is observed.
+- API failure mode + retry recommendation: `*/recent` route family remains unavailable (`404`), but `/api/status` + paginated `/api/logs` are healthy; continue hourly retry on `*/recent` and keep logs-fallback confidence at `medium` until two consecutive `200` recoveries.
+- [2026-03-14 09:28 KST] Next 30-min actionable TODO: implement `death_loop_breaker_v2` in runner: `if hunt_count_last_60m==0 && death_count_last_60m>=20` then force non-combat recovery mode (`rest/buy only`, no `combat_start`) for 15 minutes, then re-enable conservative hunts with a low-tier target cap and guard-hit telemetry.

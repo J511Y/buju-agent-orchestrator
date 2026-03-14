@@ -603,3 +603,9 @@
   - Enforced behavior under trigger: freeze aggression increases, force conservative hunt profile + pre-combat HP floor + cooldown backoff until recovery criteria are met.
   - Justification: live 1-hour evidence showed pathological loop (`death=136`, `surrender=136`, `rest=136`, `hunt=0`) with no progression signal, so normal adaptive tuning is unsafe.
   - Scope: orchestration safety policy only; does not change secret handling or external API auth flow.
+
+- 2026-03-14 09:28 KST: Escalate death-loop handling to mandatory circuit-breaker mode when loop persists across consecutive hours.
+  - Policy change: If last-hour signals satisfy `hunt_count==0` and `death_count>=20`, runner must enter 15-minute non-combat recovery mode (`rest/buy only`, block `combat_start`) before any further combat attempts.
+  - Roll-forward criteria: Exit recovery mode only after cooldown expiry, then resume with conservative hunt constraints and telemetry tagging (`guard_hit=true`, `recovery_window_id`).
+  - Justification: Two consecutive hourly windows showed severe loop persistence (`death/surrender/rest` triad, no hunts, no progression) despite healthy status/log telemetry, so soft tuning is insufficient.
+  - Scope: Runtime safety policy/orchestration only; no secret handling or external API contract changes.
