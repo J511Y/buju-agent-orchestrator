@@ -394,11 +394,19 @@ function chooseMonster(monsters, player, equipped = {}) {
   const armorRiskPenalty = hasArmor ? 0 : 1;
   const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, pressure + armorRiskPenalty));
 
-  const atkGuard = hasArmor ? (pDef * 1.75) : (pDef * 1.45);
+  const estimateDanger = (m) => {
+    const ml = Number(m.level || level);
+    const mAtk = Number(m.atk || 0);
+    return (Math.max(0, mAtk - pDef) * 1.5) + (Math.max(0, ml - level) * 5);
+  };
+
+  const atkGuard = hasArmor ? (pDef * 1.35) : (pDef * 1.15);
+  const hardDangerCap = Math.max(4, hasArmor ? 10 : 6) - Math.min(3, pressure);
   const safetyFiltered = monsters.filter(m => {
     const mLevel = Number(m.level || level);
     const mAtk = Number(m.atk || 0);
-    return mLevel <= level + dynamicGap && mAtk <= atkGuard;
+    const danger = estimateDanger(m);
+    return mLevel <= level + dynamicGap && mAtk <= atkGuard && danger <= hardDangerCap;
   });
 
   const scoreMonster = (m) => {

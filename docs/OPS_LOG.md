@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 15:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` window `2026-03-14 04:49:24 -> 2026-03-14 14:49:42` produced deltas `level +1` (`19->20`), `exp +0`, `gold +35` (`309->344`), `death +0` (in-window via `GET /api/logs?action=death&limit=200`), but throttle/rate-limit signal stayed high (`18/20`), so KEEP was rejected.
+  - Logic change applied (minimal/reversible): `scripts/live-strategy-runner.js` tightened safest-monster filter with lower atk guard (`armor: 1.35x def`, `no-armor: 1.15x def`) and added pressure-aware hard danger cap before efficiency ranking.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=surrender_dangerous_combat`, `level=20`, `exp=1981`, `gold=339`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps` confirms `bash ./scripts/live-runner-daemon.sh` active).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=20%`, no repeated dangerous-surrender bursts, and progression to `exp>=2020` or `gold>=330` with smoke `code=200`.
+
 - [2026-03-14 13:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` (API payload key `logs`) was used directly; window deltas `2026-03-14 03:18:33 -> 2026-03-14 13:19:49` were `level +1` (`19->20`), `gold -10` (`344->334`), with residual throttle signal `8/20`, so KEEP was rejected.
   - Parameter change applied (minimal/reversible): `config/strategy.env` updated `BUJU_STALL_429_COOLDOWN_TICKS=10` (from `8`) to reduce repeated `combat_start` re-entry after 429 and lower throttle churn.
