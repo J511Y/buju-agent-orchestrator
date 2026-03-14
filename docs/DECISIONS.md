@@ -1,6 +1,14 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (23:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 13:19:49 -> 2026-03-14 23:19:35`): `level +1` (`20->21`) but `exp +0` (`sparse/flat`) and `gold -10` (`334->324`) with throttle/rate-limit signal `20/20`; improvement evidence was insufficient, so KEEP was rejected.
+- Minimal/reversible safety change applied: `config/strategy.env` tuned `BUJU_LOW_HP_POTION_RATIO 0.15->0.35` so potion-first recovery triggers earlier and reduces low-HP combat exposure without changing movement thresholds or hunt target policy.
+- Safety/efficiency constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Safest-high-efficiency hunt policy kept: current status area remains `talking_island_field` and monster selection stays safety-filtered first; movement remains strict threshold-gated (`BUJU_MOVE_LEVEL_2=22`, `BUJU_MOVE_LEVEL_3=30`) to avoid premature risk expansion.
+- Equipment progression requirements reconfirmed and staged plan retained in this document: early safe gold accumulation/no risky enhancement spam -> mid weapon-first enhancement once reserve+prereqs are met -> late armor/accessory broadening with failure-risk controls.
+- Minimal safe enhancement path remains implemented and prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`) and safely skips when prerequisites are unsatisfied.
+- KPI target (next 30m): `death delta=0`, inventory `<=8`, reduce dangerous-combat churn (`surrender_dangerous_combat<=1/8 cycles`), keep smoke `code=200`, and recover progression (`exp +>=60` or `gold +>=10`).
+
 - 30-min STRATEGY DIRECTOR (23:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 12:50:18 -> 2026-03-14 22:49:55`): `level +0` (`21->21`), `exp +0` (`1707->1707`), `gold +0` (`324->324`), `inventory +0`, `death +0`, and throttle/rate-limit mentions `5/20`; no measurable progression evidence, so KEEP was rejected.
 - Minimal/reversible parameter change applied: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 1->2` to recover progression signal while preserving safety gates (safest-monster selection, level-threshold movement, surrender/risk controls).
 - Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
