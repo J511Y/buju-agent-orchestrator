@@ -1,6 +1,15 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (11:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43` from local trailing logs): `level +2` (`18->20`) but `exp +0`, `gold -20` (`329->309`), `death +0`, and rate-limit pressure remained high (`19/20`), so KEEP was rejected.
+- Parameter change applied (minimal/reversible): `config/strategy.env` `BUJU_MOVE_LEVEL_2: 20 -> 21` to delay cave transition by one level and lower risk-gap exposure while preserving strict level-threshold movement policy.
+- Hard constraints locked unchanged in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still sells unequipped gear worse than equipped first.
+- Equipment progression requirements explicitly retained:
+  1) Best-in-slot equip remains evaluated each cycle by `equipSlot + score(maxDamage+defBonus)` and auto-equipped when superior.
+  2) Enhancement staged plan remains: early game gold accumulation without risky spam, mid game weapon-first at reserve threshold, late game armor/accessory expansion with failure-risk controls.
+  3) Minimal safe enhancement path remains active only when prerequisites are satisfiable (`scroll + blacksmith npc + resource reserve + rate budget + non-combat`).
+- KPI target (next 30 min): `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit<=35%`, and positive economy drift (`gold>=315` or `exp>=50`) while keeping smoke `code=200` and daemon continuous.
+
 - 30-min STRATEGY DIRECTOR (10:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 23:48:41 -> 2026-03-14 10:19:49`): `level +1` (`19->20`) but `exp +0`, `gold -15` (`324->309`), and persistent throttle/rate-limit signature (`18/20`) with live daemon showing repeated `combat_start -> surrender_dangerous_combat -> rest -> wait_combat_start_rate_limit` loops, so KEEP was rejected.
 - Logic changes applied (minimal, reversible):
   1) `scripts/live-strategy-runner.js` now tracks recent dangerous surrenders and feeds that into safety pressure (`pressure=max(defeatPressure,surrenderPressure)`) for monster risk-gap tightening.

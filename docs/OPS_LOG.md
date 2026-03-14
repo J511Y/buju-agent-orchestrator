@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 11:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): local trailing last-20 thinking logs (`tmp/thinking-last20-now.json`) deltas for `2026-03-13 21:20:10 -> 2026-03-14 07:49:43` were mixed: `level +2` (`18->20`) but `exp +0`, `gold -20` (`329->309`), `death +0`, and high throttle/rate-limit pressure (`19/20`), so KEEP was rejected.
+  - Parameter change applied (minimal/reversible): `config/strategy.env` updated `BUJU_MOVE_LEVEL_2=21` (from `20`) to reduce premature cave exposure; movement remains strictly threshold-gated.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement plan retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`).
+  - Runtime continuity evidence: daemon remains continuous (`ps` confirms `bash ./scripts/live-runner-daemon.sh` active).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit<=35%`, and economy lift (`gold>=315` or `exp>=50`) with smoke `code=200`.
+
 - [2026-03-14 10:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed deltas for `2026-03-13 23:48:41 -> 2026-03-14 10:19:49`: `level +1` (`19->20`) but `exp +0`, `gold -15` (`324->309`), with persistent throttle/rate-limit signal (`18/20`) and live daemon churn (`combat_start -> surrender_dangerous_combat -> rest -> wait_combat_start_rate_limit`), so KEEP was rejected.
   - Logic change applied: `scripts/live-strategy-runner.js` now tracks recent dangerous surrenders and folds them into safety pressure for risk-gap tightening (`pressure=max(defeatPressure,surrenderPressure)`).
