@@ -928,3 +928,10 @@ Track A/B and policy experiments.
 - Metric(s): `death_count/hour`, `hunt_count/hour`, `gold_delta/hour`, `buy+drop_share`, `surrender_share`.
 - Result: Current live window shows stable recovery (`hunt=249`, `death=0`, `surrender=2`, 339 events total) with healthy throughput but non-trivial non-combat overhead (`buy+drop=60`, ~17.7%).
 - Decision: Run in next 30-min cycle; promote if zero-defeat stability holds and `buy+drop_share` drops below 12% for 3 consecutive hourly windows.
+
+- Date: 2026-03-14 14:29 KST
+- Hypothesis: Converting `efficiency_guard_v1` from telemetry-only to a light action gate (`buy+drop_share` threshold) will reduce non-combat churn without regressing the current zero-defeat stability.
+- Change: Keep existing survivability gates unchanged; when `buy+drop_share > 15%` for 2 consecutive hourly windows, apply temporary non-combat throttles (buy cooldown bump + low-value pickup defer).
+- Metric(s): `buy+drop_share`, `death_count/hour`, `hunt_count/hour`, `gold_delta/hour`, `exp_delta/hour`.
+- Result: Current live window remained stable (`hunt=245`, `death=0`, `surrender=2`, `ΔEXP=+498`) but churn stayed elevated (`buy+drop=52/328`, ~15.9%).
+- Decision: Implement in next 30-min cycle; promote if `buy+drop_share < 12%` for 3 consecutive windows while keeping `death=0`.

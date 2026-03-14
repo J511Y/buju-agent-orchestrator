@@ -3247,3 +3247,12 @@
 - Development feedback: keep conservative safety gates enabled (do **not** re-open aggressive cave behavior yet), but re-weight tuning toward efficiency (inventory churn and buy/drop overhead) since death-loop pressure is currently resolved.
 - API failure mode + retry recommendation: continue hourly retry of `*/recent`; keep paginated `/api/logs` as source of truth until `*/recent` returns `200` for at least 2 consecutive cycles.
 - [2026-03-14 13:28 KST] Next 30-min actionable TODO: add `efficiency_guard_v1` telemetry in runner (`hunt_share`, `buy+drop_share`, `surrender_share`) and trigger a soft adjustment when `buy+drop_share > 15%` for 2 consecutive windows (reduce non-combat churn before changing combat aggressiveness).
+
+## 2026-03-14 14:29 KST — Hourly gameplay feedback (live API)
+- Evidence: loaded `.env` `BUJU_API_KEY` at runtime (masked); probes `GET /api/status=200`, paged `GET /api/logs?limit=100&page=1..4=200`; recent-history endpoints remain unavailable (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*` all `404`).
+- Live status snapshot: `Lv20`, `EXP 1573`, `Gold 339`, `HP 221/385 (57.4%)`, `MP 202/202`, combat inactive.
+- Last-hour gameplay signals (13:29~14:29 KST, `/api/logs` fallback): `328` events — `hunt=245`, `death=0`, `surrender=2`, `rest=25`, `buy=31`, `drop=21`, `sell=2`, `move=1`.
+- Progression/resource trend vs prior hour (13:28 KST snapshot): `ΔEXP +498`, `ΔGold -5`, `ΔHP -20`; wins strong and no defeat signal, but HP drawdown + non-combat churn remains visible.
+- Anomaly + API failure mode: canonical recent endpoints still hard-failing (`404`) while `/api/status` and `/api/logs` stay healthy; keep confidence as `medium` (logs-fallback source).
+- Retry recommendation: continue hourly retries on `*/recent`; keep paginated `/api/logs` fallback until `*/recent` recovers (`>=2` consecutive `200`).
+- [2026-03-14 14:29 KST] Next 30-min actionable TODO: implement `efficiency_guard_v1` action hook (not just telemetry): if `buy+drop share > 15%` for 2 consecutive windows, temporarily tighten non-combat actions (raise buy cooldown / defer low-value pickups) while preserving current conservative combat safety gates.
