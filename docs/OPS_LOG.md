@@ -1,6 +1,18 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 19:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 09:48:50 -> 2026-03-14 19:19:06`) with deltas `level +0` (`20->20`), `gold +30` (`309->339`), `inventory +1` (`3->4`), and throttle/rate-limit wording `18/20`.
+  - KEEP rejected due safety breach evidence: `GET /api/logs?action=death&limit=100` shows repeated cave defeat burst (`50` deaths in latest ~30m; dominant `skeleton_knight`), so adaptive rule required CHANGE to reduce risk gap despite positive gold delta.
+  - Logic/parameter change applied (minimal/reversible): `config/strategy.env` tuned `BUJU_MOVE_LEVEL_2` from `21` to `22` to delay Lv2-area movement one level and force safer area1 routing until threshold is met again.
+  - Safety/efficiency evidence: current cave monsters include `skeleton_knight(lv10, atk22)` and status shows no armor equipped, so safest high-efficiency policy is retreat/stay in area1 under strict threshold gate.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained; minimal safe enhancement path still prerequisite-gated (`/npc/list` currently empty + no enhancement scroll).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=surrender_dangerous_combat`, `level=21`, `exp=1`, `gold=329`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths<=5`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=80` or `gold>=345` with smoke `code=200`.
+
 - [2026-03-14 19:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` (masked), then probed `GET /api/status` and `GET /api/logs?page=1&limit=100`; both returned `401 UNAUTHORIZED` in this cycle (no raw secret printed).
   - Last-hour gameplay signals: unavailable from live APIs this hour (`wins/defeats/resource deltas` unresolved due to auth failure; event window not retrievable).
@@ -3361,3 +3373,4 @@
 - [2026-03-14 18:28 KST] Next 30-min actionable TODO: add `hp_floor_efficiency_guard_v1` — when last-hour `rest_count >= 20` and end-of-hour `hp_ratio < 0.60`, raise pre-combat HP floor by +5% for one cycle and compare (`rest_count`, `Δgold`, `defeats`) before/after.
 [2026-03-14 18:36:07 KST] Restarted live-runner-daemon.sh (watchdog auto-restart).
 2026-03-14 19:26:10 KST restarted scripts/live-runner-daemon.sh (watchdog)
+- 2026-03-14 19:36:09 KST Restarted scripts/live-runner-daemon.sh via watchdog
