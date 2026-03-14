@@ -77,10 +77,13 @@ npm run dev
   - 저체력 운영은 rest-first 경제 모드(임계 이하에서 즉시 `rest`), 극저체력 구간에서만 potion 보조 사용 (`rest` 400은 soft-fail로 처리해 루프 정체 방지)
   - 루틴 포션 바닥 보충(`hp_potion_s`, `mp_potion_s`)은 `BUJU_MIN_GOLD_RESERVE`를 침범하지 않는 범위에서만 수행
   - 중반 레벨 이상에서는 블랙스미스 NPC + 주문서 보유 + 골드 예비금 조건을 동시에 만족할 때만 안전 강화(`enhance`)를 수행
-  - 기본 전투 진입은 `POST /combat/strategy`(스킬/포션/자동항복 기준) 갱신 후 `POST /combat/start`(`monster_id`,`area`)를 사용하고, 404 또는 `API_DEPRECATED` 응답 시 `POST /hunt`(`monster_id`,`skill_id`)로 자동 폴백
+  - 기본 전투 진입은 `POST /combat/start`(`monster_id`,`area`) 기준으로 운영하고, `POST /combat/strategy`(스킬/포션/자동항복 기준)는 payload 변경 또는 `BUJU_COMBAT_STRATEGY_REFRESH_TICKS` 경과 시에만 조건부 갱신
+  - `hunt` 예산이 0이면 `/combat/strategy` 갱신 호출까지 생략하고 `wait_hunt_rate_limit`로 대기(제어 호출 churn 최소화)
+  - `POST /combat/start`가 404 또는 `API_DEPRECATED` 응답이면 `POST /hunt`(`monster_id`,`skill_id`)로 자동 폴백
   - v1.14 제약 반영: 전투 중 상점 구매를 스킵하고 헌팅 루프를 유지
   - `400` 반복 액션은 anti-stall 쿨다운으로 일시 스킵 후 헌팅 루프 지속
   - `429`는 설정 가능한 상한(`BUJU_RETRY_MAX_ATTEMPTS`)까지 백오프로 재시도
+  - `POST /combat/start`가 `429`를 반환하면 같은 틱에서 1회 `POST /hunt` 폴백(`hunt_on_combat_start_rate_limit`)을 시도해 순수 대기 비율을 낮춤
   - `/api/status.rate_limits` 기반 사전 예산 체크로 잔여 호출 0인 액션은 선제 스킵(불필요한 429/400 감소)
   - `BUJU_BASE_DELAY_MS`는 rate-limit 병목 완화를 위한 기본 페이싱 제어값으로 운영하며, 변화 시 소폭/가역 튜닝을 우선
   - `BUJU_MAX_ACTIONS_PER_CYCLE`는 rate-limit 구간에서 사이클당 burst를 줄이기 위한 1차 쿼터 제어값으로 운영
