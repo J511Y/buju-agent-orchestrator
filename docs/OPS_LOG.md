@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 07:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty (`count=0`), so fallback local trailing posts (`tmp/thinking-post-*.json`, latest 20 by `tick_number`) were used; computed deltas were `level +2` (`20->22`), `gold +30` (`334->364`), but inventory drift remained (`+6`, `2->8`) and death-pressure sample remained high (`GET /api/logs?action=death&limit=100` => `100` rows), so KEEP was rejected.
+  - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_LOW_HP_POTION_RATIO 0.35->0.45` so potion sustain triggers earlier and reduces low-HP combat exposure without widening risk.
+  - Safety/efficiency evidence now: `GET /api/status` => `200` (`level=22`, `exp=971`, `gold=349`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters` => safe pool (`rabbit`, `skeleton`), so safest high-efficiency hunt remains field-first under strict level-threshold move gate.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement policy in `docs/DECISIONS.md` remains (early safe accumulation/no enhancement spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated.
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=22`, `exp=983`, `gold=389`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-0716.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=100` or `gold +>=15` with smoke `code=200`.
+
 - [2026-03-15 06:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty this cycle (`count=0`), so fallback local trailing posts (`tmp/thinking-post-*.json`, latest 20 by `tick_number`) were used; computed deltas were mixed (`level +2` `20->22`, `gold -20` `379->359`, `inventory +6` `2->8`) with throttle/rate-limit signal `12/20`, so KEEP was rejected.
   - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_MIN_MP_POTION_S 3->2` to reduce recurring `buy_mp` spend/inventory churn while preserving safety floors.
@@ -3616,3 +3627,5 @@
 - Development feedback: treat DNS resolution as a hard precondition gate before any gameplay inference; when DNS fails, emit outage-only feedback and skip tuning changes.
 - Retry recommendation: re-run with resolver check (`dig`/`nslookup` for `webgame-api.berrysoft.kr`) and retry `GET /api/status` + `GET /api/logs?limit=1` once DNS is healthy.
 - [2026-03-15 06:29 KST] Next 30-min actionable TODO: implement `dns_preflight_gate_v1` (single resolver check + `connectivity_state` flag + early-stop of gameplay summary on DNS failure).
+2026-03-15 06:56:07 KST | watchdog restarted live-runner-daemon.sh
+2026-03-15 07:16:10 KST | watchdog: restarted live-runner-daemon.sh
