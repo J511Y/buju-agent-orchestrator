@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 04:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 16:49:02 -> 2026-03-15 03:50:33`) with deltas `level +1` (`20->21`) but `gold -85` (`409->324`), `inventory +5` (`2->7`), `exp delta unavailable in thinking payload`, and persistent rate-limit wording (`20/20` mentions); death-log pressure in the same window was elevated (`51` entries from `GET /api/logs?action=death&limit=100`), so KEEP was rejected.
+  - Minimal/reversible change applied: `config/strategy.env` tuned `BUJU_MIN_GOLD_RESERVE 300->340` to protect economy runway and reduce non-critical spending while preserving safety behavior.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement policy remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: `GET /api/status` => `200` (`level=21`, `exp=4209`, `gold=329`, `area=talking_island_field`), safe monster pool confirmed (`rabbit`, `skeleton`), and smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=21`, `exp=4221`, `gold=329`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression to `exp>=4300` or `gold>=340` with smoke `code=200`.
+
 - [2026-03-15 03:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a 20-log window (`2026-03-14 16:20:33 -> 2026-03-15 03:19:40`) with deltas `level +1` (`20->21`) but `exp +0`, `gold -10` (`324->314`), `inventory +5` (`2->7`), and throttle/rate-limit signal `3/20`; KEEP rejected on economy/throughput drift.
   - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_MIN_MP_POTION_S 4->3` to reduce MP-potion overbuy bleed while keeping safety floors intact.
