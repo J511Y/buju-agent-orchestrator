@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 02:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a 20-log window (`2026-03-14 15:49:56 -> 2026-03-15 01:49:26`) with deltas `level +1` (`20->21`) but `exp +0`, `gold -65` (`379->314`), and throttle/rate-limit signal `18/20`; KEEP rejected.
+  - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 2->1` to reduce repeated control-call collisions while preserving strict safety gates.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement plan (early safe accumulation -> mid weapon-first at reserve/prereqs -> late armor/accessory with failure-risk controls) remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated.
+  - Live evidence: `GET /api/areas/talking_island_field/monsters` confirms current safe pool (`rabbit`, `skeleton`), smoke validation `node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=21`, `exp=3245`, `gold=339`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry post attempt: `POST /api/agent/thinking` returned `401 UNAUTHORIZED`; payload archived to `tmp/thinking-post-0216-live.json` and will replay after auth recovery.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression to `exp>=3325` or `gold>=350` with smoke `code=200`.
+
 - [2026-03-15 01:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 14:49:42 -> 2026-03-15 00:49:26`) with deltas `level +1` (`20->21`), `gold -15` (`344->329`), `inventory +8` (`0->8`), `death delta=0`, and `rate-limit signal 1/20`; improvement evidence (level-up + zero-death) is sufficient, so CHANGE was not applied.
   - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
