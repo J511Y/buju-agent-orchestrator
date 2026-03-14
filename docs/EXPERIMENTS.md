@@ -1040,3 +1040,10 @@ Track A/B and policy experiments.
 - Metric(s): `auth_gate_failures/day`, `% hourly cycles with inferred gameplay while auth invalid`, time-to-diagnose auth incidents.
 - Result: This cycle reproduced inconsistency (`direct /api/status=401` while `activity:fetch` observed `/api/status=200`; recent-history endpoints remained `404`).
 - Decision: Implement in next 30-min dev cycle; promote if contradictory auth outcomes drop to zero for 6 consecutive hourly runs.
+
+- Date: 2026-03-15 06:29 KST
+- Hypothesis: Enforcing `dns_preflight_gate_v1` before hourly Buju synthesis will reduce false/low-confidence gameplay summaries during intermittent resolver outages.
+- Change: Add mandatory DNS resolution check for `webgame-api.berrysoft.kr`; if fail, emit `connectivity_state=dns_unreachable`, skip gameplay KPI inference, and log retry guidance only.
+- Metric(s): `% hourly cycles with unresolved gameplay KPIs`, `dns_unreachable incidence/day`, and `false inference count during DNS failures`.
+- Result: This cycle produced mixed evidence (`activity:fetch` saw `/api/status=200` while direct probes failed with `Could not resolve host`), leaving last-hour gameplay signals unavailable.
+- Decision: Implement in next 30-min cycle; promote if false inference remains zero across 6 consecutive DNS-failure windows.

@@ -1,6 +1,26 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 06:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty this cycle (`count=0`), so fallback local trailing posts (`tmp/thinking-post-*.json`, last 20) were used; computed deltas `level +2` (`20->22`), `gold +5` (`344->349`), `inventory +0`, and low throttle/rate-limit signal `1/20`, with death-log window `0`, so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency hunt remains current field pool under strict threshold movement gate; repeated-defeat avoidance policy remained active.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement policy remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated.
+  - Live evidence: `GET /api/status` => `200` (`level=22`, `exp=479`, `gold=359`, `area=talking_island_field`), smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=485`, `gold=374`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=100` or `gold +>=15` with smoke `code=200`.
+
+- [2026-03-15 05:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 17:49:20 -> 2026-03-15 05:20:31`) with deltas `level +2` (`20->22`) and `gold +35` (`334->369`) plus throttle/rate-limit signal `9/20`; immediate death trend recovered (`GET /api/logs?action=death&limit=100` => recent death delta `0` after latest thinking point), so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency hunt remains current field pool (`skeleton`, `rabbit`) over cave targets due lower risk gap; strict level-threshold movement and repeated-defeat avoidance remained active.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement policy remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated.
+  - Live evidence: smoke `node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=241`, `gold=374`, `code=200`; status probe => `level=22`, `exp=267`, `gold=374`, `area=talking_island_field`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=120` or `gold +>=15` with smoke `code=200`.
+
 - [2026-03-15 04:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 16:49:02 -> 2026-03-15 03:50:33`) with deltas `level +1` (`20->21`) but `gold -85` (`409->324`), `inventory +5` (`2->7`), `exp delta unavailable in thinking payload`, and persistent rate-limit wording (`20/20` mentions); death-log pressure in the same window was elevated (`51` entries from `GET /api/logs?action=death&limit=100`), so KEEP was rejected.
   - Minimal/reversible change applied: `config/strategy.env` tuned `BUJU_MIN_GOLD_RESERVE 300->340` to protect economy runway and reduce non-critical spending while preserving safety behavior.
@@ -3574,3 +3594,14 @@
 - Development feedback: keep gameplay policy tuning blocked until a single canonical auth/header path produces consistent `200` for both `/api/status` and `/api/logs?limit=1`.
 - Retry recommendation: next cycle run masked parity preflight on the same runtime key+header contract; only synthesize hourly gameplay metrics after both read endpoints pass.
 - [2026-03-15 05:28 KST] Next 30-min actionable TODO: implement `auth_preflight_gate_v2` (paired checks for `/api/status` and `/api/logs?limit=1`, emit `auth_gate=pass|fail`, and hard-stop summary generation on `fail`).
+
+## 2026-03-15 06:29 KST — Hourly gameplay feedback (live API DNS outage)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key not printed).
+- Live status/log probes (same cycle):
+  - `npm run -s activity:fetch -- --hours 1` → `/api/status=200`, all recent-history endpoints `404`, summary fallback returned zero gameplay deltas.
+  - Direct authenticated probes to `GET /api/status` and `GET /api/logs?page=1&limit=100` → transport failure `curl: (6) Could not resolve host: webgame-api.berrysoft.kr` (`status=000`).
+- Last-hour gameplay signals: **unavailable / low-confidence** this cycle (progression, wins/defeats, resource trends unresolved due to DNS instability and no confirmed recent-log payload).
+- Anomaly: `dns_resolution_instability` (same host alternated between reachable and unresolvable within the hour).
+- Development feedback: treat DNS resolution as a hard precondition gate before any gameplay inference; when DNS fails, emit outage-only feedback and skip tuning changes.
+- Retry recommendation: re-run with resolver check (`dig`/`nslookup` for `webgame-api.berrysoft.kr`) and retry `GET /api/status` + `GET /api/logs?limit=1` once DNS is healthy.
+- [2026-03-15 06:29 KST] Next 30-min actionable TODO: implement `dns_preflight_gate_v1` (single resolver check + `connectivity_state` flag + early-stop of gameplay summary on DNS failure).
