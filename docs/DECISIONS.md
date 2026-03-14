@@ -1,6 +1,17 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (18:16 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 08:19:25 -> 2026-03-14 17:49:20`): `level +0` (`20->20`), `gold +25` (`309->334`), `inventory -1` (`3->2`), and no explicit in-window death increase evidence (death probe endpoint currently non-200), so improvement evidence is sufficient and CHANGE was not applied.
+- Safety/efficiency evidence: currently available monsters in active area `talking_island_field` remain `rabbit(lv1)` + `skeleton(lv2)`; selector keeps safety-first high-efficiency hunt while strict movement threshold gate stays enforced (`BUJU_MOVE_LEVEL_2=21`, current level 20).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and documented as staged plan:
+  1) Always evaluate best-in-slot by `equipSlot + score(maxDamage+defBonus)` and auto-equip.
+  2) Early game: prioritize gold accumulation and avoid risky enhancement spam.
+  3) Mid game: enhance main weapon first once reserve threshold is met.
+  4) Late game: broaden to armor/accessory with cooldown/failure-risk controls.
+  5) Minimal safe enhancement action path remains implemented and prerequisite-gated (`scroll + blacksmith npc + resource reserve + non-combat + rate budget`); this cycle prerequisites are unsatisfied (`/npc/list` empty, no enhance scroll), so safe skip is expected.
+- KPI target (next 30m): `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=40%`, dangerous-surrender bursts `<=1/8 cycles`, and progression to `exp>=3520` or `gold>=350` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (17:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-13 21:20:10 -> 2026-03-14 07:49:43`): `level +2` (`18->20`) but `gold -20` (`329->309`), `exp +0`, and persistent throttle signal (`rate-limit 13/20`), so KEEP was rejected.
 - Minimal/reversible parameter change applied: `config/strategy.env` tuned `BUJU_STALL_429_COOLDOWN_TICKS 12->14` to reduce repeated `combat_start` re-entry collisions under throttle while preserving safe hunt/equip/enhance logic.
 - Safety/efficiency evidence: currently available monsters in active safe area remain low-risk (`rabbit`, `skeleton` in `talking_island_field`), and selector still prioritizes safest high-efficiency target with strict level-threshold movement gate (`BUJU_MOVE_LEVEL_2=21`).
@@ -764,6 +775,12 @@
   - Mid game: weapon-first enhancement only when scroll+npc+resource prerequisites are satisfiable.
   - Late game: expand to armor/accessory with cooldown/failure-risk controls.
 - Minimal safe enhancement action path remains implemented (`/npc/list` blacksmith discovery -> `/npc/{npc_id}/enhance`) and executes only under prerequisite gates.
+
+## 2026-03-14 18:46 KST — Equipment Progression Plan (staged, enforced)
+- Early game: prioritize gold accumulation and safe hunting; no risky enhancement spam.
+- Mid game: enhance main weapon first only when prerequisites are satisfiable (`weapon equipped + enhancement scroll + blacksmith NPC + gold reserve + action budget`).
+- Late game: broaden to armor/accessory only with failure-risk controls (reserve margin, cooldown, stall/rate-limit guards).
+- Runtime path remains minimal-safe: if any prerequisite is missing, enhancement is skipped (never forced).
 - KPI target (next 30 min): `surrender_dangerous_combat<=1/6 cycles`, `wait_combat_start_rate_limit<=40%`, `deaths=0`, `inventory<=8`, smoke `code=200`.
 
 - 2026-03-14 08:28 KST: Adopt `death_loop_breaker` as a mandatory safety-policy gate in hourly feedback/runner orchestration when last-hour defeat concentration is abnormal.

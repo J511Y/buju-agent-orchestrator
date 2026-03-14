@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 18:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 08:50:12 -> 2026-03-14 18:19:46`) with deltas `level +0` (`20->20`), `gold +10` (`309->319`), `inventory +5` (`3->8`), and persistent throttle/rate-limit wording across the window; improvement evidence (`gold +10`, no level regression) is present, so CHANGE was not applied.
+  - Safety/efficiency evidence: active-area monster set (`GET /api/areas/talking_island_field/monsters`) remains low-risk/high-efficiency for current level gate (`rabbit`, `skeleton`), and strict level-threshold movement is preserved (`BUJU_MOVE_LEVEL_2=21`, current level 20).
+  - Hard constraints preserved exactly in runtime code: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression requirements revalidated: best-in-slot evaluation/equip remains inventory-wide by `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan is explicitly documented in `docs/DECISIONS.md` (early safe gold/no spam -> mid weapon-first on reserve threshold -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + budget + non-combat`). Current probe: `GET /api/npc/list => 200` with `npcCount=0`, inventory scrolls `[]`, so enhancement is safely skipped.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=3707`, `gold=324`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps` shows active `bash ./scripts/live-runner-daemon.sh` and `node scripts/live-strategy-runner.js`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=3800` or `gold>=340` with smoke `code=200`.
+
 - [2026-03-14 18:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 08:19:25 -> 2026-03-14 17:49:20`) with deltas `level +0` (`20->20`), `gold +25` (`309->334`), `inventory -1` (`3->2`), and sustained throttle/rate-limit mentions; improvement evidence remains valid, so CHANGE was not applied.
   - Safety/efficiency evidence: confirmed currently available monsters in active area are low-risk/high-efficiency (`rabbit`, `skeleton`) via `GET /api/areas/talking_island_field/monsters`; strict movement threshold gate retained (`BUJU_MOVE_LEVEL_2=21`, current level 20).
@@ -3331,3 +3341,4 @@
 - Anomaly + API failure mode: canonical recent-history route family still unavailable (`404` on `/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) while `/api/status` and paged `/api/logs` are healthy.
 - Retry recommendation: continue hourly retry on `*/recent`; keep paged `/api/logs` as provisional truth source with confidence=`medium` until recent endpoints recover for at least 2 consecutive `200` windows.
 - [2026-03-14 18:28 KST] Next 30-min actionable TODO: add `hp_floor_efficiency_guard_v1` — when last-hour `rest_count >= 20` and end-of-hour `hp_ratio < 0.60`, raise pre-combat HP floor by +5% for one cycle and compare (`rest_count`, `Δgold`, `defeats`) before/after.
+[2026-03-14 18:36:07 KST] Restarted live-runner-daemon.sh (watchdog auto-restart).
