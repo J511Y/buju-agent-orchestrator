@@ -1,6 +1,30 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (20:46 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 10:19:49 -> 2026-03-14 19:50:06`): `level +1` (`20->21`), `gold +20` (`309->329`), `inventory +4` (`3->7`), throttle wording `17/20`; improvement evidence exists, so CHANGE was not applied.
+- Safety/efficiency policy kept with live evidence: current safe area monster pool remains `rabbit(lv1)` + `skeleton(lv2)` (`GET /api/areas/talking_island_field/monsters`), so safest high-efficiency selection stays in area1 while strict level-threshold movement gate is enforced (`BUJU_MOVE_LEVEL_2=22`, current level 21).
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained:
+  1) Best-in-slot auto-equip remains active by `equipSlot + score(maxDamage+defBonus)`.
+  2) Early game: prioritize safe gold accumulation and avoid risky enhancement spam.
+  3) Mid game: weapon-first enhancement only after reserve threshold is met.
+  4) Late game: broaden to armor/accessory with failure-risk controls.
+  5) Minimal safe enhancement path remains implemented but prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`); this cycle probe shows `/api/npc/list` empty, so safe skip is expected.
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=493`, `gold=339`, `code=200`), and daemon continuity remains active (`live-runner-daemon.sh` + live runner process present).
+- KPI target (next 30m): `deaths<=3`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=560` or `gold>=350` with smoke `code=200`.
+
+- 30-min STRATEGY DIRECTOR (20:16 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 10:19:49 -> 2026-03-14 19:50:06`): `level +1` (`20->21`), `gold +20` (`319->339`), `inventory +4` (`3->7`), throttle wording `19/20`; improvement evidence exists, so CHANGE was not applied.
+- Safety/efficiency policy kept: safest high-efficiency monster selection + strict level-threshold movement gate + defeat/surrender pressure retreat logic remain active to avoid repeated-defeat loops; no risk-expansion tuning this cycle.
+- Hard constraints revalidated as invariants (unchanged): `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reconfirmed and staged plan retained:
+  1) Best-in-slot auto-equip remains active by `equipSlot + score(maxDamage+defBonus)`.
+  2) Early game: prioritize safe gold accumulation; avoid risky enhancement spam.
+  3) Mid game: weapon-first enhancement when reserve threshold/prerequisites are met.
+  4) Late game: broaden to armor/accessory with failure-risk controls.
+  5) Minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`) and skips safely when unsatisfied.
+- Telemetry caveat this cycle: authenticated probes for `/api/status`, `/api/logs?action=death`, `/api/inventory`, and `/api/npc/list` returned `401`; decision evidence therefore used the successful thinking-window delta and live smoke (`ok=1/1`, `lastAction=combat_start`, `level=21`, `exp=241`, `gold=319`, `code=200`).
+- KPI target (next 30m): `deaths<=3`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=320` or `gold>=335` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (19:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window `2026-03-14 09:48:50 -> 2026-03-14 19:19:06`): `level +0` (`20->20`), `gold +30` (`309->339`), `inventory +1` (`3->4`), throttle wording `18/20`.
 - Despite gold improvement, KEEP was rejected due hard safety breach evidence: death feed (`GET /api/logs?action=death&limit=100`) shows repeated defeat burst in current cave loop (`50` deaths in latest ~30m, dominant target `skeleton_knight`), violating the "avoid repeated defeats" objective.
 - Minimal/reversible parameter change applied: `config/strategy.env` tuned `BUJU_MOVE_LEVEL_2 21->22` to delay Lv2-area movement by one level and reduce risk-gap exposure while preserving strict threshold movement policy.
