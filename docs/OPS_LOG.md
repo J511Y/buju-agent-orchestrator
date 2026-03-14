@@ -3266,3 +3266,12 @@
 - Anomaly + API failure mode: canonical recent endpoints still hard-failing (`404`) while `/api/status` and `/api/logs` stay healthy; keep confidence as `medium` (logs-fallback source).
 - Retry recommendation: continue hourly retries on `*/recent`; keep paginated `/api/logs` fallback until `*/recent` recovers (`>=2` consecutive `200`).
 - [2026-03-14 14:29 KST] Next 30-min actionable TODO: implement `efficiency_guard_v1` action hook (not just telemetry): if `buy+drop share > 15%` for 2 consecutive windows, temporarily tighten non-combat actions (raise buy cooldown / defer low-value pickups) while preserving current conservative combat safety gates.
+
+## 2026-03-14 15:26 KST — Hourly gameplay feedback (low-signal / degraded recent endpoints)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked); `npm run -s activity:fetch -- --hours 1` => `source=fallback:local_replay`, `progress_delta=0/0/0`, `wins=0`, `defeats=0`.
+- API status: `/api/status` returned `200` with snapshot `Lv20`, `EXP 2051`, `Gold 314`, `HP 243/385`, area `talking_island_field`; `/api/logs?limit=20&page=1` returned `200` with empty `data=[]`.
+- Last-hour signals: no confirmed progression/combat/resource activity in this window (treated as idle/low-confidence, not improvement).
+- Anomaly: canonical recent endpoints remain degraded (activity fetch probe family `*/recent` still failing), and logs feed is empty despite healthy status endpoint.
+- Dev feedback: hold behavior/policy tuning this cycle; prioritize observability fidelity over strategy changes to avoid false optimization on no-signal windows.
+- Failure mode + retry recommendation: endpoint-family degradation (`404` on `*/recent`) + empty logs payload at `200`; retry next cycle with same probes plus one backup signal (`/api/agent/thinking/{username}?limit=20`) and keep confidence `low` until non-empty event stream resumes.
+- [2026-03-14 15:26 KST] Next 30-min actionable TODO: add `low_signal_guard_v2` to hourly analyzer — when `status=200` and both `recent/log` signals are empty, emit `confidence=low_idle`, include backup probe result, and suppress strategy-change suggestions.

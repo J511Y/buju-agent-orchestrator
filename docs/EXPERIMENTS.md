@@ -935,3 +935,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy+drop_share`, `death_count/hour`, `hunt_count/hour`, `gold_delta/hour`, `exp_delta/hour`.
 - Result: Current live window remained stable (`hunt=245`, `death=0`, `surrender=2`, `ΔEXP=+498`) but churn stayed elevated (`buy+drop=52/328`, ~15.9%).
 - Decision: Implement in next 30-min cycle; promote if `buy+drop_share < 12%` for 3 consecutive windows while keeping `death=0`.
+
+- Date: 2026-03-14 15:26 KST
+- Hypothesis: A `low_signal_guard_v2` (status/live probe + backup thinking probe) will reduce false gameplay-feedback recommendations during no-event windows caused by recent-endpoint degradation.
+- Change: In hourly feedback, if `/api/status=200` and both `activity:fetch` + `/api/logs` are empty, mark `confidence=low_idle`, run one backup probe (`/api/agent/thinking/{username}?limit=20`), and block policy/aggression suggestions.
+- Metric(s): false-positive recommendation count per day in empty-log windows; cycles with unresolved signal cause; time-to-recovery detection when events resume.
+- Result: Current cycle produced no actionable event stream (`status=200`, logs empty, recent probes degraded), so confidence gating is needed before making strategy calls.
+- Decision: Implement in next 30-min dev cycle; promote if false-positive recommendation count drops to zero for 6 consecutive hourly cycles.
