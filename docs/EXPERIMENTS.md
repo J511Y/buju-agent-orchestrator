@@ -991,3 +991,10 @@ Track A/B and policy experiments.
 - Metric(s): conflict-window false-idle classification count/day; unresolved conflict duration (hours); false-positive strategy recommendations during conflict windows.
 - Result: Current cycle showed `status` progression (`ΔEXP +978`, `ΔGold +15`) while `/api/logs` pages were all empty (`count=0`) and `*/recent` endpoints remained `404`.
 - Decision: Run in next 30-min dev cycle; promote if false-idle classifications drop for 6 consecutive hourly windows.
+
+- Date: 2026-03-14 23:28 KST
+- Hypothesis: A strict credential-source validator (`.env` parse + masked fingerprint + dual-endpoint preflight) will reduce recurring `401` hourly blind spots and prevent false gameplay summaries.
+- Change: Add `auth_preflight_gate_v2` that checks `/api/status` and `/api/logs?limit=1`; on any `401`, emit `auth_state=unauthorized`, block gameplay inference, and attach deterministic retry steps.
+- Metric(s): Count of hourly cycles with unresolved auth cause; time-to-recover after key rotation; false gameplay summaries emitted during auth failures.
+- Result: Current cycle produced `401` on both status and logs immediately after `.env` key load, leaving all last-hour gameplay KPIs unavailable.
+- Decision: Implement in next 30-min cycle; promote if unresolved-auth cycles drop to zero for 4 consecutive hourly runs.

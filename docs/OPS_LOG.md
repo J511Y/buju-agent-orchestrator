@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 22:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 12:19:46 -> 2026-03-14 22:19:31`) with deltas `level +1` (`20->21`), `gold +5` (`309->314`), and `inventory +3` (`0->3`); improvement evidence exists so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement policy retained; minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+non-combat+rate budget`) and safely skipped when prerequisites are absent.
+  - Live evidence: `GET /api/status` => `200` (`level=21`, `exp=1461`, `gold=319`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters` confirms current safe pool (`rabbit`, `skeleton`), and smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=1467`, `gold=334`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `deaths<=2`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=1540` or `gold>=345` with smoke `code=200`.
+
 - [2026-03-14 22:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 11:49:24 -> 2026-03-14 21:49:50`) with deltas `level +1` (`20->21`), `gold +35` (`304->339`), and `exp +0` (thinking-window sparse); improvement evidence exists so CHANGE was not applied.
   - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
@@ -3442,3 +3452,12 @@
 - Anomaly + failure mode: telemetry conflict persists (`status` changing with `logs/recent` empty/degraded), indicating ingestion lag/schema mismatch rather than confirmed inactivity.
 - Retry recommendation: continue hourly retries on `*/recent`; keep status-delta fallback active and re-check paged `/api/logs` next cycle before inferring outcomes.
 - [2026-03-14 22:26 KST] Next 30-min actionable TODO: implement `status_delta_conflict_counter_v1` (increment when `ΔEXP>0 || ΔGold!=0` with empty logs for the same window; auto-attach one backup liveness probe result and suppress policy-change suggestions while counter > 0).
+
+## 2026-03-14 23:28 KST — Hourly gameplay feedback (auth failure / no signal)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; never printed raw key).
+- Live probes: `GET /api/status=401` and `GET /api/logs?page=1&limit=5=401` with identical response (`UNAUTHORIZED: Missing or invalid API key`).
+- Last-hour gameplay signals: unavailable this cycle (progression, wins/defeats, resource trends unresolved; confidence=`low_auth_blocked`).
+- Anomaly/failure mode: credential-path failure (auth rejected on both status and logs), so event telemetry cannot be trusted for gameplay inference.
+- Retry recommendation: rotate/refresh key in `.env`, verify header scheme and key scope with Buju API, then run preflight (`/api/status` + `/api/logs?limit=1`) before hourly synthesis.
+- Development feedback: freeze policy/aggression tuning while auth is failing; prioritize auth-preflight + credential-source validation to restore evidence-grade telemetry.
+- [2026-03-14 23:28 KST] Next 30-min actionable TODO: implement `auth_preflight_gate_v2` in hourly cycle (hard block summary on `401`, emit `auth_state` + retry hint, and skip strategy-change suggestions until preflight returns `200`).
