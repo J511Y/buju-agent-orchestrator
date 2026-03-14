@@ -3171,3 +3171,13 @@
 - Resource/anomaly signal: character is stable but idle; telemetry fidelity is degraded because canonical recent endpoints are unavailable and logs endpoint currently returns empty payload despite healthy HTTP status.
 - API failure mode + retry recommendation: failure mode is `404` on recent endpoints plus empty logs payload at `200`; retry hourly with the same endpoint set, and add one backup probe (`/api/agent/thinking/{username}?limit=20`) next cycle to distinguish true idle from ingestion lag.
 - [2026-03-14 10:26 KST] Next 30-min actionable TODO: implement `idle_observability_guard` in hourly feedback (`if status=200 && recent/log signals empty for >=2 cycles => emit low-confidence idle flag + backup probe result`) and surface a single conservative action suggestion.
+
+## 2026-03-14 11:28 KST — Hourly gameplay feedback (live API)
+- Evidence: `.env` loaded with `BUJU_API_KEY` (masked); live probes with `X-GQ-API-Key` succeeded (`/api/status=200`, paged `/api/logs?limit=100&page=1..4` all `200`); `npm run -s activity:fetch -- --hours 1` still reports recent-history endpoints as `404` and falls back.
+- Live status snapshot: `Lv20`, `EXP 83`, `Gold 304`, `HP 269/385 (69.9%)`, `MP 202/202`.
+- Last-hour gameplay signals (10:28~11:28 KST, `/api/logs` fallback): total `398` events with `hunt=41` (wins), `death=113`, `surrender=113`, `rest=118`, `buy=7`, `sell=1`, `drop=4`, `move=1`.
+- Trend vs prior hour (10:26 KST): partial progression recovery (`ΔEXP +82`), slight gold drawdown (`ΔGold -5`), HP recovered (`+77`), but defeat pressure remains critical (`death/hunt ≈ 2.76`, surrender loop still dominant).
+- Anomalies: canonical `*/recent` endpoints remain unavailable (`404` streak), and combat outcomes remain highly imbalanced (deaths/surrenders outnumber hunts), indicating policy-level instability despite telemetry availability via paged logs.
+- API failure mode + retry recommendation: continue hourly retries for `*/recent`; keep paged `/api/logs` as provisional source (confidence=`medium`) until recent endpoints recover (`>=2` consecutive `200`). If `*/recent` remains `404` for next 4 cycles, refresh endpoint contract and mark recent API path as degraded-by-default in collector.
+- Development feedback: current loop has exited full idle but is still trapped in high-loss churn; prioritize stronger non-combat breaker and safer resume criteria before any throughput/aggression tuning.
+- [2026-03-14 11:28 KST] Next 30-min actionable TODO: implement `recovery_resume_gate_v1` in runner — after breaker trigger, allow combat resume only when `hp_ratio>=0.75` and rolling 15m `death_count<=2`; otherwise stay in recovery mode (`rest/buy only`) and emit `guard_block_reason` telemetry.

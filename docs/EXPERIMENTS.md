@@ -907,3 +907,10 @@ Track A/B and policy experiments.
 - Metric(s): false idle classifications/day, cycles with unresolved signal source, and time-to-detect telemetry lag.
 - Result: Current cycle had `/api/status=200`, recent endpoints `404`, and `/api/logs` empty at `200`, leaving activity state ambiguous.
 - Decision: Run in next 30-min dev cycle; promote if ambiguity drops for 4 consecutive hourly runs.
+
+- Date: 2026-03-14 11:28 KST
+- Hypothesis: Adding a strict `recovery_resume_gate` (`hp_ratio>=0.75` AND rolling 15m `death_count<=2`) after death-loop breaker will reduce repeated death/surrender churn versus time-only breaker expiry.
+- Change: Extend runner safety policy to keep non-combat mode active until both survivability and short-horizon death-rate criteria pass; emit `guard_block_reason` and `resume_gate_state` in hourly feedback.
+- Metric(s): `death_count/hour`, `hunt_count/hour`, and `death_per_hunt` before vs after gate; time-to-stable positive EXP trend.
+- Result: Current hour still shows severe imbalance despite partial progression (`hunt=41`, `death=113`, `surrender=113`, `ΔEXP=+82`).
+- Decision: Run in next 30-min dev cycle; promote if `death_per_hunt < 0.5` for 3 consecutive hourly windows.
