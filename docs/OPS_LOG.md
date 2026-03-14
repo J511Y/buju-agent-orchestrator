@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 00:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty in this cycle, so fallback local trailing posts (`tmp/thinking-post-*.json`, last 20) were used; computed deltas `level +1` (`20->21`), `gold +15` (`309->324`), `inventory -8` (`8->0`), `death delta=0`, and `rate-limit signal 5/20`.
+  - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement policy retained; minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+non-combat+rate budget`) and safely skipped this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: `GET /api/status` => `200` (`level=21`, `exp=2461`, `gold=329`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters` confirms current safe pool (`rabbit`, `skeleton`), and smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=21`, `exp=2461`, `gold=329`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=2540` or `gold>=340` with smoke `code=200`.
+
 - [2026-03-15 00:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; never printed), ran `npm run -s activity:fetch -- --hours 1` (`/api/status=200`, all `*/recent` endpoints `404`), and direct authenticated probes `GET /api/status` + `GET /api/logs?page=1&limit=100` both returned `401 UNAUTHORIZED` this cycle.
   - Last-hour gameplay signals: unresolved (`progression`, `wins/defeats`, `resource trends` unavailable) because both direct status/log probes failed auth and recent-history routes remained degraded.
