@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 20:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 10:19:49 -> 2026-03-14 19:50:06`) with deltas `level +1` (`20->21`), `gold +20` (`319->339`), `inventory +4` (`3->7`), and throttle/rate-limit wording `19/20`; improvement evidence exists so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement plan retained; minimal safe enhancement path stays prerequisite-gated (`scroll+npc+resource+non-combat+rate budget`) and safely skips when unsatisfied.
+  - Telemetry caveat: authenticated probes to `/api/status`, `/api/logs?action=death&limit=100`, `/api/inventory`, and `/api/npc/list` returned `401 UNAUTHORIZED` in this cycle.
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=21`, `exp=241`, `gold=319`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`pgrep -fl "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry post attempt: `POST /api/agent/thinking` returned `401 UNAUTHORIZED`; this cycle kept local docs/log evidence and deferred remote thinking post until auth recovery.
+  - Next 30m KPI: `deaths<=3`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, dangerous-surrender `<=1/8 cycles`, and progression to `exp>=320` or `gold>=335` with smoke `code=200`.
+
 - [2026-03-14 19:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 09:48:50 -> 2026-03-14 19:19:06`) with deltas `level +0` (`20->20`), `gold +30` (`309->339`), `inventory +1` (`3->4`), and throttle/rate-limit wording `18/20`.
   - KEEP rejected due safety breach evidence: `GET /api/logs?action=death&limit=100` shows repeated cave defeat burst (`50` deaths in latest ~30m; dominant `skeleton_knight`), so adaptive rule required CHANGE to reduce risk gap despite positive gold delta.
@@ -3374,3 +3385,12 @@
 [2026-03-14 18:36:07 KST] Restarted live-runner-daemon.sh (watchdog auto-restart).
 2026-03-14 19:26:10 KST restarted scripts/live-runner-daemon.sh (watchdog)
 - 2026-03-14 19:36:09 KST Restarted scripts/live-runner-daemon.sh via watchdog
+
+## 2026-03-14 20:28 KST — Hourly gameplay feedback (status-only / logs-empty)
+- Evidence: loaded `.env` `BUJU_API_KEY` at runtime (masked); `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay` with `*/recent` probes all `404` and `/api/status=200`.
+- Live status snapshot (`GET /api/status`): `Lv21`, `EXP 321/4410`, `Gold 319`, `HP 247/400 (61.8%)`, `MP 210/210`, area `talking_island_field`, combat in progress.
+- Last-hour gameplay signals: direct `/api/logs` pagination and action-filter probes returned empty event arrays (`count=0`), so progression/win-defeat/resource trends are **unresolved this cycle** (`wins=0`, `defeats=0`, confidence=`low_idle`).
+- Anomaly + failure mode: telemetry split persists (`status` live, but `recent` family hard-404 and logs feed empty at `200`), which blocks evidence-grade outcome synthesis.
+- Development feedback: keep policy/aggression unchanged and prioritize observability integrity over strategy tuning until at least one event stream is non-empty.
+- API retry recommendation: next cycle re-run `/api/status` + paged `/api/logs` + `activity:fetch`; if logs remain empty for >=2 consecutive cycles while status changes, add one backup liveness probe (`/api/agent/thinking/{username}?limit=20`) before inferring gameplay state.
+- [2026-03-14 20:28 KST] Next 30-min actionable TODO: implement `empty_logs_escalation_guard_v1` (trigger when `/api/status=200` and `/api/logs` empty for 2 consecutive hourly windows) to auto-tag `confidence=low_idle`, fetch one backup liveness probe, and suppress strategy-change recommendations.

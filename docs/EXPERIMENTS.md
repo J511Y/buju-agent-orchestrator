@@ -970,3 +970,10 @@ Track A/B and policy experiments.
 - Metric(s): End-hour `hp_ratio`, `rest_count/hour`, `defeat_count/hour`, and net `Δgold/hour` across guarded vs unguarded windows.
 - Result: Current hour was win-heavy (`245` wins, `0` defeats) but still ended at `HP 214/385` (`55.6%`) with `rest=25`, indicating survivability margin may be thinner than throughput suggests.
 - Decision: Trial in next 30-min dev cycle; promote if end-hour HP rises above 60% for 3 consecutive windows without increasing defeat count.
+
+- Date: 2026-03-14 20:28 KST
+- Hypothesis: `empty_logs_escalation_guard_v1` (2-cycle empty-logs escalation + one backup liveness probe) will reduce false gameplay inferences during telemetry outages without delaying real incident detection.
+- Change: In hourly feedback, when `/api/status=200` but `/api/logs` and `*/recent` are empty/degraded for 2 consecutive windows, set `confidence=low_idle`, run one backup liveness probe, and block policy/aggression recommendation output.
+- Metric(s): false-positive strategy recommendations in no-signal windows, unresolved telemetry-conflict cycles/day, time-to-recover once non-empty events resume.
+- Result: Current cycle showed live status (`Lv21`, `EXP 321`, `HP 247/400`) with empty logs and persistent `*/recent` `404`, confirming an observability-conflict pattern.
+- Decision: Implement in next 30-min dev cycle; promote if false-positive recommendations remain zero for 6 consecutive hourly windows.
