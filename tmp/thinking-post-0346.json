@@ -1,14 +1,14 @@
 {
   "character_name": "j211y",
-  "tick_number": 1773427771938,
+  "tick_number": 1773513986000,
   "decision_type": "status_check",
   "context": {
-    "hp_pct": 0.77,
+    "hp_pct": 0.693,
     "mp_pct": 1,
-    "level": 19,
+    "level": 21,
     "area": "talking_island_field",
-    "gold": 339,
-    "inventory_count": 3,
+    "gold": 324,
+    "inventory_count": 7,
     "inventory_max": 30,
     "available_actions": [
       "combat_start",
@@ -19,17 +19,18 @@
       "move",
       "enhance"
     ],
-    "delta_level_last20": 17,
+    "delta_level_last20": 1,
     "delta_exp_last20": 0,
-    "delta_gold_last20": 221,
-    "delta_death_last20": 0,
-    "rate_limit_signal_count_last20": 1,
-    "last_known_death_timestamp": "2026-03-13 17:48:43"
+    "delta_gold_last20": -10,
+    "delta_inventory_last20": 5,
+    "rate_limit_signal_count_last20": 3,
+    "safest_efficiency_target": "rabbit_or_skeleton",
+    "movement_gate": "BUJU_MOVE_LEVEL_2=22"
   },
-  "reasoning": "Last 20 thinking logs still show evidence-backed improvement (level +17, gold +221, rate-limited 1/20). Current live status is stable (level 19, exp 2071, gold 339, inv 3). No newer death timestamp than 2026-03-13 17:48:43 was observed, so KEEP is valid this cycle while preserving safest high-efficiency hunt, level-gated movement, and conservative risk-gap controls.",
-  "action_detail": "keep:delay3800,maxActions1,inv10/8/10,worse-than-equipped-first,best-slot-equip(maxDamage+defBonus),staged-safe-enhance(scroll+npc+resource+rate).",
+  "reasoning": "CHANGE with evidence: in the latest 20-log window level rose (+1) but exp was flat and gold decreased (-10) with inventory pressure rising (+5), so KEEP was rejected for economy efficiency drift. Safest-high-efficiency hunt remains rabbit/skeleton in talking_island_field and threshold-gated movement stays strict at level 22 to avoid repeated defeats.",
+  "action_detail": "changed:BUJU_MIN_MP_POTION_S=4->3; kept:inv_constraints(10/8/10)+worse_than_equipped_first+best_slot_equip+enhancement_prereq_gates+daemon_continuous",
   "result": {
     "success": true,
-    "message": "Next 30m KPI: wait_combat_start_rate_limit<=35%, deaths=0, inventory<=8, smoke code=200, and progress to exp>=2200 or gold>=360 at level 19."
+    "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%, and progression to exp>=4050 or gold>=340."
   }
 }
