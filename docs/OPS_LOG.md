@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 01:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 14:49:42 -> 2026-03-15 00:49:26`) with deltas `level +1` (`20->21`), `gold -15` (`344->329`), `inventory +8` (`0->8`), `death delta=0`, and `rate-limit signal 1/20`; improvement evidence (level-up + zero-death) is sufficient, so CHANGE was not applied.
+  - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` and staged enhancement policy retained; minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+non-combat+rate budget`) and safely skipped this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: `GET /api/status` => `200` (`level=21`, `exp=2727`, `gold=304`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters` confirms current safe pool (`rabbit`, `skeleton`), and smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=21`, `exp=2727`, `gold=344`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}`.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=35%`, and progression to `exp>=2810` or `gold>=320` with smoke `code=200`.
+
 - [2026-03-15 00:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty in this cycle, so fallback local trailing posts (`tmp/thinking-post-*.json`, last 20) were used; computed deltas `level +1` (`20->21`), `gold +15` (`309->324`), `inventory -8` (`8->0`), `death delta=0`, and `rate-limit signal 5/20`.
   - Safety/efficiency policy kept: safest high-efficiency selector + strict threshold-move gate (`BUJU_MOVE_LEVEL_2=22`) + defeat/surrender-pressure retreat guards remain active; no risk-expansion tuning this cycle.
@@ -3480,3 +3490,12 @@
 - Retry recommendation: rotate/refresh key in `.env`, verify header scheme and key scope with Buju API, then run preflight (`/api/status` + `/api/logs?limit=1`) before hourly synthesis.
 - Development feedback: freeze policy/aggression tuning while auth is failing; prioritize auth-preflight + credential-source validation to restore evidence-grade telemetry.
 - [2026-03-14 23:28 KST] Next 30-min actionable TODO: implement `auth_preflight_gate_v2` in hourly cycle (hard block summary on `401`, emit `auth_state` + retry hint, and skip strategy-change suggestions until preflight returns `200`).
+
+## 2026-03-15 01:29 KST — Hourly gameplay feedback (live API)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked); live probes `GET /api/status=200`, `GET /api/logs?limit=100&page=1..4=200`; sampled recent endpoints in this cycle and observed `200` responses (recovery signal vs prior persistent `404`).
+- Live status snapshot: `Lv21`, `EXP 2805/4410`, `Gold 339`, `HP 280/400 (70.0%)`, `MP 210/210`, area `talking_island_field`, combat inactive.
+- Last-hour gameplay signals (00:29~01:29 KST, paged `/api/logs`): `352` events — `hunt=249`, `surrender=16`, `rest=25`, `buy=36`, `drop=23`, `sell=3`, `death=0`.
+- Progression/win-defeat/resource trend: throughput remains high (`hunt_share=70.7%`), no hard-death events, and current gold is stable-to-positive (`339`) with healthy HP close.
+- Anomaly watch: surrender volume is elevated (`16`, `4.5%` of events) despite zero deaths, suggesting survivability friction before lethal outcomes.
+- Development feedback: keep conservative combat safety policy, but prioritize reducing surrender churn (pre-combat readiness and disengage thresholds) over aggressive throughput tuning.
+- [2026-03-15 01:29 KST] Next 30-min actionable TODO: implement `surrender_churn_guard_v1` — when `surrender_share >= 4%` with `death=0`, raise pre-combat HP floor by +5% for one cycle and compare (`surrender_count`, `hunt_count`, `gold_delta`) before/after.

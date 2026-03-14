@@ -1005,3 +1005,10 @@ Track A/B and policy experiments.
 - Metric(s): Count of hourly cycles with unresolved auth cause; time-to-recover after key rotation; false gameplay summaries emitted during auth failures.
 - Result: Current cycle produced `401` on both status and logs immediately after `.env` key load, leaving all last-hour gameplay KPIs unavailable.
 - Decision: Implement in next 30-min cycle; promote if unresolved-auth cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-15 01:29 KST
+- Hypothesis: `surrender_churn_guard_v1` (temporary +5% pre-combat HP floor when surrender share is high but deaths are zero) will reduce non-lethal surrender waste without reducing hunt throughput.
+- Change: If hourly window satisfies `surrender_share >= 4%` and `death_count = 0`, apply one-cycle HP-floor bump and keep other safety/aggression settings unchanged.
+- Metric(s): `surrender_count/hour`, `hunt_count/hour`, `gold_delta/hour`, and end-hour `hp_ratio` before/after guard.
+- Result: Current window showed strong throughput (`hunt=249`) with no deaths, but surrender remained elevated (`16/352`, `4.5%`) alongside non-trivial rest/buy churn.
+- Decision: Run in next 30-min dev cycle; promote if surrender drops below `2%` for 3 consecutive hourly windows without hunt-count regression.
