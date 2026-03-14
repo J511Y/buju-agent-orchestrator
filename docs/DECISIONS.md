@@ -1,6 +1,17 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (13:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-14 03:18:33 -> 2026-03-14 13:19:49` from `GET /api/agent/thinking/j211y?limit=20`): `level +1` (`19->20`) but `gold -10` (`344->334`) with residual throttle signal (`8/20`), so KEEP was rejected.
+- Minimal/reversible parameter change applied: `config/strategy.env` tuned `BUJU_STALL_429_COOLDOWN_TICKS 8->10` to reduce repeated `combat_start` re-entry collisions after 429 and lower wait-churn risk without changing hunt safety policy.
+- Safety/efficiency evidence preserved: current active-area monster pool is still low-risk (`rabbit`, `skeleton` in `talking_island_field`), and selector remains safest high-efficiency with strict level-threshold movement gate (`BUJU_MOVE_LEVEL_2=21`).
+- Hard constraints preserved unchanged and treated as invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still sells unequipped gear worse than equipped first.
+- Equipment progression requirements reaffirmed:
+  1) Best-in-slot evaluation remains per `equipSlot + score(maxDamage+defBonus)` with auto-equip when superior.
+  2) Staged enhancement plan remains explicit in this document (early safe gold/no spam -> mid weapon-first at reserve threshold -> late armor/accessory with failure-risk controls).
+  3) Minimal safe enhancement action path stays prerequisite-gated (`scroll + blacksmith npc + resource reserve + rate budget + non-combat`).
+- Validation/continuity evidence: smoke run `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` succeeded (`ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=1253`, `gold=339`, `code=200`) and daemon continuity remains active.
+- KPI target (next 30m): `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit<=22%`, strict threshold-move compliance `100%`, and progression to `exp>=1300` or `gold>=345` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (13:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43`): `level +2` (`18->20`) but `gold -20` (`329->309`) with high throttle signal (`13/20`), so KEEP was rejected.
 - Minimal/reversible changes applied:
   1) `config/strategy.env` tuned `BUJU_BASE_DELAY_MS 4000->4200` to lower `combat_start` collision/rate-limit pressure.

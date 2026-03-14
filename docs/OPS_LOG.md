@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 13:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` (API payload key `logs`) was used directly; window deltas `2026-03-14 03:18:33 -> 2026-03-14 13:19:49` were `level +1` (`19->20`), `gold -10` (`344->334`), with residual throttle signal `8/20`, so KEEP was rejected.
+  - Parameter change applied (minimal/reversible): `config/strategy.env` updated `BUJU_STALL_429_COOLDOWN_TICKS=10` (from `8`) to reduce repeated `combat_start` re-entry after 429 and lower throttle churn.
+  - Safety/efficiency evidence: active-area monster pool remains low-risk (`rabbit`, `skeleton`), and selector remains safety-first high-efficiency with strict level-threshold movement gate (`BUJU_MOVE_LEVEL_2=21`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; slots>=10 still liquidate unequipped worse-than-equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)`; staged enhancement policy retained (early safe accumulation, mid weapon-first on reserve threshold, late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll+npc+resource+rate+non-combat`).
+  - Live evidence: smoke validation `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=20`, `exp=1253`, `gold=339`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps` confirms `bash ./scripts/live-runner-daemon.sh` and `node scripts/live-strategy-runner.js` active).
+  - Next 30m KPI: defeats `=0`, inventory `<=8`, `wait_combat_start_rate_limit<=22%`, strict threshold-move compliance `100%`, and progression to `exp>=1300` or `gold>=345` with smoke `code=200`.
+
 - [2026-03-14 13:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): used trailing 20 thinking logs (`2026-03-13 21:20:10 -> 2026-03-14 07:49:43`) and computed deltas `level +2` (`18->20`), `gold -20` (`329->309`), `death +0`, `rate-limit signal 13/20`; improvement evidence was mixed, so KEEP was rejected.
   - Logic/parameter change applied (minimal + reversible): `config/strategy.env` `BUJU_BASE_DELAY_MS 4000->4200` to cut combat-start throttle collision, and `scripts/live-strategy-runner.js` move fallback bug fixed (`safeAreaOverride` -> `thresholdAreaOverride`, action `move_threshold_fallback`) to keep strict level-threshold movement stable on retreat path.
