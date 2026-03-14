@@ -3200,3 +3200,11 @@
 - API failure mode + retry recommendation: continue hourly retries for `*/recent`; keep paged `/api/logs` as provisional source (confidence=`medium`) until recent endpoints recover (`>=2` consecutive `200`). If `*/recent` remains `404` for next 4 cycles, refresh endpoint contract and mark recent API path as degraded-by-default in collector.
 - Development feedback: current loop has exited full idle but is still trapped in high-loss churn; prioritize stronger non-combat breaker and safer resume criteria before any throughput/aggression tuning.
 - [2026-03-14 11:28 KST] Next 30-min actionable TODO: implement `recovery_resume_gate_v1` in runner — after breaker trigger, allow combat resume only when `hp_ratio>=0.75` and rolling 15m `death_count<=2`; otherwise stay in recovery mode (`rest/buy only`) and emit `guard_block_reason` telemetry.
+
+- Date: 2026-03-14 12:27 KST
+- Hourly Buju gameplay feedback cycle: `.env` key was loaded, but direct authenticated probes returned `401` on `/api/status`, `/api/logs?action=death`, and `/api/logs?action=level_up` (no last-hour gameplay data retrievable).
+- Failure mode: auth-path outage/credential mismatch (`UNAUTHORIZED: Missing or invalid API key`) masked gameplay visibility; progression/win-defeat/resource trends are unresolved for this hour.
+- Evidence: `activity:fetch` still showed `/api/status=200` from existing path while manual bearer-auth probes consistently returned `401`, indicating key/header compatibility drift rather than endpoint absence.
+- Dev feedback: treat this hour as `outcome_confidence=low` and block policy/aggression changes until auth preflight is green.
+- Retry recommendation: verify `.env` key freshness/format (trim quotes/whitespace), confirm expected auth header scheme with Buju API docs, then rerun preflight (`/api/status` + one `/api/logs` call) before hourly synthesis.
+- Next 30-min TODO: implement `auth_preflight_gate` in hourly cycle to hard-stop gameplay inference on `401` and emit explicit `auth_state` telemetry.
