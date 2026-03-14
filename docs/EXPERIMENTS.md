@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 08:26 KST
+- Hypothesis: A unified `auth-preflight-gate` executed in the same runtime context as hourly fetch will eliminate status/log auth ambiguity and reduce low-confidence cycles caused by credential-source drift.
+- Change: Add `scripts/auth-preflight-gate.js` to probe `/api/status` and `/api/logs?limit=1` with masked env key, then emit deterministic `auth_state` (`ok|unauthorized|source_mismatch`) consumed by hourly feedback flow.
+- Metric(s): % hourly cycles blocked with explicit auth reason; time-to-diagnose `401` incidents; false gameplay summaries during auth failures.
+- Result: Current cycle reproduced split signal (`activity:fetch` status `200` while direct authenticated status/log probes returned `401`), preventing evidence-safe gameplay inference.
+- Decision: Run in next 30-min dev cycle; promote if ambiguity is resolved within 2 consecutive hourly runs.
+
 - Date: 2026-03-15 00:28 KST
 - Hypothesis: An explicit `auth_source_diff_gate` (same-hour comparison of credential source used by `activity:fetch` vs direct bearer probes) will quickly isolate source mismatch vs true key invalidation and reduce low-confidence hourly cycles.
 - Change: Add a tiny checker that runs `/api/status` + `/api/logs?limit=1` with both credential paths and emits `auth_state` (`ok|unauthorized|source_mismatch`) before hourly synthesis.
