@@ -770,6 +770,24 @@ async function step() {
     recordActionResult('combat_start', combat.status);
 
     if (combat.status === 429) {
+      // Adaptive throughput fallback: if combat_start is rate-limited, try one direct hunt to preserve progression signal.
+      // Keep safety invariant by reusing the already selected safest monster + skill for this tick.
+      const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
+      recordActionResult('hunt', huntFallback.status);
+      pushCombatOutcome(huntFallback.json?.result?.outcome || huntFallback.json?.result || null);
+      if (huntFallback.status === 200) {
+        return {
+          ok: true,
+          action: 'hunt_on_combat_start_rate_limit',
+          monster_id: monsterId,
+          skill_id: skillId,
+          result: huntFallback.json?.result,
+          level: c.level,
+          exp: c.exp,
+          gold: c.gold,
+          code: 200
+        };
+      }
       return { ok: true, action: 'wait_combat_start_rate_limit', monster_id: monsterId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
 
