@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 06:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty this cycle (`count=0`), so fallback local trailing posts (`tmp/thinking-post-*.json`, latest 20 by `tick_number`) were used; computed deltas were mixed (`level +2` `20->22`, `gold -20` `379->359`, `inventory +6` `2->8`) with throttle/rate-limit signal `12/20`, so KEEP was rejected.
+  - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_MIN_MP_POTION_S 3->2` to reduce recurring `buy_mp` spend/inventory churn while preserving safety floors.
+  - Safety/efficiency policy kept: safest high-efficiency hunt remains current field pool under strict threshold movement gate; repeated-defeat avoidance remained active.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+  - Equipment progression preserved: best-in-slot auto-equip by `equipSlot + (maxDamage+defBonus)` remains active; staged enhancement policy remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated.
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=745`, `gold=364`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon + runner).
+  - Ops telemetry post attempt: `POST /api/agent/thinking` => `401 UNAUTHORIZED`; payload archived at `tmp/thinking-post-0646.json` for replay after auth recovery.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=100` or `gold +>=15` with smoke `code=200`.
+
 - [2026-03-15 06:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty this cycle (`count=0`), so fallback local trailing posts (`tmp/thinking-post-*.json`, last 20) were used; computed deltas `level +2` (`20->22`), `gold +5` (`344->349`), `inventory +0`, and low throttle/rate-limit signal `1/20`, with death-log window `0`, so CHANGE was not applied.
   - Safety/efficiency policy kept: safest high-efficiency hunt remains current field pool under strict threshold movement gate; repeated-defeat avoidance policy remained active.
