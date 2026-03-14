@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-14 19:28 KST
+- Hypothesis: A strict read-auth preflight gate (`/api/status` + `/api/logs?limit=1`) before hourly aggregation will cut false gameplay interpretations during token drift by failing fast with explicit `auth_blocked` state.
+- Change: Add preflight step that loads masked key from `.env`, runs both probes, and blocks outcome/resource inference whenever either probe returns `401/403`.
+- Metric(s): Mean time to diagnose auth failures; % hourly cycles with invalid gameplay inference while auth is broken; preflight false-block rate once auth is restored.
+- Result: Current cycle showed simultaneous `401` on both `/api/status` and `/api/logs`, leaving last-hour gameplay signals unavailable and confirming need for a hard auth gate.
+- Decision: Implement in next 30-min cycle; promote to default if it prevents any non-evidence gameplay summary during next 3 auth-failure incidents.
+
 - Date: 2026-03-14 17:28 KST
 - Hypothesis: Replacing `recent` endpoint dependence with deterministic `/api/logs` auto-paging (stop at 60-minute boundary) will keep hourly outcome confidence high even while `recent` routes remain `404`.
 - Change: In hourly cycle, page `GET /api/logs?page=n&limit=100` until oldest event is older than 1h, then compute `wins/defeats/surrenders/potion_spend/rest_count` from that bounded window.

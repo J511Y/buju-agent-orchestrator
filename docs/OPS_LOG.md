@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-14
+- [2026-03-14 19:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked), then probed `GET /api/status` and `GET /api/logs?page=1&limit=100`; both returned `401 UNAUTHORIZED` in this cycle (no raw secret printed).
+  - Last-hour gameplay signals: unavailable from live APIs this hour (`wins/defeats/resource deltas` unresolved due to auth failure; event window not retrievable).
+  - Anomaly: telemetry path switched from prior healthy read-state (`200`) to credential/auth rejection (`401`) on both status and logs endpoints.
+  - Dev feedback: treat this as credential-drift or scope mismatch first, not gameplay-policy regression; block tactical tuning until read-auth is restored to avoid false conclusions.
+  - Failure mode + retry recommendation: retry with the same masked runtime key source next cycle after reloading `.env`, verify token validity/scope against Buju dashboard, then run `GET /api/status` preflight before full hourly collection.
+  - Next 30m actionable TODO: add `scripts/auth-preflight.js` to run masked-key validation (`/api/status` + `/api/logs?limit=1`) and emit a single pass/fail gate for hourly feedback.
+
 - [2026-03-14 19:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned a full 20-log window (`2026-03-14 09:19:06 -> 2026-03-14 18:49:16`) with deltas `level +0` (`20->20`), `gold +10` (`309->319`), `inventory +0` (`8->8`), and throttle/rate-limit wording `20/20`; improvement evidence (`gold +10`) is present, so CHANGE was not applied.
   - Safety/efficiency evidence: active-area monster set (`GET /api/areas/talking_island_field/monsters`) remains low-risk/high-efficiency for current threshold gate (`rabbit`, `skeleton`), and strict level-threshold movement is preserved (`BUJU_MOVE_LEVEL_2=21`, current level 20).
@@ -3352,3 +3360,4 @@
 - Retry recommendation: continue hourly retry on `*/recent`; keep paged `/api/logs` as provisional truth source with confidence=`medium` until recent endpoints recover for at least 2 consecutive `200` windows.
 - [2026-03-14 18:28 KST] Next 30-min actionable TODO: add `hp_floor_efficiency_guard_v1` — when last-hour `rest_count >= 20` and end-of-hour `hp_ratio < 0.60`, raise pre-combat HP floor by +5% for one cycle and compare (`rest_count`, `Δgold`, `defeats`) before/after.
 [2026-03-14 18:36:07 KST] Restarted live-runner-daemon.sh (watchdog auto-restart).
+2026-03-14 19:26:10 KST restarted scripts/live-runner-daemon.sh (watchdog)
