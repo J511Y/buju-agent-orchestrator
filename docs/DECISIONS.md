@@ -1,6 +1,15 @@
 # Engineering Decisions
 
 ## 2026-03-14
+- 30-min STRATEGY DIRECTOR (10:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 23:48:41 -> 2026-03-14 10:19:49`): `level +1` (`19->20`) but `exp +0`, `gold -15` (`324->309`), and persistent throttle/rate-limit signature (`18/20`) with live daemon showing repeated `combat_start -> surrender_dangerous_combat -> rest -> wait_combat_start_rate_limit` loops, so KEEP was rejected.
+- Logic changes applied (minimal, reversible):
+  1) `scripts/live-strategy-runner.js` now tracks recent dangerous surrenders and feeds that into safety pressure (`pressure=max(defeatPressure,surrenderPressure)`) for monster risk-gap tightening.
+  2) Added surrender-pressure retreat gate: when `recentDangerSurrenderCount(8) >= 3` (or defeats pressure is high), desired area is forced to `BUJU_AREA_LV1` (`action=move_safety_retreat`) before normal level-threshold area progression resumes.
+- Hard constraints locked unchanged: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+- Equipment progression requirements reaffirmed: best-in-slot remains evaluated by `equipSlot + score(maxDamage+defBonus)` and auto-equipped when superior; staged enhancement strategy remains explicit: (a) early safe gold accumulation/no risky spam, (b) mid game weapon-first after reserve threshold, (c) late game armor/accessory expansion with failure-risk controls.
+- Minimal safe enhancement action path remains prerequisite-gated and active (`scroll + blacksmith npc + resource reserve + rate budget + non-combat`) and safely skips when unsatisfied.
+- KPI target (next 30 min): cut dangerous-surrender loop share to `<=25%` of cycles, enforce safety retreat when surrender pressure spikes, keep inventory `<=8`, keep smoke `code=200`, and recover economy (`gold>=320` or `exp>=50`).
+
 - 30-min STRATEGY DIRECTOR (10:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`2026-03-13 23:19:48 -> 2026-03-14 09:48:50`): `level +2` (`18->20`) but `gold -25` (`334->309`) with persistent throttle/rate-limit signature (`20/20`) and active defeat burst risk (latest death feed shows repeated fresh defeats), so KEEP was rejected.
 - Logic changes applied (minimal, reversible):
   1) `scripts/live-strategy-runner.js` now hard-picks only the globally least-danger monster when the safety filter is empty (`slice(0,1)`), preventing efficiency re-ranking from reintroducing risky targets.

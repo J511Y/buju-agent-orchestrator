@@ -359,6 +359,7 @@ function chooseBestSkill(skills, currentMp) {
 }
 
 const recentCombatOutcomes = [];
+const recentDangerSurrenders = [];
 let lastCombatStrategySignature = '';
 let lastCombatStrategyTick = 0;
 
@@ -368,8 +369,17 @@ function pushCombatOutcome(outcome) {
   if (recentCombatOutcomes.length > 12) recentCombatOutcomes.shift();
 }
 
+function pushDangerSurrender() {
+  recentDangerSurrenders.push('danger_surrender');
+  if (recentDangerSurrenders.length > 12) recentDangerSurrenders.shift();
+}
+
 function recentDefeatCount(windowSize = 8) {
   return recentCombatOutcomes.slice(-windowSize).filter(x => x === 'defeat').length;
+}
+
+function recentDangerSurrenderCount(windowSize = 8) {
+  return recentDangerSurrenders.slice(-windowSize).length;
 }
 
 function chooseMonster(monsters, player, equipped = {}) {
@@ -378,9 +388,11 @@ function chooseMonster(monsters, player, equipped = {}) {
   const pAtk = Number(player?.atk || 1);
   const pDef = Number(player?.def || 1);
   const defeatPressure = recentDefeatCount(8);
+  const surrenderPressure = recentDangerSurrenderCount(8);
+  const pressure = Math.max(defeatPressure, surrenderPressure);
   const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
   const armorRiskPenalty = hasArmor ? 0 : 1;
-  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, defeatPressure + armorRiskPenalty));
+  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, pressure + armorRiskPenalty));
 
   const atkGuard = hasArmor ? (pDef * 1.75) : (pDef * 1.45);
   const safetyFiltered = monsters.filter(m => {
@@ -608,6 +620,7 @@ async function step() {
           const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
           recordActionResult('danger_surrender', sr.status);
           if (sr.status === 200) {
+            pushDangerSurrender();
             return { ok: true, action: 'surrender_dangerous_combat', monster_id: curMonsterId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
           }
         }
@@ -698,7 +711,8 @@ async function step() {
 
   const targetArea = pickArea(c.level || 1);
   const defeatPressure = recentDefeatCount(8);
-  const safetyRetreatArea = defeatPressure >= 3 ? CFG.area1 : null;
+  const surrenderPressure = recentDangerSurrenderCount(8);
+  const safetyRetreatArea = (defeatPressure >= 3 || surrenderPressure >= 3) ? CFG.area1 : null;
   const safeAreaOverride = (!hasArmor && (c.level || 1) < CFG.moveLv2) ? CFG.area1 : null;
   const desiredArea = safetyRetreatArea || safeAreaOverride || targetArea;
   if (!inCombat && c.current_area !== desiredArea && !shouldSkipAction('move') && hasRateBudget(rateLimits, 'move')) {
