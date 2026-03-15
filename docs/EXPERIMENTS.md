@@ -1179,3 +1179,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles blocked with explicit auth root-cause`, `false gameplay-inference count under 401`, `time-to-recover after key rotation`.
 - Result: Current cycle returned `401` on both `/api/status` and `/api/logs?page=1&limit=200` in the same runtime with `events=0`, so gameplay evidence was unavailable.
 - Decision: Run in next 30-min cycle; promote if blocked cycles are explicit and false gameplay inference stays zero for 6 consecutive auth-failure hours.
+
+- Date: 2026-03-16 02:28 KST
+- Hypothesis: Enforcing key-source parity checks before hourly probes will eliminate false mixed outcomes (`collector status=200` vs direct `401`) and reduce blocked-feedback cycles.
+- Change: Add `auth-readpath-parity-check-v1` to compare same-process key load + shared header client across `/api/status` and `/api/logs?limit=1`; block synthesis unless both return `200`.
+- Metric(s): `% hourly cycles blocked by auth/readpath mismatch`, `mixed-signal cycles/day`, `time-to-recover after key rotate/rebind`.
+- Result: Current cycle reproduced mismatch (direct status/logs both `401`, collector fallback still indicated reachable status), leaving last-hour gameplay KPIs unresolved.
+- Decision: Run in next 30-min cycle; promote if mixed-signal auth cycles drop to zero for 6 consecutive hourly runs.

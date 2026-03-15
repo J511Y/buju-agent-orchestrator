@@ -4027,3 +4027,12 @@
 - Hard constraints re-verified: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with worse-than-equipped liquidation first when slots `>=10`.
 - Daemon continuity + smoke: live daemon and child runner are both active (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js`); smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=buy_mp`, `level=23`, `exp=5025`, `gold=374`, `code=200` (`tmp/cron-smoke-0217.txt`).
 - Next 30m KPI target: `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit + wait_combat_start_cooldown <= 25%`, and progression `exp>=5100` or `gold>=390` with smoke `code=200`.
+
+## [2026-03-16 02:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked key path): loaded `BUJU_API_KEY` from `.env` in-process (raw key not printed), then ran live probes `GET /api/status` and `GET /api/logs?page=1&limit=200` on `https://bujuagent.com/api`.
+- Probe outcome: both endpoints returned `401 UNAUTHORIZED`; `npm run activity:fetch -- --hours 1` also produced fallback-only payload (`source=fallback:local_replay`, all KPI deltas `0`, `wins=0`, `defeats=0`) with only `/api/status` reported `200` on collector path.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (no authenticated live log window available).
+- Anomaly: repeated auth/read-path inconsistency (`direct status+logs=401` while collector path still reports status reachable), indicating credential-source drift or header-path mismatch.
+- Development feedback: do not tune combat/economy policy this hour; first restore deterministic auth/read-path parity for hourly telemetry.
+- Failure mode + retry recommendation: classify as `auth_blocked`; retry preflight (`/api/status` + `/api/logs?limit=1`) with 2 attempts and jittered backoff (10s, 30s). If either remains non-200, keep inference disabled and rotate/rebind API key source.
+- TODO (next 30-min): implement `scripts/auth-readpath-parity-check-v1.js` that emits `{auth_state, readpath_state, inference_allowed, retry_after_ms, key_source_hash}` and hard-gates hourly feedback synthesis unless `auth_state=ok && readpath_state=ok`.
