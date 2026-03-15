@@ -4005,3 +4005,12 @@
 - Anomaly watch: consumable spend pressure remains high despite stable combat outcomes (`buy_share=32.6%`, `net_trade=-1210G` from buy/sell logs), indicating economy drag risk while progression continues.
 - Development feedback: keep current combat safety profile (zero defeats, high hunt throughput), but prioritize buy-efficiency guardrails and potion-spend diagnostics before any aggression/throughput tuning.
 - TODO (next 30-min): implement `buy_efficiency_guard_v3` metric emission (`buy_share`, `net_trade`, `mp_potion_spend_per_hunt`) and add a one-cycle buy cooldown trigger when `buy_share > 25% && net_trade < -1000`.
+
+## [2026-03-16 01:28 KST] Hourly gameplay-feedback cycle
+- Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked; raw key never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=200` against `https://bujuagent.com/api`.
+- Probe results: both endpoints returned `401 UNAUTHORIZED` (`Missing or invalid API key`), so no reliable last-hour event payload was available (`events=0`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown due to auth-blocked read path.
+- Anomaly: hard read-path outage at auth layer (status+logs both unauthorized in same runtime).
+- Development feedback: skip gameplay/policy tuning this cycle; prioritize credential-source parity + auth preflight hard gate before any KPI interpretation.
+- Failure mode + retry recommendation: run masked preflight next cycle (`/api/status` + `/api/logs?limit=1`) with 2 attempts and 5-10s jittered backoff; if either probe remains non-200, classify `auth_blocked`, rotate/rebind key, and keep inference disabled.
+- TODO (next 30-min): add `scripts/auth-preflight-gate-v4.js` to emit `{auth_state, inference_allowed, retry_after_ms}` and hard-block hourly summary generation when `auth_state!=ok`.

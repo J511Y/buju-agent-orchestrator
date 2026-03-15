@@ -1172,3 +1172,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_share/hour`, `net_trade/hour`, `mp_potion_spend_per_hunt`, `hunt_count/hour`, `defeats/hour`, and `% cycles with gold<340`.
 - Result: Current live hour had strong outcomes (`wins=244`, `defeats=0`) with continuing economy drag (`buy=142`, `sell=3`, `buy_share=32.6%`, `net_trade=-1210G`, `Δexp=+74`, `Δgold=+5`).
 - Decision: Run in next 30-min dev cycle; promote if `buy_share` falls below `20%` for 3 consecutive hourly windows without hunt-count regression.
+
+- Date: 2026-03-16 01:28 KST
+- Hypothesis: Enforcing `auth_preflight_gate_v4` (same-process `/api/status` + `/api/logs?limit=1` with deterministic retry metadata) will prevent zero-evidence hourly gameplay feedback during token drift.
+- Change: Add preflight output contract `{auth_state, inference_allowed, retry_after_ms}` and block progression/winloss/resource inference unless `auth_state=ok`.
+- Metric(s): `% hourly cycles blocked with explicit auth root-cause`, `false gameplay-inference count under 401`, `time-to-recover after key rotation`.
+- Result: Current cycle returned `401` on both `/api/status` and `/api/logs?page=1&limit=200` in the same runtime with `events=0`, so gameplay evidence was unavailable.
+- Decision: Run in next 30-min cycle; promote if blocked cycles are explicit and false gameplay inference stays zero for 6 consecutive auth-failure hours.
