@@ -1,0 +1,1 @@
+live-strategy ok=1/1 lastAction=wait_combat_start_rate_limit level=23 exp=3813 gold=344 code=200

@@ -1,0 +1,29 @@
+{
+  "character_name": "j211y",
+  "tick_number": 1773586212133,
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.493,
+    "mp_pct": 1,
+    "level": 23,
+    "area": "talking_island_field",
+    "gold": 344,
+    "inventory_count": 7,
+    "inventory_max": 30,
+    "available_actions": [
+      "combat_start",
+      "rest",
+      "use_item",
+      "sell",
+      "buy",
+      "move",
+      "enhance"
+    ]
+  },
+  "reasoning": "CHANGE by evidence: last20 2026-03-15 12:49:18->2026-03-15 23:19:29 count=20 gave level +1, gold -5, inv 1, rate mentions 14/20. Economy regressed, so reduced HP potion floor 6->5 to cut buy churn while keeping safety gates, safest skeleton hunt, and move-level threshold.",
+  "action_detail": "changed:MIN_HP 6->5; kept inv10/8/10 worse-first,BiS equip,safe-enhance prereq,daemon on",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: death delta=0, inventory<=8, buy_hp<=1/tick-window, wait_combat_start_rate_limit+cooldown<=28%, and progress exp +>=70 or gold +>=12 with smoke code=200."
+  }
+}

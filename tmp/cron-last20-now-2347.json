@@ -1,0 +1,672 @@
+{
+  "status": 200,
+  "json": {
+    "success": true,
+    "logs": [
+      {
+        "id": "9bef0d1c-29dd-45c0-98c0-8d7e183ad488",
+        "character_name": "j211y",
+        "tick_number": 1773584369402,
+        "timestamp": "2026-03-15 23:19:29",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.493,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 354,
+          "inventory_count": 7,
+          "inventory_max": 30,
+          "available_actions": [
+            "combat_start",
+            "rest",
+            "use_item",
+            "sell",
+            "buy",
+            "move",
+            "enhance"
+          ]
+        },
+        "reasoning": "KEEP with evidence: last-20 thinking deltas improved (level +1, gold +5, inventory -1) with no defeat-regression signal; keep safest high-efficiency hunt, level-threshold movement gate, and conservative risk-gap controls to prevent repeated defeats.",
+        "action_detail": "keep:inv10/8/10+worse-than-equipped-first,best-slot-equip(score=maxDamage+defBonus),staged-safe-enhance-prereq-path,daemon-continuous",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: defeats=0, inventory<=8, wait_combat_start_rate_limit<=35%, and progress to exp>=3700 or gold>=370 with smoke code=200."
+        }
+      },
+      {
+        "id": "413e279f-980c-4cc5-b57a-01dc973f2c45",
+        "character_name": "j211y",
+        "tick_number": 1773580782763,
+        "timestamp": "2026-03-15 22:19:43",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.507,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 354,
+          "inventory_count": 6,
+          "inventory_max": 30,
+          "available_actions": [
+            "combat_start",
+            "rest",
+            "use_item",
+            "sell",
+            "buy",
+            "move",
+            "enhance"
+          ]
+        },
+        "reasoning": "CHANGE required by adaptive loop: last-20 delta window (11:49:10->21:50:00) was mixed (level +1, exp +0, gold -15, rate/cooldown mentions 14/20), so KEEP was rejected due economy bleed despite level gain. Applied minimal reversible economy control by lowering MP stock floor to reduce buy churn while preserving safety and movement gates.",
+        "action_detail": "changed:MIN_MP 2->1; kept inv10/8/10,worse-first,BIS,safest hunt,threshold move,safe-enhance prereq",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: deaths=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=28%, and progression exp>=3155 or gold>=369 with smoke code=200."
+        }
+      },
+      {
+        "id": "4bf1a2e8-406a-4a20-8faf-63bd04063efb",
+        "character_name": "j211y",
+        "tick_number": 1773579000291,
+        "timestamp": "2026-03-15 21:50:00",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.665,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 349,
+          "inventory_count": 8,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP with evidence: last-20 thinking deltas improved (level +1, gold +10). Live status and monsters in talking_island_field still favor skeleton as safest high-efficiency target, with strict move-level gate (BUJU_MOVE_LEVEL_2=30) to reduce repeated defeats. Hard inventory invariants remain fixed at 10/8/10 and slots>=10 still liquidates unequipped gear worse than equipped first. BiS equip by equipSlot+score(maxDamage+defBonus) and safe enhancement prerequisite-gate both remain active.",
+        "action_detail": "keep:delta(level+1,gold+10), target=skeleton, moveLv2=30, inv=10/8/10 worse-first, BiS+enhance-safe",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=28%, and progression exp +>=70 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "da5e24b9-1bde-4830-a977-508f8c326790",
+        "character_name": "j211y",
+        "tick_number": 1773572400002,
+        "timestamp": "2026-03-15 20:50:04",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.574,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 364,
+          "inventory_count": 4,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: last-20 thinking deltas improved (level +1, gold +10, inventory +1). Current live probes keep safest high-efficiency target as skeleton in talking_island_field with moveLv2=30 gate, and smoke stayed code=200. Hard constraints 10/8/10 remain invariant including worse-than-equipped-first liquidation when slots>=10. BiS scoring/equip remains active and enhancement path stays prerequisite-gated; safely skipped because npc list is empty and no enchant scroll is available.",
+        "action_detail": "keep: delta improved, safest skeleton, invariant 10/8/10 worse-first, BiS active, enhancement prereq-gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=28%, and progression exp +>=70 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "78469847-dd6a-40ea-a6ab-557362eac9d9",
+        "character_name": "j211y",
+        "tick_number": 1773572400001,
+        "timestamp": "2026-03-15 20:19:56",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.52,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 8,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: local last-20 thinking shows level +1 (22->23) and inventory flat (3->3). Gold snapshot delta was negative, but live status recovered (lv23/exp2111/gold359) and smoke stayed code=200. Safest high-efficiency target remains skeleton in talking_island_field under moveLv2=30 gate. Hard inventory invariants 10/8/10 and worse-than-equipped-first liquidation stay fixed. BiS equip scoring remains active; enhancement is safely skipped (no NPC/scroll prereqs).",
+        "action_detail": "keep: level+1, live recovered, safest skeleton, invariants 10/8/10 worse-first, BiS on, enhance prereq-gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=28%, and progression exp +>=70 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "826053ff-7b22-4e91-97e8-e423b278f68e",
+        "character_name": "j211y",
+        "tick_number": 1773571748929,
+        "timestamp": "2026-03-15 19:49:09",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.4906976744186046,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 364,
+          "inventory_count": 3,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: remote last-20 thinking deltas show level +1 (22->23) with high throttle wording (rate/cooldown 16/20). Although window gold delta is -155 from a transient low snapshot, live probes recovered to exp=1869/gold=364 and safest available target remains skeleton in talking_island_field. Death log latest timestamp unchanged at 05:09:30, so no fresh defeat burst.",
+        "action_detail": "keep: delta level+1 gold-155 inv+0 rate16/20; live exp1869 gold364; target=skeleton; moveLv2=30; inv10/8/10 worse-first; enhance gated (npc=0)",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=30%, progression exp +>=70 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "5190b05c-8e1d-4fa9-9243-8103f9f4bccf",
+        "character_name": "j211y",
+        "tick_number": 1773569961313,
+        "timestamp": "2026-03-15 19:19:31",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.5232558139534884,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 199,
+          "inventory_count": 3,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "CHANGE: remote last-20 was empty, fallback local last-20 was flat (level/exp/gold/inventory +0; rate/cooldown 13/20). To break stagnation safely, tuned max actions 2->1. Safest high-efficiency target remains skeleton in talking_island_field with moveLv2=30 gate. Hard inventory invariants 10/8/10 and worse-than-equipped-first sell stay fixed. BiS equip scoring stays active; enhancement skipped this cycle (npcCount=0, no enchant scroll).",
+        "action_detail": "change:maxActions 2->1; delta flat local20; safe skeleton target; inv10/8/10 worse-first; BiS active; enhance gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=28%, and progression exp +>=70 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "fecb957e-2633-4c57-a8d8-e1c904f02a80",
+        "character_name": "j211y",
+        "tick_number": 1773568244565,
+        "timestamp": "2026-03-15 18:50:44",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.6325581395348837,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 354,
+          "inventory_count": 3,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: last-20 deltas improved (08:49:44->18:19:31, n=20): level +1, gold +0, rate/cooldown 16/20, no fresh death growth. Safest high-efficiency target remains skeleton in talking_island_field with moveLv2=30 gate. Hard invariants stay fixed (sell 10/8/10, slots>=10 worse-than-equipped first). BiS equip scoring active. Enhancement path is prerequisite-gated and skipped (npc=0, scroll=0).",
+        "action_detail": "keep:delta lvl+1 gold0 rate16/20 death0; skeleton-safe target; inv10/8/10 worse-first; BiS equip active; enhance gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=30%, progression exp +>=60 or gold +>=10 with at least one smoke code=200."
+        }
+      },
+      {
+        "id": "6590f7e4-4424-43d9-b97d-ea8994766a14",
+        "character_name": "j211y",
+        "tick_number": 1773566176000,
+        "timestamp": "2026-03-15 18:19:31",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.498,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 354,
+          "inventory_count": 7,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: last-20 thinking deltas improved (08:19:19->17:50:30, level +1, gold +10; exp/death sparse). Safest high-efficiency target remains skeleton in talking_island_field with strict move threshold (moveLv2=30) to avoid risk expansion. Hard inventory invariants stay fixed (10/8/10) with slots>=10 selling worse-than-equipped gear first. BiS equip scoring stays active. Enhancement path is prerequisite-gated and safely skipped (npcCount=0, no enchant scroll).",
+        "action_detail": "keep:delta lvl+1 gold+10 rate19/20; skeleton-safe target; inv10/8/10 worse-first; BiS equip active; enhance gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=25%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "277a18bf-62c1-49c4-8cc6-7d188dd2cc57",
+        "character_name": "j211y",
+        "tick_number": 1773564386000,
+        "timestamp": "2026-03-15 17:50:30",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.593,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 6,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP from last-20 deltas: level +1, gold +5, exp +0, death +0 (07:48:48->17:19:05, 20 logs). Improvement exists despite 14/20 rate-limit-cooldown mentions, so no config change now. Safest high-efficiency target remains skeleton in talking_island_field with move threshold gate (lv30). Hard inventory invariants stay fixed (10/8/10, worse-than-equipped-first). BiS scoring equip remains active. Enhancement path stays safe-gated and skipped (npc=0, scroll=0).",
+        "action_detail": "keep:delta lvl+1 exp0 gold+5 death0 rate14/20; skeleton-safe target; inv10/8/10 worse-first; BiS equip active; enhance gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=25%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "9aca82ae-001c-43ec-bdfe-c3a4ea657b5a",
+        "character_name": "j211y",
+        "tick_number": 1773562745074,
+        "timestamp": "2026-03-15 17:19:05",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.644,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 7,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "enhance",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: last-20 thinking delta improved (07:19->16:49): level +1 (22->23), gold +10 (349->359), inventory -7 (9->2), rate/cooldown 14/20, no fresh death burst. Safest high-efficiency target remains skeleton in talking_island_field. Keep hard sell invariants 10/8/10 with worse-than-equipped-first at slots>=10. BiS equip scoring stays active. Safe enhancement path is gated; skip now (npc=0, scroll=0).",
+        "action_detail": "keep:delta lvl+1 gold+10 inv-7 death0 rate14/20; skeleton-safe routing; inv10/8/10 worse-first; BiS equip; enhance prereq-gated skip",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=25%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "ea8f1db6-0db9-41ad-bb65-1f16d456a378",
+        "character_name": "j211y",
+        "tick_number": 1773560978406,
+        "timestamp": "2026-03-15 16:49:38",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.5,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 2,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: remote last-20 thinking was empty, so fallback local 20 posts (07:16->15:46) were used. Delta: level 0, gold +15, inventory -5, rate/cooldown wording 14/20. Safety remains stable in talking_island_field; safest high-efficiency target stays skeleton with move threshold lv30. Hard sell invariants 10/8/10 and worse-than-equipped-first ordering remain active. BiS equip scoring remains active. Enhancement path exists but safely skipped (npcCount=0, no enchant scroll).",
+        "action_detail": "keep:delta lvl0 gold+15 inv-5 rate14/20; preserve skeleton-safe routing, inv10/8/10 worse-first, BiS equip, enhance prereq gate",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=25%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "aeb3987c-4f5c-46da-9757-918634dd40ae",
+        "character_name": "j211y",
+        "tick_number": 1773559164214,
+        "timestamp": "2026-03-15 16:19:33",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.491,
+          "mp_pct": 1,
+          "level": 23,
+          "area": "talking_island_field",
+          "gold": 349,
+          "inventory_count": 3,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP evidence: last-20 window (05:52->15:48, n=20) shows level Δ0, gold +15, death Δ0, no newer death after 05:09, and live smoke reached level 23 with code 200. Although rate-limit wording is high (19/20), progression remains positive. Keep safest skeleton routing in talking_island_field, strict move threshold lv30, hard inventory invariants 10/8/10 with worse-than-equipped-first at slots>=10, BiS equip scoring, and prereq-gated safe enhancement.",
+        "action_detail": "keep:delta lvl0 gold+15 death0 rate19/20; preserve skeleton-safe routing, inv10/8/10 worse-first, BiS equip, enhance prereq gate",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=25%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "96b5e7ec-7cf2-4e3c-9f77-cda716dff098",
+        "character_name": "j211y",
+        "tick_number": 1773560760001,
+        "timestamp": "2026-03-15 15:48:56",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.651,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 364,
+          "inventory_count": 4,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "CHANGE by evidence: mandatory last-20 thinking deltas were flat (level/exp/gold all +0) with persistent throttle wording 18/20, so KEEP is invalid. Applied minimal reversible pacing change BUJU_BASE_DELAY_MS 4200->4600 to lower combat-start collision pressure while preserving strict safety, threshold movement, and sell invariants.",
+        "action_detail": "keep hard sell 10/8/10 and worse-than-equipped-first liquidation; keep BIS auto-equip by score(maxDamage+defBonus); keep staged enhancement policy with prereq-gated safe path",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+wait_combat_start_cooldown<=25%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "bc45bca9-70ad-4920-b2d9-0fc0acfe86ac",
+        "character_name": "j211y",
+        "tick_number": 1773555604692,
+        "timestamp": "2026-03-15 15:20:05",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.602,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 0,
+          "inventory_max": 30,
+          "available_actions": [
+            "combat_start",
+            "rest",
+            "use_item",
+            "sell",
+            "buy",
+            "move",
+            "enhance"
+          ]
+        },
+        "reasoning": "CHANGE with evidence: last-20 thinking payload was flat (level/exp/gold all +0) while rate/cooldown signal stayed high (18/20). Reduced cycle burst (maxActions 3->2) to cut collision pressure without relaxing safety gates. Safest available target remains skeleton in talking_island_field under strict movement threshold.",
+        "action_detail": "changed:maxActions3->2;keep inv10/8/10,worse-than-equipped-first sell, BiS equip(score=maxDamage+defBonus), staged enhance gates",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, wait(rate_limit+cooldown)<=28%, progression exp+>=80 or gold+>=12, smoke code=200."
+        }
+      },
+      {
+        "id": "07a660fd-8c44-4701-9a2a-4e038e426c84",
+        "character_name": "j211y",
+        "tick_number": 1773557340002,
+        "timestamp": "2026-03-15 14:51:29",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.672,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 354,
+          "inventory_count": 4,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP: last-20 deltas improved (03:50->14:19): level 21->22 (+1), gold 324->354 (+30), inventory 7->4 (-3). Exp is sparse in thinking payload; live smoke/status confirms progression. Death +14 is from earlier 04:4x-05:09 burst; no newer death timestamp after 05:09. Keep safest target skeleton in talking_island_field, strict move gate (lv30), hard inventory invariants 10/8/10 with worse-than-equipped-first sell at >=10, and prerequisite-gated enhancement skip (npc=0).",
+        "action_detail": "keep:delta lvl+1 gold+30 inv-3; area1+skeleton safety, inv 10/8/10, BiS equip, safe enhance skip",
+        "result": {
+          "success": true,
+          "message": "KPI next 30m: death delta=0 from now, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start(rate_limit+cooldown)<=30%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "766db57e-3d8d-41eb-bea4-51066e41f07d",
+        "character_name": "j211y",
+        "tick_number": 1773551942189,
+        "timestamp": "2026-03-15 14:19:02",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.672,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 354,
+          "inventory_count": 4,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP by delta evidence: level +1, gold +30, inventory -4, death 0. Safety stays strict: level-threshold gate keeps area1 until lv30 and safest efficient target remains skeleton among current monsters. Hard inventory constraints stay fixed (trigger10/target8/maxIter10) with worse-than-equipped liquidation priority. Enhancement remains prerequisite-gated and is skipped when npc/scroll/resource is missing.",
+        "action_detail": "keep:delta(+1lvl,+30gold,inv-4,death0); keep area1+skeleton safety policy and hard inv 10/8/10 constraints",
+        "result": {
+          "success": true,
+          "message": "KPI 30m: death delta=0, inv<=8, dangerous-surrender<=1/8, wait-combat-start throttles<=30%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "3b2fdc2f-3a07-45dc-a217-f0f0644bd479",
+        "character_name": "j211y",
+        "tick_number": 1773550006000,
+        "timestamp": "2026-03-15 13:49:22",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.564,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 3,
+          "inventory_max": 30,
+          "available_actions": [
+            "hunt",
+            "use_item",
+            "move",
+            "rest",
+            "buy",
+            "sell",
+            "skill_buy",
+            "skill_learn",
+            "enhance",
+            "teleport",
+            "surrender"
+          ]
+        },
+        "reasoning": "KEEP with evidence: last-20 thinking deltas improved (level 21->22, gold 314->334, rate-limit wording 0/20). Current monster pool is rabbit+skeleton and safest high-efficiency target remains skeleton under strict level-threshold movement (MOVE_LEVEL_2=30) and risk-gap controls. No adaptive parameter change applied this cycle.",
+        "action_detail": "kept:hard-constraints10/8/10,BIS-equip,max-safe-hunt; enhance-skip(npc=0,scroll=0); daemon-ok",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death_delta=0, inventory<=8, dangerous_surrender<=1/8 cycles, wait_combat_start_rate_limit+cooldown<=30%, and progression exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "ef1cb355-42da-4b25-a958-84154a992c2b",
+        "character_name": "j211y",
+        "tick_number": 1773548352706,
+        "timestamp": "2026-03-15 13:19:23",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.653,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 334,
+          "inventory_count": 6,
+          "inventory_max": 30,
+          "available_actions": [
+            "combat_start",
+            "rest",
+            "use_item",
+            "sell",
+            "buy",
+            "move",
+            "enhance"
+          ]
+        },
+        "reasoning": "KEEP with evidence: last-20 thinking deltas improved (level +1, gold +55, inventory flat, no 429 mention) while latest death timestamp remains stale (05:09 KST). Continue safest high-efficiency hunt (skeleton) with strict level-threshold movement gate to avoid defeat loops.",
+        "action_detail": "KEEP: inv10/8/10 + worse-first@>=10, BiS(maxDamage+defBonus), staged enhance plan kept, safe enhance gate unsatisfied now (npc=0,scroll=0).",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8, wait_combat_start_rate_limit+cooldown<=30%, and exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      },
+      {
+        "id": "45e0b3e1-df0e-4baa-b0ed-401e286d42f6",
+        "character_name": "j211y",
+        "tick_number": 1773546556430,
+        "timestamp": "2026-03-15 12:49:18",
+        "decision_type": "status_check",
+        "context": {
+          "hp_pct": 0.625,
+          "mp_pct": 1,
+          "level": 22,
+          "area": "talking_island_field",
+          "gold": 359,
+          "inventory_count": 6,
+          "inventory_max": 30,
+          "available_actions": [
+            "combat_start",
+            "rest",
+            "use_item",
+            "sell",
+            "buy",
+            "move",
+            "enhance"
+          ]
+        },
+        "reasoning": "KEEP with evidence: ordered last-20 deltas improved (level +1, gold +20, inventory -1) while death growth remains flat from latest checkpoint. Continue safest high-efficiency field hunt (skeleton) under strict level-threshold movement to avoid repeated defeats.",
+        "action_detail": "KEEP: inv10/8/10+worse-first@>=10, BiS(score=maxDamage+defBonus), staged enhance plan, safe prereq gate(scroll+npc+resource+non-combat+rate-budget).",
+        "result": {
+          "success": true,
+          "message": "Next 30m KPI: death delta=0, inventory<=8, dangerous-surrender<=1/8, wait_combat_start_rate_limit+cooldown<=30%, and exp +>=80 or gold +>=12 with smoke code=200."
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 121,
+      "total_pages": 7,
+      "has_next": true,
+      "has_prev": false
+    }
+  }
+}

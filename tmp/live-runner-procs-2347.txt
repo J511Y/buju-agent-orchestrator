@@ -1,0 +1,2 @@
+20502 bash ./scripts/live-runner-daemon.sh
+48831 node scripts/live-strategy-runner.js
