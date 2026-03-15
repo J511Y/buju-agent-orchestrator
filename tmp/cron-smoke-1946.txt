@@ -1,0 +1,1 @@
+live-strategy ok=1/1 lastAction=surrender_dangerous_combat level=23 exp=1869 gold=364 code=200
