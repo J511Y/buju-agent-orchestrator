@@ -1102,3 +1102,10 @@ Track A/B and policy experiments.
 - Metric(s): low-confidence hourly cycles/day; split-signal incidence/day; % failure cycles with explicit root-cause tag and retry guidance.
 - Result: This cycle reproduced mixed reachability (`activity:fetch` fallback reported `/api/status=200` with `*/recent=404`, while direct status/log probes failed transport), leaving canonical hourly outcomes unresolved.
 - Decision: Run in next 30-min dev cycle; promote if split-signal cycles drop to zero for 6 consecutive hourly runs.
+
+- Date: 2026-03-15 15:28 KST
+- Hypothesis: A single shared read-path checker (`status + logs`) used by both collector and direct probes will reduce mixed-signal hourly cycles (`status=200` vs transport-fail) and prevent low-confidence gameplay feedback.
+- Change: Add `hourly-readpath-check` preflight with deterministic output (`readpath_state`, `transport_error_class`, `inference_allowed`) and gate gameplay synthesis when `inference_allowed=false`.
+- Metric(s): `mixed_readpath_cycles/day`, `% hourly cycles with blocked inference due to transport/auth mismatch`, and time-to-diagnose root cause.
+- Result: Current cycle produced fallback-only summary (`/api/status=200`, all recent endpoints `404`) while direct status/log reads failed transport (`fetch failed`), leaving gameplay signals unresolved.
+- Decision: Run in next 30-min dev cycle; promote if mixed-readpath cycles drop to zero for 6 consecutive hourly runs.

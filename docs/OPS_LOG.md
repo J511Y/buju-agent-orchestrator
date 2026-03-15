@@ -3802,3 +3802,14 @@
 - Failure retry recommendation: next cycle run deterministic preflight (`/api/status` + `/api/logs?limit=1`) using collector credential/header path first; on any non-`200`, emit `telemetry_blocked` and skip gameplay inference.
 - [2026-03-15 12:27 KST] Next 30-min actionable TODO: implement `hourly_readpath_preflight_v1` to emit `readpath_state=ok|status_only|transport_fail|auth_fail`, attach it to OPS output, and hard-gate summary inference when state != `ok`.
 [2026-03-15 12:56:09 KST] Restarted live-runner-daemon.sh via cron watchdog.
+
+## 2026-03-15 15:28 KST — Hourly gameplay feedback (mixed read-path; direct transport failure)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; key not printed).
+- Live probes:
+  - `npm run -s activity:fetch -- --hours 1` => `source=fallback:local_replay`, `progress_delta=0/0/0`, `known_outcomes=0/0/0`, `/api/status=200`, recent endpoints (`/api/*/recent`) all `404`.
+  - Direct authenticated reads (`/api/status`, `/api/logs?page=1&limit=100`) failed at transport layer (`fetch failed`) in the same cycle.
+- Last-hour gameplay signals: unresolved this hour (progression, wins/defeats, and resource trend are low-confidence due to read-path inconsistency + log transport failure).
+- Anomaly/failure mode: `readpath_mismatch_transport_fail` (collector sees status healthy while direct status/log fetch cannot complete).
+- Development feedback: do not retune combat/economy policy on this cycle; prioritize deterministic preflight + unified HTTP client path for hourly feedback.
+- Retry recommendation: run `/api/status` + `/api/logs?limit=1` using the exact same loader/header path as collector, with 2 retries (jitter 1-3s). If either stays non-200 or transport-fails, emit `telemetry_blocked` and skip gameplay inference.
+- [2026-03-15 15:28 KST] Next 30-min actionable TODO: add `scripts/hourly-readpath-check.js` to produce `readpath_state`, `transport_error_class`, and `inference_allowed` booleans consumed by hourly OPS synthesis.
