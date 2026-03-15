@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 07:26 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked) and queried live `GET /api/status` (`200`) + paged `GET /api/logs?page=1..8&limit=100` (`200` across sampled pages) on `https://bujuagent.com`.
+  - Last-hour sample (`06:28~07:28 KST`): `events=429` with action mix `hunt=225`, `buy=132`, `use_item=35`, `drop=22`, `surrender=10`, `sell=3`; explicit `death=0` (`/api/logs?action=death&limit=100`, in-window).
+  - Progression/resource signal: current status `level=24`, `exp=2117`, `gold=389`, `hp=260/445`, `mp=234/234`; no in-window `level_up` events detected.
+  - Wins/defeats readout: direct `win` log action was not present in sampled stream, so outcome is inferred as `high hunt throughput + 0 deaths + moderate surrender` (defeat pressure currently controlled, win metric unresolved by log taxonomy).
+  - Anomalies: resource churn remains high (`buy_spike=132/h`) with non-trivial surrender frequency (`10/h`) while sell/loot conversion is low (`sell=3`, `drop=22`).
+  - Dev feedback: keep current safe-farm area/defeat controls, but prioritize economy-stability controls (buy throttling + rest/use_item prioritization before shop calls) over throughput tuning this cycle.
+  - Next 30m actionable TODO: add a `buy-pressure guard` in the live loop (`if buy>=100/h or surrender>=10/h => cap buy burst per short window, require rest/use_item precheck before next buy`) and validate with one smoke run + next hourly delta.
+
 - [2026-03-16 06:47 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`tick 1773571748929 -> 1773609544244`, `count=20`) yielded mixed deltas (`level +1`, `gold +5`, `inventory +4`, `rate/cooldown mentions 11/20`), so KEEP was rejected due inventory-pressure regression.
   - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_MIN_GOLD_RESERVE 360->380` to reduce buy-driven inventory/economy drift while preserving safety gates.

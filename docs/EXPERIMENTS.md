@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-16 07:26 KST
+- Hypothesis: A buy-pressure guard that prioritizes `rest/use_item` before shop calls when `buy` and `surrender` surge will reduce gold churn without reducing hunt throughput.
+- Change: In hourly/live feedback loop, trigger guard when `buy>=100/h` or `surrender>=10/h`: cap burst buys, require `rest/use_item` precheck, and add 1-tick re-engage delay after surrender.
+- Metric(s): `buy_per_hour`, `surrender_per_hour`, `gold_delta/hour`, `hunt_per_hour`, `death_per_hour`.
+- Result: Baseline this cycle (`06:28~07:28 KST`) from live logs: `events=429`, `hunt=225`, `buy=132`, `surrender=10`, `death=0`, `sell=3`, status `gold=389`.
+- Decision: Execute in next 30-min dev cycle; promote only if buy and surrender both drop >=20% while hunt throughput drops <10% and deaths stay at 0.
+
 - Date: 2026-03-15 20:27 KST
 - Hypothesis: A stricter auth gate with explicit `expired_key` vs `source_mismatch` classification and bounded retry will reduce repeated zero-evidence hourly cycles during 401 incidents.
 - Change: Add `auth-preflight-gate-v3` (`/api/status` + `/api/logs?limit=1`, 2 attempts, jittered backoff) and block hourly synthesis unless `auth_state=ok`.
