@@ -4014,3 +4014,16 @@
 - Development feedback: skip gameplay/policy tuning this cycle; prioritize credential-source parity + auth preflight hard gate before any KPI interpretation.
 - Failure mode + retry recommendation: run masked preflight next cycle (`/api/status` + `/api/logs?limit=1`) with 2 attempts and 5-10s jittered backoff; if either probe remains non-200, classify `auth_blocked`, rotate/rebind key, and keep inference disabled.
 - TODO (next 30-min): add `scripts/auth-preflight-gate-v4.js` to emit `{auth_state, inference_allowed, retry_after_ms}` and hard-block hourly summary generation when `auth_state!=ok`.
+
+## [2026-03-16 02:17 KST] 30-minute STRATEGY DIRECTOR run (adaptive + equipment progression)
+- Adaptive loop evidence: `GET /api/agent/thinking/j211y?limit=20` => ordered window (`2026-03-15 15:20:05 -> 2026-03-16 01:49:55`, `count=20`) with `Δlevel=0`, `Δexp=0`, `Δgold=0`, `Δdeath=0`, and `rate/429 mentions=20/20`.
+- Decision: **CHANGE** (KEEP rejected; no measurable improvement evidence).
+- Applied change + commit target: added adaptive `combat_start` 429 streak cooldown scaling in `scripts/live-strategy-runner.js` so repeated throttles extend cool-off before retrial (while preserving single-tick safe hunt fallback).
+- Live probes (same runtime/key, masked): `/api/status=200`, `/api/inventory=200`, `/api/npc/list=200`, `/api/areas/talking_island_field/monsters=200`.
+- Current state snapshot: `level=23`, `exp=5023`, `gold=369`, `area=talking_island_field`, `monsters=[rabbit,skeleton]`, `inventory_slots=8`, `npc_count=0`.
+- Safety/efficiency confirmation: safest high-efficiency monster remains `skeleton`; movement remains threshold-gated (`level < BUJU_MOVE_LEVEL_2` prevents unsafe area advance).
+- Equipment progression confirmation: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains in `docs/DECISIONS.md` (early safe accumulation -> mid weapon-first on prereqs -> late armor/accessory with cooldown/failure-risk controls).
+- Enhancement API prerequisite check: minimal safe path is implemented but skipped this tick (`npc_count=0` and no satisfiable scroll+npc+resource conjunction).
+- Hard constraints re-verified: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with worse-than-equipped liquidation first when slots `>=10`.
+- Daemon continuity + smoke: live daemon and child runner are both active (`bash ./scripts/live-runner-daemon.sh`, `node scripts/live-strategy-runner.js`); smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=buy_mp`, `level=23`, `exp=5025`, `gold=374`, `code=200` (`tmp/cron-smoke-0217.txt`).
+- Next 30m KPI target: `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit + wait_combat_start_cooldown <= 25%`, and progression `exp>=5100` or `gold>=390` with smoke `code=200`.

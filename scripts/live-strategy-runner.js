@@ -363,6 +363,7 @@ const recentCombatOutcomes = [];
 const recentDangerSurrenders = [];
 let lastCombatStrategySignature = '';
 let lastCombatStrategyTick = 0;
+let combatStart429Streak = 0;
 
 function pushCombatOutcome(outcome) {
   if (!outcome) return;
@@ -806,6 +807,11 @@ async function step() {
     recordActionResult('combat_start', combat.status);
 
     if (combat.status === 429) {
+      combatStart429Streak = Math.min(6, combatStart429Streak + 1);
+      const adaptiveCooldownTicks = CFG.stall429CooldownTicks + Math.min(6, combatStart429Streak);
+      const prev = stallState.get('combat_start') || { fails400: 0, untilTick: 0 };
+      stallState.set('combat_start', { fails400: prev.fails400 || 0, untilTick: Math.max(prev.untilTick || 0, tickCounter + adaptiveCooldownTicks) });
+
       // Adaptive throughput fallback: if combat_start is rate-limited, try one direct hunt to preserve progression signal.
       // Keep safety invariant by reusing the already selected safest monster + skill for this tick.
       const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
@@ -828,11 +834,14 @@ async function step() {
     }
 
     if (combat.status === 404 || (combat.status === 400 && String(combat.json?.code || '') === 'API_DEPRECATED')) {
+      combatStart429Streak = 0;
       const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
       recordActionResult('hunt', huntFallback.status);
       pushCombatOutcome(huntFallback.json?.result?.outcome || huntFallback.json?.result || null);
       return { ok: huntFallback.status === 200, action: 'hunt_fallback', monster_id: monsterId, skill_id: skillId, result: huntFallback.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: huntFallback.status };
     }
+
+    if (combat.status !== 429) combatStart429Streak = 0;
 
     const rewards = combat.json?.rewards || {};
     pushCombatOutcome(combat.json?.result?.outcome || combat.json?.result || null);

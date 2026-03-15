@@ -1368,3 +1368,10 @@
   - Mid: weapon-first enhancement only when `scroll + blacksmith NPC + reserve + action budget + non-combat` prerequisites are all satisfied.
   - Late: expand to armor/accessory only with cooldown/stall/rate-limit guards.
 - Minimal safe enhancement action path remains active: `/npc/list`(blacksmith discovery) -> `/npc/{npc_id}/enhance` with prerequisite gating; skipped safely when any prerequisite is missing.
+
+## [2026-03-16 02:17 KST] Adaptive change — combat_start 429 streak cooldown scaling
+- Trigger evidence (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`2026-03-15 15:20:05 -> 2026-03-16 01:49:55`, `count=20`) showed no measurable improvement (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `Δdeath=0`) and persistent throttle wording (`rate/429 mentions=20/20`).
+- Decision: **CHANGE** (KEEP rejected due to zero progression evidence).
+- Runtime logic update: in `scripts/live-strategy-runner.js`, added `combatStart429Streak` and scaled `combat_start` cooldown on repeated `429` (`stall429CooldownTicks + min(6, streak)`), while preserving safe hunt fallback and hard safety contracts.
+- Expected effect: reduce repeated `wait_combat_start_rate_limit` churn, allow rate budget recovery between combat-start attempts, and keep runner continuous without aggression increase.
+- Invariants preserved: inventory hard constraints (`10/8/10` + worse-than-equipped-first), BiS equip scoring (`equipSlot`, `maxDamage+defBonus`), strict level-threshold movement gate, and prerequisite-gated minimal enhancement path.
