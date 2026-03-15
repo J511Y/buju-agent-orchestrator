@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 20:27 KST
+- Hypothesis: A stricter auth gate with explicit `expired_key` vs `source_mismatch` classification and bounded retry will reduce repeated zero-evidence hourly cycles during 401 incidents.
+- Change: Add `auth-preflight-gate-v3` (`/api/status` + `/api/logs?limit=1`, 2 attempts, jittered backoff) and block hourly synthesis unless `auth_state=ok`.
+- Metric(s): `% hourly cycles with deterministic auth_state`, `% low-confidence summaries during auth incidents`, `mean cycles-to-root-cause for 401 streaks`.
+- Result: Live probe returned `401` on both `status` and `logs` at `20:27 KST`; last-hour gameplay evidence remained unavailable (`events=0`).
+- Decision: Execute in next 30-min dev cycle; promote after 3 consecutive auth-failure cycles are classified without gameplay inference.
+
 - Date: 2026-03-15 19:26 KST
 - Hypothesis: Adding a versioned auth preflight (`status + logs`, same env source, short retry) with explicit `expired_key` classification will reduce repeated low-confidence hourly feedback during 401 streaks.
 - Change: Implement `auth-preflight-gate-v2` that emits `ok|unauthorized|source_mismatch|expired_key` and blocks hourly gameplay synthesis unless `ok`.

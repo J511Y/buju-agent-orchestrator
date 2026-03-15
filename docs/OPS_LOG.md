@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 20:27 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked), then queried `GET /api/status` and `GET /api/logs?page=1&limit=200` on `https://bujuagent.com`.
+  - Probe results: both endpoints returned `401 UNAUTHORIZED`; last-hour sampled event count was `0` from live logs due to auth block.
+  - Last-hour gameplay signals: progression/wins-defeats/resource trends unavailable this cycle (insufficient live evidence under auth failure).
+  - Anomaly: repeated dual-endpoint auth failure indicates credential invalidation/scope drift or key-source mismatch, not gameplay behavior shift.
+  - Dev feedback: keep gameplay policy unchanged for this hour; prioritize auth-path recovery and deterministic preflight gating before KPI synthesis.
+  - Failure mode + retry recommendation: run masked preflight next cycle (`/api/status` + `/api/logs?limit=1`) with 2 attempts and 5-10s jittered backoff; if still non-200, classify `auth_blocked` and skip gameplay inference.
+  - Next 30m actionable TODO: implement `scripts/auth-preflight-gate-v3.js` to emit `ok|unauthorized|source_mismatch|expired_key` and hard-stop hourly feedback generation unless state=`ok`.
+
 - [2026-03-15 19:26 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked; secret not printed), then queried `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com`.
   - Probe results: both read paths failed auth (`/api/status => 401`, `/api/logs => 401 UNAUTHORIZED`), so in-window event sample for last hour was `0`.
