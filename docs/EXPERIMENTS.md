@@ -1200,3 +1200,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit auth root-cause`, and `time-to-recover after key rotate/rebind`.
 - Result: Current cycle again reproduced mismatch (direct `/api/status` and `/api/logs` both `401`, while `activity:fetch` still observed `/api/status=200` and all `*/recent` were `404`), leaving last-hour gameplay signals unavailable.
 - Decision: Execute in next 30-min dev cycle; promote if split cycles drop to zero for 6 consecutive hourly runs.
+
+- Date: 2026-03-16 05:28 KST
+- Hypothesis: A single shared-client preflight (`/api/status` + `/api/logs?limit=1`) with deterministic `dns/readpath` states will reduce split-signal hourly cycles (`collector status=200` vs direct transport failure) and prevent zero-evidence gameplay inference.
+- Change: Add `telemetry-preflight-shared-client-v1` and block hourly synthesis unless both probes return `200` on the same client/header path.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause`, false gameplay-inference count during transport/auth failures.
+- Result: Current cycle reproduced split signal (`activity:fetch /api/status=200`, direct status/log probes `fetch failed`, recent endpoints `404`) with no reliable last-hour events.
+- Decision: Execute in next 30-min dev cycle; promote if split-signal cycles drop to zero for 4 consecutive hourly runs.

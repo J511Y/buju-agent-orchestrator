@@ -4090,3 +4090,12 @@
 - Development feedback: block gameplay-policy tuning this hour; prioritize one canonical auth/read client path and deterministic preflight gate before KPI inference.
 - Failure mode + retry recommendation: classify as `auth_blocked_with_readpath_mismatch`; run paired preflight (`/api/status` + `/api/logs?limit=1`) with 2 attempts and jittered backoff (`10s`, `30s`), and keep `inference_allowed=false` until both return `200` on the same client/header path.
 - TODO (next 30-min): add `scripts/auth-readpath-preflight-v5.js` that emits `{auth_state, readpath_state, inference_allowed, retry_after_ms, client_fingerprint}` and wire hourly feedback to hard-stop synthesis unless `auth_state=ok && readpath_state=ok`.
+
+## [2026-03-16 05:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=200` against `https://webgame-api.berrysoft.kr`.
+- Live probe outcome: both endpoints failed at transport (`fetch failed`), so canonical last-hour API telemetry could not be read.
+- Collector cross-check: `npm run -s activity:fetch` returned `/api/status=200`, all `*/recent` endpoints `404`, and fallback payload (`source=fallback:local_replay`) with zeroed hourly KPIs (`Δexp=0`, `Δgold=0`, `wins=0`, `defeats=0`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown; anomalies include persistent split read-path (`collector status=200` vs direct transport-fail).
+- Development feedback: freeze gameplay-policy tuning for this cycle; prioritize unified preflight + shared client path before synthesizing gameplay feedback.
+- Failure mode + retry recommendation: classify as `transport_or_readpath_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`) and keep `inference_allowed=false` until both return `200` on the same client path.
+- TODO (next 30-min): implement `telemetry-preflight-shared-client-v1` and wire hourly cycle to hard-gate synthesis unless `{dns_state:ok, readpath_state:ok, inference_allowed:true}`.
