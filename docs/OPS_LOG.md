@@ -1,6 +1,25 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 08:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked) and queried live `GET /api/status` (`200`) + paged `GET /api/logs?page=1..8&limit=100` (`200` across sampled pages) on `https://bujuagent.com`.
+  - Last-hour sample (`07:28~08:28 KST`): `events=379`, action mix `hunt=205`, `buy=118`, `use_item=31`, `surrender=7`, `drop=16`, `sell=2`; explicit `death=0` in sampled window.
+  - Progression/resource trend (vs prior hourly snapshot `07:26 KST`): `level=24 (flat)`, `exp=2525 (Δ+408)`, `gold=389 (Δ+0)`, `hp=242/445 (Δ-18)`, `mp=234/234 (flat)`.
+  - Wins/defeats signal: direct `win/defeat` action labels were absent in sampled taxonomy; inferred outcome is `stable-farm` (high hunt throughput with no observed death, moderate surrender remains).
+  - Anomalies: economy pressure persists (`buy=118/h` still high, buy:sell `59:1`) and conversion remains weak (`drop=16`, `sell=2`) despite improved surrender rate (`10 -> 7` vs previous hour).
+  - Dev feedback: keep safe-farm routing/defeat controls unchanged; prioritize economy controls (buy burst smoothing + sell cadence trigger) before any aggression/throughput tuning.
+  - Next 30m actionable TODO: implement `buy-sell balance guard v1` in live loop (`if buy>=110/h && sell<=3/h => enforce cooldown between buys and trigger one inventory-sell check before next buy burst`), then run one smoke cycle and verify `buy<=100/h` in next hourly report.
+
+- [2026-03-16 08:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`2026-03-15 20:50:04 -> 2026-03-16 07:50:07`, `count=20`) yielded `level +1`, `gold +25`, `inventory -1`, `rate/cooldown mentions 12/20`; concrete improvement evidence exists, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=24`, `exp=2455`, `gold=394`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, and movement remains threshold-gated (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeat risk.
+  - Defeat trend evidence: `GET /api/logs?action=death&limit=100 => 200`, latest death timestamp still `2026-03-15 05:09:30` (no fresh defeat burst).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early no-risky-spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains implemented and prerequisite-gated (`GET /api/npc/list => npcs=[]`, enchant scroll count `0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=buy_mp`, `level=24`, `exp=2455`, `gold=394`, `code=200` (`tmp/cron-smoke-0818.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-0818.txt`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=20%`, and progression `exp>=2525` or `gold>=410` with smoke `code=200`.
+
 - [2026-03-16 07:26 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked) and queried live `GET /api/status` (`200`) + paged `GET /api/logs?page=1..8&limit=100` (`200` across sampled pages) on `https://bujuagent.com`.
   - Last-hour sample (`06:28~07:28 KST`): `events=429` with action mix `hunt=225`, `buy=132`, `use_item=35`, `drop=22`, `surrender=10`, `sell=3`; explicit `death=0` (`/api/logs?action=death&limit=100`, in-window).
@@ -4127,3 +4146,4 @@
 - Anomalies: high potion-economy churn (`buy=138` vs `sell=3`) and non-trivial surrender count (`8`); collector fallback still degraded (`activity:fetch source=fallback:local_replay`, recent endpoints 404 while `/api/status=200`).
 - Development feedback: keep combat throughput policy stable (win volume is strong), but tighten potion-buy cadence and surrender recovery branch to reduce hourly gold drain without reducing hunt count.
 - TODO (next 30-min): add `economy_churn_guard_v2` in runner (trigger when `buy_share>30% && netGoldFlow<-1000` => 1-cycle MP-buy cooldown + forced sell sweep if unequipped trash exists), then verify no hunt throughput regression.
+2026-03-16 08:24:57 KST restarted scripts/live-runner-daemon.sh (watchdog)

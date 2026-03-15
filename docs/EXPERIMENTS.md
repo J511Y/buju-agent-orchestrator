@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-16 08:28 KST
+- Hypothesis: A `buy-sell balance guard v1` (`buy>=110/h && sell<=3/h`) that inserts buy cooldown + forced pre-buy inventory sell-check will cut economy churn while preserving hunt throughput.
+- Change: Add guard path in live loop before buy burst execution; require one sell-check pass and short cooldown when trigger condition is met.
+- Metric(s): `buy_per_hour`, `sell_per_hour`, `buy:sell ratio`, `hunt_per_hour`, `gold_delta/hour`, `death_per_hour`.
+- Result: Current live window (`07:28~08:28 KST`) shows persistent churn despite stable safety (`events=379`, `hunt=205`, `buy=118`, `sell=2`, `surrender=7`, `death=0`, status `exp=2525`, `gold=389`).
+- Decision: Execute in next 30-min dev cycle; keep only if `buy<=100/h` and `buy:sell` improves to `<=40:1` without `hunt` drop >10% and deaths stay `0`.
+
 - Date: 2026-03-16 07:26 KST
 - Hypothesis: A buy-pressure guard that prioritizes `rest/use_item` before shop calls when `buy` and `surrender` surge will reduce gold churn without reducing hunt throughput.
 - Change: In hourly/live feedback loop, trigger guard when `buy>=100/h` or `surrender>=10/h`: cap burst buys, require `rest/use_item` precheck, and add 1-tick re-engage delay after surrender.
