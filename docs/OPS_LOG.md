@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 04:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`2026-03-15 17:19:05 -> 2026-03-16 03:50:10`, `count=20`) yielded `level +1`, `exp +0`, `gold +5`, `inventory -1`, `rate/cooldown mentions 17/20`; concrete improvement evidence exists, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=24`, `exp=667`, `gold=364`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`) and no-armor retreat guard preserved.
+  - Defeat trend evidence: `GET /api/logs?action=death&limit=100 => 200` (`count=100`), latest death timestamp still `2026-03-15 05:09:30` (no fresh death burst in current decision window).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early no-risky-spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains implemented and prerequisite-gated (`GET /api/npc/list => npcs=[]`, enchant scroll count `0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=24`, `exp=671`, `gold=374`, `code=200` (`tmp/cron-smoke-0417.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-0417.txt`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-0417.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=24%`, and progression `exp>=760` or `gold>=390` with smoke `code=200`.
+
 - [2026-03-16 01:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`; fallback ordered window from local last-20 posts (`tmp/thinking-post-*.json`: `thinking-post-1416.json -> thinking-post-0050.json`) produced mixed deltas (`level +1`, `gold +0`, `inventory +3`, `rate/cooldown mentions 19/20`), so KEEP was rejected for economy/inventory regression under throttle pressure.
   - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_MUTATION_MIN_GOLD_RESERVE 120->260` to suppress low-reserve mutation-spend dips while preserving safe-farm behavior.
