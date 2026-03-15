@@ -1123,3 +1123,10 @@ Track A/B and policy experiments.
 - Metric(s): `mixed_readpath_cycles/day`, `% cycles with blocked inference`, and `time-to-root-cause` for transport/auth incidents.
 - Result: This cycle again showed split behavior (`activity:fetch /api/status=200` while direct `/api/status` and `/api/logs` were transport-fail), leaving wins/defeats/resource trends unresolved.
 - Decision: Implement in next 30-min dev cycle; promote if mixed-readpath cycles drop to zero for 6 consecutive hourly runs.
+
+- Date: 2026-03-15 18:27 KST
+- Hypothesis: `economy_guard_v2` (buy-share + net-trade gating) will reduce consumable overspend without harming hunt throughput when combat outcomes are already stable.
+- Change: In hourly feedback path, emit deterministic economy KPIs (`buy_share`, `net_trade`, `potion_spend_per_hunt`) and apply a one-cycle buy cooldown when `buy_share > 18% && net_trade < -800`.
+- Metric(s): `buy_share/hour`, `net_trade/hour`, `hunt_count/hour`, and `defeats/hour` before/after guard.
+- Result: Current live hour was high-throughput (`hunt=242`, `wins=242`, `defeats=0`) but showed spend-heavy drift (`buy=74`, `sell=4`, `net_trade=-1200G`, `buy_share=19.7%`).
+- Decision: Run in next 30-min dev cycle; promote if `buy_share` stays `<15%` for 4 consecutive hourly windows without hunt regression.

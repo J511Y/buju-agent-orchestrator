@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 17:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`07:48:48 -> 17:19:05`, `count=20`) yielded `level +1`, `exp +0`, `gold +5`, `death +0`, `rate/cooldown mentions 14/20`; improvement evidence exists, so CHANGE was not applied.
+  - Safety/efficiency evidence: live `GET /api/status => 200` (`level=23`, `exp=915`, `gold=359`, `hp=255/430`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` under strict threshold movement (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path safely skipped this cycle because prerequisites were unsatisfied (`GET /api/npc/list => npcs=[]`, enchant scroll counts `0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=23`, `exp=913`, `gold=354`, `code=200` (`tmp/cron-smoke-1746.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-1746.txt`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=25%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 16:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked; key never printed) and attempted live reads against `https://webgame-api.berrysoft.kr`.
   - Probe results: `GET /api/status` transport failure (`fetch failed`, HTTP unavailable) and `GET /api/logs?page=1&limit=100` transport failure (`fetch failed`), so last-hour log sample size was `0`.
@@ -3843,3 +3852,11 @@
 - Development feedback: keep gameplay-policy tuning frozen; prioritize a single shared preflight/client path for collector + direct probes before interpreting gameplay KPIs.
 - Retry recommendation: rerun `/api/status` and `/api/logs?limit=1` through the same HTTP client/header loader with 2 jittered retries (1-3s). If either stays non-200 or transport-fails, emit `telemetry_blocked` and skip gameplay inference.
 - [2026-03-15 17:28 KST] Next 30-min actionable TODO: implement `scripts/hourly-telemetry-gate.js` to output `{readpath_state, transport_error_class, inference_allowed}` and hard-gate hourly summary generation when `inference_allowed=false`.
+
+## 2026-03-15 18:27 KST — Hourly gameplay feedback (live API / high-confidence)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed), then queried `GET /api/status=200` and paged `GET /api/logs?page=1..4&limit=100=200`.
+- Last-hour window (`17:27:43~18:27:43 KST`): `375` events sampled — `hunt=242`, `wins=242`, `defeats=0`, `surrender=6`, `buy=74`, `sell=4`, `rest=22`, `drop=27`.
+- Progression/resource signal: advanced to `Lv23` with live status `EXP=1225`, `Gold=364`, `HP=231/430`, `MP=226/226`, `area=talking_island_field` (vs prior hour snapshot `Lv22/EXP1063/Gold349`: `Δlevel=+1`, `Δexp=+162`, `Δgold=+15`).
+- Anomaly watch: economy drag persists despite zero defeats (`buy_share=19.7%`, `net_trade=-1200G` from sampled buy/sell logs) and surrender churn remains non-trivial (`6`, `1.6%` of sampled actions).
+- Development feedback: keep current safe combat target policy (throughput healthy), but prioritize spend-efficiency + surrender suppression instrumentation before any aggression increase.
+- [2026-03-15 18:27 KST] Next 30-min actionable TODO: implement `economy_guard_v2` to emit `buy_share`, `net_trade`, `potion_spend_per_hunt`, and trigger one-cycle buy cooldown when `buy_share > 18% && net_trade < -800`.
