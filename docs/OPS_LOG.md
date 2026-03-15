@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 12:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`count=20`, `2026-03-15 00:49:26 -> 2026-03-15 12:19:02`): `level +1` (`21->22`), `gold +20` (`339->359`), `inventory -1` (`7->6`), `rate-limit/429 mentions 11/20`; improvement evidence present, so CHANGE was not applied.
+  - Death/risk evidence: `GET /api/logs?action=death&limit=100` shows no fresh growth after latest checkpoint (`latest death remains 05:09 KST`, `death delta from now=0`).
+  - Safety/efficiency evidence: live status `GET /api/status => 200` (`level=22`, `exp=3535`, `gold=359`, `area=talking_island_field`) and monster probe `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` with strict level-threshold movement (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+  - Equipment progression requirements preserved: best-in-slot auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe accumulation/no risky spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`) and safely skipped this cycle (`GET /api/npc/list => 200`, `npcCount=0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=3537`, `gold=364`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-1246.txt`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1246.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 12:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`count=20`, `2026-03-15 00:19:04 -> 2026-03-15 11:49:10`): `level +1` (`21->22`), `gold +45` (`319->364`), `inventory +3` (`4->7`), `rate-limit/429 mentions 19/20`; improvement evidence present, so CHANGE was not applied.
   - Death/risk evidence: `GET /api/logs?action=death&limit=100` still contains legacy burst inside the wider window (`death +14`) but no fresh growth since latest death timestamp `05:09 KST` (`death delta from now=0`), consistent with current safety gates.
