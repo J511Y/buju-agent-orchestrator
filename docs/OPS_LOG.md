@@ -3707,3 +3707,12 @@
 - [2026-03-15 07:28 KST] Next 30-min actionable TODO: implement `buy_efficiency_probe_v1` to append per-cycle `buy_count`, `buy_gold_spent`, `sell_gold_gain`, `net_trade`, and `gold_after_cycle`, then alert when `buy_share > 15%` for 3 consecutive cycles.
 2026-03-15 07:56:10 KST - Watchdog restarted live-runner-daemon.sh
 - [2026-03-15 08:16:12 KST] Restarted live-runner-daemon.sh (watchdog).
+
+## 2026-03-15 10:26 KST — Hourly gameplay feedback (transport outage)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed).
+- Live probes (same runtime context): `GET /api/status` and `GET /api/logs?limit=3` both failed with DNS transport error (`nodename nor servname provided, or not known` for `webgame-api.berrysoft.kr`).
+- Last-hour gameplay signals: unavailable this cycle (progression, wins/defeats, resource trend unresolved due to unreachable API).
+- Failure mode: `dns_unreachable` (confidence=`none`; telemetry ingestion blocked before auth/data stage).
+- Development feedback: block gameplay-policy tuning while connectivity preflight is non-`ok`; keep outage-only feedback until status/log probes recover.
+- Retry recommendation: verify DNS path for `webgame-api.berrysoft.kr` (resolver/VPN/firewall) and re-run `GET /api/status` first, then `/api/logs`.
+- [2026-03-15 10:26 KST] Next 30-min actionable TODO: add `connectivity_preflight_v1.2` (DNS resolve + short retry with jitter + explicit `connectivity_state` in hourly output) and hard-stop gameplay inference when state != `ok`.

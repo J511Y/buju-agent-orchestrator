@@ -1068,3 +1068,10 @@ Track A/B and policy experiments.
 - Metric(s): consecutive high-buy cycles/day, gold-floor breach frequency (`gold < 300`), and hunt/win regression after caution-tag activation.
 - Result: Current live window showed strong outcomes (`wins=247`, `defeats=0`) but elevated purchase churn (`buy=61/348`, `17.5%`) with low reserve (`gold=349`).
 - Decision: Run in next 30-min dev cycle; promote if gold-floor breaches decrease over 6 hourly windows with no hunt-count regression.
+
+- Date: 2026-03-15 10:26 KST
+- Hypothesis: `connectivity_preflight_v1.2` (DNS resolve + short jittered retry) will reduce false/noisy hourly gameplay summaries during transient resolver failures.
+- Change: Add preflight classification (`ok|dns_unreachable|network_unreachable|timeout`) and block KPI synthesis when non-`ok`; include retry guidance in OPS entry.
+- Metric(s): % outage cycles with explicit root-cause classification; false gameplay inferences during transport failures; mean time-to-diagnose DNS incidents.
+- Result: Current cycle failed before auth/data collection (`/api/status`, `/api/logs` both transport DNS errors), so gameplay signals were unavailable.
+- Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles are classified deterministically with zero false gameplay inference.
