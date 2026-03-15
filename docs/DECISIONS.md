@@ -1,6 +1,19 @@
 # Engineering Decisions
 
 ## 2026-03-15
+- 30-min STRATEGY DIRECTOR (10:46 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, ordered window `2026-03-14 22:49:55 -> 2026-03-15 10:19:36`, `count=20`): computed deltas were flat (`level +0`, `exp +0`, `gold +0`, `death +0`, `rate_limited 0/20`), so KEEP was rejected.
+- Minimal/reversible CHANGE applied: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 2->3` to restore measurable progression signal while preserving strict safety controls and threshold-based movement.
+- Safety/efficiency evidence kept: `GET /api/status` => `200` (`level=22`, `exp=2707`, `gold=349`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters` => (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` under strict move gate (`BUJU_MOVE_LEVEL_2=30`) and repeated-defeat avoidance.
+- Hard constraints reaffirmed unchanged as invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, sell unequipped gear worse than equipped first.
+- Equipment progression requirements revalidated and retained:
+  1) Best-in-slot auto-equip remains `equipSlot + score(maxDamage+defBonus)`.
+  2) Early game: safe gold accumulation and no risky enhancement spam.
+  3) Mid game: weapon-first enhancement only when reserve and prerequisites are satisfiable.
+  4) Late game: broaden to armor/accessory with failure-risk controls.
+  5) Minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`) and safely skips when unsatisfied.
+- Live validation now: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` returned `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=22`, `exp=2707`, `gold=349`, `code=200`; daemon continuity confirmed.
+- KPI target (next 30m): `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - 30-min STRATEGY DIRECTOR (10:16 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`, window size `20`): computed deltas were flat (`level +0`, `exp +0`, `gold +0`, `rate_limited 1/20`), so KEEP was rejected.
 - Minimal/reversible CHANGE applied: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 1->2` to restore progression throughput while preserving strict safety controls and threshold-based movement.
 - Safety/efficiency evidence kept: `GET /api/status` => `200` (`level=22`, `exp=2457`, `gold=354`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters` => (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` under strict move gate (`BUJU_MOVE_LEVEL_2=30`) and repeated-defeat avoidance.
