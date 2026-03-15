@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 21:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`11:19:04 -> 20:50:04`, `count=20`) yielded `level +1`, `gold +10`, `inventory +0`, `exp sparse`, `rate/cooldown mentions 15/20`; measurable improvement evidence exists, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status` read path is currently auth-blocked (`401`), so active area was sourced from latest thinking context (`talking_island_field`) and verified by `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` while movement stays threshold-gated (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeat risk.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path remains implemented and prerequisite-gated.
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=23`, `exp=2593`, `gold=354`, `code=200` (`tmp/cron-smoke-2117.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-2117.txt`).
+  - Ops telemetry post attempt: `POST /api/agent/thinking` => `401 UNAUTHORIZED`; payload archived as `tmp/thinking-post-2117.json` and response at `tmp/thinking-post-response-2117.json` for replay after auth-path recovery.
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=28%`, and progression `exp +>=70` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 20:27 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked), then queried `GET /api/status` and `GET /api/logs?page=1&limit=200` on `https://bujuagent.com`.
   - Probe results: both endpoints returned `401 UNAUTHORIZED`; last-hour sampled event count was `0` from live logs due to auth block.
@@ -3887,3 +3897,12 @@
 - Anomaly watch: economy drag persists despite zero defeats (`buy_share=19.7%`, `net_trade=-1200G` from sampled buy/sell logs) and surrender churn remains non-trivial (`6`, `1.6%` of sampled actions).
 - Development feedback: keep current safe combat target policy (throughput healthy), but prioritize spend-efficiency + surrender suppression instrumentation before any aggression increase.
 - [2026-03-15 18:27 KST] Next 30-min actionable TODO: implement `economy_guard_v2` to emit `buy_share`, `net_trade`, `potion_spend_per_hunt`, and trigger one-cycle buy cooldown when `buy_share > 18% && net_trade < -800`.
+2026-03-15 20:50:31 KST | watchdog restarted scripts/live-runner-daemon.sh
+
+## [2026-03-15 21:26 KST] Hourly gameplay-feedback cycle
+- Evidence (live): `.env` key loaded via local parser (masked), `npm run activity:fetch` returned `/api/status=200` while all `*/recent` endpoints remained `404` and fallback replay produced `0` in-window events.
+- Evidence (direct probes, same runtime): `GET /api/status` and `GET /api/logs?page=1&limit=100` both failed at transport layer (`status=0`, `error=fetch failed`).
+- Last-hour gameplay signals (confidence: low): progression `unknown` (no canonical readable log window), wins/defeats `unknown` (events unavailable), resources trend `unknown`; anomaly = `read-path conflict` (`status endpoint appears healthy in fetcher, direct status/log transport fails`).
+- Dev feedback: block policy tuning on this cycle; prioritize telemetry/read-path reliability before gameplay inference to avoid false optimization.
+- Failure mode + retry recommendation: classify as `transport_fail`; retry with bounded backoff (`3 attempts`, `10s/30s/90s`) and run a paired preflight (`/api/status` + `/api/logs?limit=1`) on one shared client path.
+- TODO (next 30-min): implement `scripts/hourly-telemetry-preflight.js` that emits `readpath_state=ok|status_only|transport_fail|auth_fail` and hard-gates hourly synthesis unless `ok`.

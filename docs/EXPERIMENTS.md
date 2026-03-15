@@ -1144,3 +1144,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_share/hour`, `net_trade/hour`, `hunt_count/hour`, and `defeats/hour` before/after guard.
 - Result: Current live hour was high-throughput (`hunt=242`, `wins=242`, `defeats=0`) but showed spend-heavy drift (`buy=74`, `sell=4`, `net_trade=-1200G`, `buy_share=19.7%`).
 - Decision: Run in next 30-min dev cycle; promote if `buy_share` stays `<15%` for 4 consecutive hourly windows without hunt regression.
+
+- Date: 2026-03-15 21:26 KST
+- Hypothesis: A single-client `telemetry_preflight_v1` (`/api/status` + `/api/logs?limit=1`, shared transport stack) will reduce mixed-signal hourly cycles (`status=200` vs direct `fetch failed`) and prevent zero-evidence gameplay feedback.
+- Change: Add preflight classifier (`readpath_state=ok|status_only|transport_fail|auth_fail`) and block gameplay synthesis unless `ok`; include bounded retry guidance in OPS output.
+- Metric(s): `mixed_readpath_cycles/day`, `% hourly cycles blocked with explicit root-cause tag`, false gameplay-inference count during transport failures.
+- Result: This cycle reproduced split read-path behavior (`activity:fetch` saw `/api/status=200` while direct `/api/status` and `/api/logs` failed with transport `fetch failed`; recent endpoints stayed `404`).
+- Decision: Run in next 30-min dev cycle; promote if mixed-readpath cycles drop to zero for 4 consecutive hourly runs.
