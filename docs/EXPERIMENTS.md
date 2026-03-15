@@ -1165,3 +1165,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles blocked with explicit root-cause`, `mixed-readpath cycles/day`, `false gameplay inference count during DNS failures`.
 - Result: Current cycle reproduced mismatch (`activity:fetch /api/status=200`) while direct status/log probes failed with `ENOTFOUND webgame-api.berrysoft.kr`; gameplay evidence remained unavailable.
 - Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles classify deterministically with zero gameplay inference.
+
+- Date: 2026-03-16 00:28 KST
+- Hypothesis: Tightening economy guard trigger to high-churn windows (`buy_share > 25% && net_trade < -1000`) will reduce gold drag without degrading hunt throughput in zero-defeat runs.
+- Change: During hourly feedback, emit deterministic `mp_potion_spend_per_hunt` and apply one-cycle buy cooldown when high-churn threshold is hit.
+- Metric(s): `buy_share/hour`, `net_trade/hour`, `mp_potion_spend_per_hunt`, `hunt_count/hour`, `defeats/hour`, and `% cycles with gold<340`.
+- Result: Current live hour had strong outcomes (`wins=244`, `defeats=0`) with continuing economy drag (`buy=142`, `sell=3`, `buy_share=32.6%`, `net_trade=-1210G`, `Δexp=+74`, `Δgold=+5`).
+- Decision: Run in next 30-min dev cycle; promote if `buy_share` falls below `20%` for 3 consecutive hourly windows without hunt-count regression.

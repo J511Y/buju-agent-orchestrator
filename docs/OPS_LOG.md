@@ -3975,3 +3975,11 @@
 - Daemon continuity + smoke: process check confirms `scripts/live-runner-daemon.sh` and child `node scripts/live-strategy-runner.js` alive; smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=23`, `exp=4057`, `gold=354`, `code=200` (`tmp/cron-smoke-0017.txt`).
 - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-0017.json`).
 - Next 30m KPI target: `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=28%`, `exp>=4125 or gold>=366`, and smoke `code=200`.
+
+## [2026-03-16 00:28 KST] Hourly gameplay-feedback cycle
+- Evidence (live): loaded `BUJU_API_KEY` from `.env` in-process (masked; raw key never printed). Queried `GET /api/status=200` and paged `GET /api/logs?page=1..N&limit=100=200` for a 60-minute window.
+- Last-hour window (`23:28:20~00:28:12 KST`): `435` events sampled — `hunt=244`, `wins=244`, `defeats=0`, `rest=22`, `buy=142`, `sell=3`, `drop=24`.
+- Progression/resource signal: status now `Lv23`, `EXP=4129`, `Gold=354`, `HP=264/430`, `MP=226/226`, `area=talking_island_field`; versus latest prior status snapshot (`00:17 KST`: `Lv23`, `EXP=4055`, `Gold=349`) gives `Δexp=+74`, `Δgold=+5`, `Δlevel=0`.
+- Anomaly watch: consumable spend pressure remains high despite stable combat outcomes (`buy_share=32.6%`, `net_trade=-1210G` from buy/sell logs), indicating economy drag risk while progression continues.
+- Development feedback: keep current combat safety profile (zero defeats, high hunt throughput), but prioritize buy-efficiency guardrails and potion-spend diagnostics before any aggression/throughput tuning.
+- TODO (next 30-min): implement `buy_efficiency_guard_v3` metric emission (`buy_share`, `net_trade`, `mp_potion_spend_per_hunt`) and add a one-cycle buy cooldown trigger when `buy_share > 25% && net_trade < -1000`.
