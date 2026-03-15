@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 16:28 KST
+- Hypothesis: A strict connectivity-first gate (`status + logs` with short jittered retry) will reduce false gameplay feedback during transport outages by deterministically classifying outage cause before synthesis.
+- Change: Add `connectivity-preflight-v2` before hourly aggregation to emit `ok|dns_unreachable|network_unreachable|timeout` and block progression/win-defeat/resource inference unless state is `ok`.
+- Metric(s): `% outage cycles with explicit root-cause tag`, `false gameplay inference count during transport failures`, `time-to-retry guidance generation`.
+- Result: Current cycle failed both live reads (`/api/status`, `/api/logs?page=1&limit=100`) with transport-level `fetch failed`, leaving last-hour events unavailable (`0` sampled).
+- Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles are classified deterministically with zero gameplay inference.
+
 - Date: 2026-03-15 14:27 KST
 - Hypothesis: Enforcing a hard `auth_preflight` gate before hourly KPI synthesis will eliminate zero-evidence gameplay summaries during credential failures.
 - Change: Add `scripts/auth-preflight-gate.js` to probe `/api/status` and `/api/logs?limit=1` using the same `.env` loader and emit `auth_state` (`ok|unauthorized|source_mismatch`).

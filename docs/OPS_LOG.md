@@ -1,6 +1,25 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 16:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked; key never printed) and attempted live reads against `https://webgame-api.berrysoft.kr`.
+  - Probe results: `GET /api/status` transport failure (`fetch failed`, HTTP unavailable) and `GET /api/logs?page=1&limit=100` transport failure (`fetch failed`), so last-hour log sample size was `0`.
+  - Last-hour gameplay signals: progression/wins-defeats/resource trends are unavailable for this window due to upstream transport failure (not enough evidence for gameplay inference).
+  - Anomaly: full read-path outage at both status and logs endpoints in the same runtime context indicates connectivity/DNS/network path instability rather than in-game behavior drift.
+  - Dev feedback: block strategy/policy tuning for this cycle; treat as observability incident and keep current gameplay parameters unchanged until read-path recovers.
+  - Failure mode + retry recommendation: run a short jittered connectivity preflight next cycle (`/api/status` then `/api/logs?limit=1`, 2 attempts with 5-10s backoff). If transport still fails, classify as `network_unreachable` and continue logging only outage evidence.
+  - Next 30m actionable TODO: add `scripts/connectivity-preflight-v2.js` to emit deterministic state (`ok|dns_unreachable|network_unreachable|timeout`) and hard-block hourly synthesis when state is non-`ok`.
+
+- [2026-03-15 16:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` full window (`05:52:42 -> 15:48:56`, `count=20`) yielded `level +0`, `gold +15`, `inventory +4`, `death +0`, `rate/cooldown mentions 19/20`; despite high throttle wording, progression evidence stayed positive and no new death timestamp appeared after `05:09`, so CHANGE was not applied.
+  - Safety/efficiency evidence: live `GET /api/status => 200` (`level=23`, `exp=187`, `gold=349`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` under strict threshold movement (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active (`short_sword` equipped over `rusty_sword`); staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path was safely skipped this cycle because prerequisites were unsatisfied (`GET /api/npc/list => npcs=[]`, enchant scroll count `0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=buy_mp`, `level=23`, `exp=193`, `gold=364`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-1618.txt`).
+  - Ops telemetry posted: first post failed validation (`400 INVALID_INPUT reasoning<=500`), corrected and reposted successfully `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1618.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=25%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 14:27 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked), then probed `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com`; both returned `401 UNAUTHORIZED` (`Missing or invalid API key`).
   - Last-hour gameplay signals: unavailable from live API due to read-auth failure (`window 2026-03-15T04:27:44Z~05:27:44Z`, sampled events `0`), so progression/wins-defeats/resource trends are low-confidence for this cycle.
@@ -3813,3 +3832,4 @@
 - Development feedback: do not retune combat/economy policy on this cycle; prioritize deterministic preflight + unified HTTP client path for hourly feedback.
 - Retry recommendation: run `/api/status` + `/api/logs?limit=1` using the exact same loader/header path as collector, with 2 retries (jitter 1-3s). If either stays non-200 or transport-fails, emit `telemetry_blocked` and skip gameplay inference.
 - [2026-03-15 15:28 KST] Next 30-min actionable TODO: add `scripts/hourly-readpath-check.js` to produce `readpath_state`, `transport_error_class`, and `inference_allowed` booleans consumed by hourly OPS synthesis.
+2026-03-15 16:04:26 KST - watchdog: restarted scripts/live-runner-daemon.sh
