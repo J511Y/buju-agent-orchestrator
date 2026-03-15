@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 06:47 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`tick 1773571748929 -> 1773609544244`, `count=20`) yielded mixed deltas (`level +1`, `gold +5`, `inventory +4`, `rate/cooldown mentions 11/20`), so KEEP was rejected due inventory-pressure regression.
+  - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_MIN_GOLD_RESERVE 360->380` to reduce buy-driven inventory/economy drift while preserving safety gates.
+  - Safety/efficiency evidence: latest live thinking context remains `area=talking_island_field`; `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), and safest high-efficiency target remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early no-risky-spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains implemented and prerequisite-gated.
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=24`, `exp=1823`, `gold=374`, `code=200` (`tmp/cron-smoke-0647.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-0647.txt`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=22%`, and progression `exp>=1890` or `gold>=390` with smoke `code=200`.
+
 - [2026-03-16 05:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`2026-03-15 18:19:31 -> 2026-03-16 04:49:22`, `count=20`) yielded flat deltas (`level +0`, `exp +0`, `gold +0`, `inventory +0`, `rate/cooldown mentions 20/20`), so KEEP was rejected for no measurable improvement.
   - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_STALL_429_COOLDOWN_TICKS 14->16` to reduce repeated `combat_start` churn under sustained 429 pressure while keeping safety gates unchanged.
