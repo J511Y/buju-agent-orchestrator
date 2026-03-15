@@ -1151,3 +1151,10 @@ Track A/B and policy experiments.
 - Metric(s): `mixed_readpath_cycles/day`, `% hourly cycles blocked with explicit root-cause tag`, false gameplay-inference count during transport failures.
 - Result: This cycle reproduced split read-path behavior (`activity:fetch` saw `/api/status=200` while direct `/api/status` and `/api/logs` failed with transport `fetch failed`; recent endpoints stayed `404`).
 - Decision: Run in next 30-min dev cycle; promote if mixed-readpath cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-15 22:26 KST
+- Hypothesis: A unified DNS+readpath preflight (`/api/status` + `/api/logs?limit=1` on the same client stack) will reduce mixed-signal hourly cycles and prevent zero-evidence gameplay feedback during resolver instability.
+- Change: Add `telemetry-preflight-dns-v1` that emits `dns_state` (`ok|dns_unreachable`) and `readpath_state` (`ok|status_only|transport_fail|auth_fail`), and blocks hourly synthesis unless both indicate `ok`.
+- Metric(s): `mixed_readpath_cycles/day`, `% cycles blocked with explicit DNS/readpath root-cause`, and false gameplay-inference count during DNS failures.
+- Result: Current cycle reproduced split behavior (`activity:fetch /api/status=200` while direct authenticated status/log probes failed with DNS resolution error).
+- Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles are classified deterministically with zero gameplay inference.

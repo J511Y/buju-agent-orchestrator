@@ -3916,3 +3916,12 @@
 - Dev feedback: block policy tuning on this cycle; prioritize telemetry/read-path reliability before gameplay inference to avoid false optimization.
 - Failure mode + retry recommendation: classify as `transport_fail`; retry with bounded backoff (`3 attempts`, `10s/30s/90s`) and run a paired preflight (`/api/status` + `/api/logs?limit=1`) on one shared client path.
 - TODO (next 30-min): implement `scripts/hourly-telemetry-preflight.js` that emits `readpath_state=ok|status_only|transport_fail|auth_fail` and hard-gates hourly synthesis unless `ok`.
+
+## [2026-03-15 22:26 KST] Hourly gameplay-feedback cycle
+- Evidence (live): loaded `BUJU_API_KEY` from `.env` (masked); `npm run -s activity:fetch` reported `source=fallback:local_replay`, `/api/status=200`, all `*/recent` endpoints `404`, and fallback KPIs `Δlevel/Δexp/Δgold=0/0/0`, `wins=0`, `defeats=0`.
+- Evidence (direct probes, same runtime/env): authenticated `GET /api/status` and `GET /api/logs?page=1&limit=100` both failed with DNS transport error (`nodename nor servname provided, or not known`).
+- Last-hour gameplay signals (confidence: low): progression unresolved, wins/defeats unresolved, resource trend unresolved due to canonical status/log read failure.
+- Anomaly: persistent read-path inconsistency (`activity:fetch` status path succeeds while direct status/log path is DNS-unreachable) plus continued `*/recent` `404` degradation.
+- Development feedback: freeze gameplay-policy/aggression tuning this cycle; prioritize one-client telemetry preflight and DNS-path stabilization before interpreting gameplay outcomes.
+- Failure mode + retry recommendation: classify as `dns_unreachable`; retry with bounded backoff (`15s`, `45s`, `120s`), and require paired preflight success (`/api/status` + `/api/logs?limit=1`) before hourly KPI synthesis.
+- TODO (next 30-min): implement `scripts/telemetry-preflight-dns.js` to emit `{dns_state, readpath_state, inference_allowed}` and hard-block summary inference when `inference_allowed=false`.
