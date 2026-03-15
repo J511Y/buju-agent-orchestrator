@@ -1339,6 +1339,18 @@
   - Justification: Two consecutive hourly windows showed severe loop persistence (`death/surrender/rest` triad, no hunts, no progression) despite healthy status/log telemetry, so soft tuning is insufficient.
   - Scope: Runtime safety policy/orchestration only; no secret handling or external API contract changes.
 
+## 2026-03-16 01:17 KST — Strategy Director (30m adaptive, economy stabilization)
+- Adaptive loop evidence: remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`, so the mandated 20-window fallback used local trailing telemetry (`tmp/thinking-post-*.json`, latest 20; `thinking-post-1416.json -> thinking-post-0050.json`) with deltas `level +1`, `gold +0`, `inventory +3`, `rate/cooldown mentions 19/20`.
+- CHANGE (mandatory loop): despite level gain, economy/inventory quality regressed (flat gold + inventory drift under high cooldown pressure), so KEEP was rejected.
+- Minimal reversible parameter change committed: `BUJU_MUTATION_MIN_GOLD_RESERVE 120 -> 260` to block low-reserve mutation spend spikes and preserve safe-farm gold buffer while keeping combat risk policy unchanged.
+- Safety/efficiency evidence: live `GET /api/status` shows `level=23`, `area=talking_island_field`, ongoing combat target `skeleton`; `GET /api/areas/talking_island_field/monsters` exposes (`rabbit`,`skeleton`) so safest high-efficiency target remains `skeleton` under strict move gate (`BUJU_MOVE_LEVEL_2=30`).
+- Hard constraints remain invariant in runtime: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation priority stays `unequipped worse-than-equipped first`.
+- Equipment progression policy remains staged and explicit:
+  - Early game: safe gold accumulation, no risky enhancement spam.
+  - Mid game: enhance main weapon first only when `scroll + npc + resource + reserve` prerequisites are satisfiable.
+  - Late game: broaden to armor/accessory only with cooldown and failure-risk controls.
+- Minimal safe enhancement path remains implemented and prerequisite-gated (`/npc/list -> /npc/{npc_id}/enhance`), skipped automatically when prerequisites are missing.
+
 ## 2026-03-15 23:19 KST — Strategy Director (30m adaptive, keep-with-evidence)
 - Adaptive loop evidence (`GET /api/agent/thinking/j211y?limit=20`, ordered 20-window): `level +1` (`22->23`), `gold +5`, `inventory -1`, throttle/rate-limit wording `14/20`.
 - KEEP decision is valid this cycle (measurable progression + no defeat regression in window); no aggression increase applied.
