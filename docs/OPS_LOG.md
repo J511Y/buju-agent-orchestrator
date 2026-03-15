@@ -1,6 +1,25 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 10:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed delta from latest window (`count=20`): `level +0`, `exp +0`, `gold +0`, `rate_limited 1/20`; no measurable improvement evidence, so KEEP was rejected.
+  - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 1->2` to recover progression signal while keeping conservative safety gates and movement thresholds intact.
+  - Safety/efficiency evidence now: `GET /api/status` => `200` (`level=22`, `exp=2457`, `gold=354`, `area=talking_island_field`), current monsters remain low-risk/high-efficiency (`rabbit`, `skeleton`), and strict level-threshold movement gate (`BUJU_MOVE_LEVEL_2=30`) remains active to avoid repeated defeats.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+  - Equipment progression requirements preserved: best-in-slot auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe accumulation/no risky spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=2463`, `gold=349`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
+- [2026-03-15 09:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` full window (`2026-03-14 21:49:50 -> 2026-03-15 09:18:56`) yielded `level +1` (`21->22`), `gold +20` (`339->359`), `inventory +0` (`3->3`), `rate_limited 1/20`; improvement evidence present, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status` => `200` (`level=22`, `exp=2205`, `gold=354`, `area=talking_island_field`) and monster pool remains low-risk/high-efficiency (`rabbit`,`skeleton`), so safest target remains `skeleton` under strict move gate (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation stays unequipped-worse-than-equipped first.
+  - Enhancement path status: staged plan remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated and safely skipped this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=2211`, `gold=349`, `code=200`; daemon continuity confirmed (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-0946-response.json`; first attempt failed validation `400 INVALID_INPUT action_detail<=200`, corrected and reposted).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 09:27 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` (masked), ran `npm run -s activity:fetch -- --hours 1` -> fallback payload (`source=fallback:local_replay`, `progress_delta=0/0/0`, `/api/status=200`, `*/recent=404`).
   - Direct authenticated probes in same shell returned auth failure: `GET /api/status`=`401`, `GET /api/logs?page=1&limit=100`=`401`, `GET /api/logs?action=death&limit=100`=`401` (`UNAUTHORIZED: Missing or invalid API key`).
