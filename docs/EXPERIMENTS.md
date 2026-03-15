@@ -1081,3 +1081,10 @@ Track A/B and policy experiments.
 - Metric(s): low-confidence hourly cycles/day; split-signal incidence (`status/log 401` with parallel `200` endpoint); mean time-to-diagnose auth issues.
 - Result: Current cycle reproduced split signal (`activity:fetch /api/status=200` with fallback payload, but direct `/api/status` and `/api/logs` were both `401`; thinking endpoint remained `200`).
 - Decision: Proceed in next 30-min dev cycle; promote to mandatory gate if reproduced in the next consecutive hourly run.
+
+- Date: 2026-03-15 12:27 KST
+- Hypothesis: `hourly_readpath_preflight_v1` (single canonical credential/header path check for `/api/status` + `/api/logs?limit=1`) will reduce low-confidence hourly feedback caused by mixed `status=200` vs transport/auth failures.
+- Change: Add deterministic preflight state output `readpath_state=ok|status_only|transport_fail|auth_fail`; block progression/win-defeat/resource inference unless state is `ok`.
+- Metric(s): low-confidence hourly cycles/day; split-signal incidence/day; % failure cycles with explicit root-cause tag and retry guidance.
+- Result: This cycle reproduced mixed reachability (`activity:fetch` fallback reported `/api/status=200` with `*/recent=404`, while direct status/log probes failed transport), leaving canonical hourly outcomes unresolved.
+- Decision: Run in next 30-min dev cycle; promote if split-signal cycles drop to zero for 6 consecutive hourly runs.

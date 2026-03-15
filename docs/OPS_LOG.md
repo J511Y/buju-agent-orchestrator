@@ -1,6 +1,27 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 12:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`count=20`, `2026-03-15 00:19:04 -> 2026-03-15 11:49:10`): `level +1` (`21->22`), `gold +45` (`319->364`), `inventory +3` (`4->7`), `rate-limit/429 mentions 19/20`; improvement evidence present, so CHANGE was not applied.
+  - Death/risk evidence: `GET /api/logs?action=death&limit=100` still contains legacy burst inside the wider window (`death +14`) but no fresh growth since latest death timestamp `05:09 KST` (`death delta from now=0`), consistent with current safety gates.
+  - Safety/efficiency evidence: live status `GET /api/status => 200` (`level=22`, `exp=3319`, `gold=349`, `area=talking_island_field`) and monster probe `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` with strict level-threshold movement (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+  - Equipment progression requirements preserved: best-in-slot auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe accumulation/no risky spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=3327`, `gold=349`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-1216.txt`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1216.json`).
+  - Next 30m KPI: `death delta=0` from now, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
+- [2026-03-15 11:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty (`count=0`), so fallback last-20 local thinking posts (`tmp/thinking-post-*.json`) were used. Ordered window delta: `level +1` (`21->22`), `gold +10` (`339->349`), `exp +0` (sparse in context payload), `death +0` (no new death logs after `05:09 KST`), `rate-limit/429 mentions 12/20`; improvement evidence present, so CHANGE was not applied.
+  - Safety/efficiency evidence: live status `GET /api/status => 200` (`level=22`, `exp=3119`, `gold=349`, `area=talking_island_field`) and monster probe `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` with strict level-threshold movement (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+  - Equipment progression requirements preserved: best-in-slot auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe accumulation/no risky spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource + non-combat + rate budget`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=buy_mp`, `level=22`, `exp=3125`, `gold=364`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1146.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 10:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered delta (`count=20`, `2026-03-14 22:49:55 -> 2026-03-15 10:19:36`): `level +0`, `exp +0`, `gold +0`, `death +0`, `rate_limited 0/20`; no measurable improvement evidence, so KEEP was rejected.
   - Minimal/reversible change applied and committed: `config/strategy.env` tuned `BUJU_MAX_ACTIONS_PER_CYCLE 2->3` to recover throughput from flat progression while keeping conservative survivability gates and strict movement thresholds.
@@ -3733,3 +3754,13 @@
   - Anomaly: credential-path inconsistency persists (`activity:fetch` sees status healthy, direct status/log reads unauthorized), so gameplay-policy retuning is deferred this cycle.
   - Failure mode + retry recommendation: run a single preflight pair (`/api/status` + `/api/logs?limit=1`) using the exact credential-loading path of hourly collector; if either is non-200, rotate/rebind key and block gameplay inference for that hour.
   - Next 30m actionable TODO: implement `scripts/auth-preflight-gate.js` returning deterministic `auth_state=ok|unauthorized|source_mismatch` and make hourly cycle emit `auth_blocked` when state != `ok`.
+
+## 2026-03-15 12:27 KST — Hourly gameplay feedback (collector fallback + direct probe transport failure)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed).
+- Collector result (`npm run -s activity:fetch -- --hours 1`): `source=fallback:local_replay`, `progress_delta(level/exp/gold)=0/0/0`, `known_outcomes(win/defeat)=0/0`; endpoint status `/api/status=200`, `*/recent=404` (failure streak `4` in 6h summary).
+- Direct authenticated cross-check (`X-GQ-API-Key`, same runtime key): `/api/status`, `/api/logs?limit=100&page=1`, `/api/logs?action=death`, `/api/logs?action=level_up` all failed at transport stage (`fetch failed`), so canonical last-hour win/defeat and resource trend verification is unresolved.
+- Last-hour gameplay signals (confidence: low): no confirmed progression or outcome delta (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `wins=0`, `defeats=0`) from collector fallback; treat as telemetry-limited, not true idle.
+- Anomaly/failure mode: mixed reachability persists (`activity:fetch` can read status while direct probes fail transport), alongside continued `*/recent` `404` degradation.
+- Development feedback: keep gameplay policy retuning paused until one canonical read path yields consistent `200` for both `/api/status` and `/api/logs` in the same cycle; prioritize preflight parity/connectivity instrumentation over combat/economy tuning.
+- Failure retry recommendation: next cycle run deterministic preflight (`/api/status` + `/api/logs?limit=1`) using collector credential/header path first; on any non-`200`, emit `telemetry_blocked` and skip gameplay inference.
+- [2026-03-15 12:27 KST] Next 30-min actionable TODO: implement `hourly_readpath_preflight_v1` to emit `readpath_state=ok|status_only|transport_fail|auth_fail`, attach it to OPS output, and hard-gate summary inference when state != `ok`.
