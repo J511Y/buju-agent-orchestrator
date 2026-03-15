@@ -1207,3 +1207,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause`, false gameplay-inference count during transport/auth failures.
 - Result: Current cycle reproduced split signal (`activity:fetch /api/status=200`, direct status/log probes `fetch failed`, recent endpoints `404`) with no reliable last-hour events.
 - Decision: Execute in next 30-min dev cycle; promote if split-signal cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-16 06:29 KST
+- Hypothesis: Introducing `economy_churn_guard_v2` (`buy_share>30% && net_gold_flow<-1000` within 60m) will reduce gold drain while preserving hunt throughput.
+- Change: In next dev cycle, apply one-cycle MP-potion buy cooldown + immediate unequipped-trash sell sweep when trigger fires; keep combat target/area unchanged.
+- Metric(s): `net_gold_flow/hour`, `buy_share/hour`, `hunt_count/hour`, `defeat_rate/hour`, `surrender_count/hour`.
+- Result: Current hour baseline shows strong throughput but economy drag (`wins=232`, `defeats=8`, `buy=138`, `sell=3`, `net_gold_flow=-1160G`, `events=435`).
+- Decision: Run in next 30-min cycle; promote if `net_gold_flow` improves to `>-600G/hour` for 3 consecutive cycles with `hunt_count` not dropping >10%.

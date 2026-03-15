@@ -4099,3 +4099,12 @@
 - Development feedback: freeze gameplay-policy tuning for this cycle; prioritize unified preflight + shared client path before synthesizing gameplay feedback.
 - Failure mode + retry recommendation: classify as `transport_or_readpath_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`) and keep `inference_allowed=false` until both return `200` on the same client path.
 - TODO (next 30-min): implement `telemetry-preflight-shared-client-v1` and wire hourly cycle to hard-gate synthesis unless `{dns_state:ok, readpath_state:ok, inference_allowed:true}`.
+2026-03-16 05:44:56 KST restarted live-runner-daemon.sh by cron watchdog
+2026-03-16 06:04:59 KST watchdog: restarted scripts/live-runner-daemon.sh
+
+## [2026-03-16 06:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (`gq***80`), then queried live `GET /api/status` (`200`) and paged `GET /api/logs?page=n&limit=100` (pages `6`, last-hour events `435`).
+- Last-hour gameplay signals: progression active (`level=24`, `exp=1665`, `gold=369` snapshot), outcomes `232 wins / 8 defeats` (defeat ratio `8/232 hunts`), resource flow `spent 1380G / earned 220G / net -1160G` with potion buys `HP 35, MP 103`.
+- Anomalies: high potion-economy churn (`buy=138` vs `sell=3`) and non-trivial surrender count (`8`); collector fallback still degraded (`activity:fetch source=fallback:local_replay`, recent endpoints 404 while `/api/status=200`).
+- Development feedback: keep combat throughput policy stable (win volume is strong), but tighten potion-buy cadence and surrender recovery branch to reduce hourly gold drain without reducing hunt count.
+- TODO (next 30-min): add `economy_churn_guard_v2` in runner (trigger when `buy_share>30% && netGoldFlow<-1000` => 1-cycle MP-buy cooldown + forced sell sweep if unequipped trash exists), then verify no hunt throughput regression.
