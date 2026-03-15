@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 09:27 KST
+- Hypothesis: A hard auth preflight gate (`/api/status` + `/api/logs?limit=1`) using the identical credential-loading path as hourly fetch will eliminate recurring split-signal cycles (`activity:fetch ok` vs direct `401`).
+- Change: Implement `scripts/auth-preflight-gate.js` and make hourly feedback exit with `auth_blocked` when probe state is not `ok`.
+- Metric(s): Split-signal incidence per day; % hourly cycles producing low-confidence summaries; mean time to diagnose `401` events.
+- Result: Current run reproduced split signal (`activity:fetch` reported `/api/status=200` while direct status/log probes in same shell were all `401`).
+- Decision: Proceed next 30-min dev cycle; promote to required precondition if two consecutive runs classify state deterministically.
+
 - Date: 2026-03-15 08:26 KST
 - Hypothesis: A unified `auth-preflight-gate` executed in the same runtime context as hourly fetch will eliminate status/log auth ambiguity and reduce low-confidence cycles caused by credential-source drift.
 - Change: Add `scripts/auth-preflight-gate.js` to probe `/api/status` and `/api/logs?limit=1` with masked env key, then emit deterministic `auth_state` (`ok|unauthorized|source_mismatch`) consumed by hourly feedback flow.

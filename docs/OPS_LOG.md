@@ -1,6 +1,25 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 09:27 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked), ran `npm run -s activity:fetch -- --hours 1` -> fallback payload (`source=fallback:local_replay`, `progress_delta=0/0/0`, `/api/status=200`, `*/recent=404`).
+  - Direct authenticated probes in same shell returned auth failure: `GET /api/status`=`401`, `GET /api/logs?page=1&limit=100`=`401`, `GET /api/logs?action=death&limit=100`=`401` (`UNAUTHORIZED: Missing or invalid API key`).
+  - Last-hour gameplay signals: progression/wins-defeats/resource trend are **low-confidence/unavailable** from canonical live endpoints due to auth failure + `recent` endpoint degradation.
+  - Anomaly: fetch pipeline and direct bearer probes still diverge (`status health ok` vs `direct 401`), indicating credential-path/source mismatch remains unresolved.
+  - Dev feedback: freeze gameplay-policy tuning until auth consistency is restored; treat this cycle as infrastructure/auth issue, not game-behavior issue.
+  - Failure mode + retry recommendation: run one preflight in next cycle (`/api/status` + `/api/logs?limit=1`) with the exact same key source used by hourly collector, then rotate/rebind key if either probe is non-200.
+  - Next 30m actionable TODO: implement `scripts/auth-preflight-gate.js` to emit `ok|unauthorized|source_mismatch` and hard-block hourly gameplay summaries when state != `ok`.
+
+- [2026-03-15 09:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned full window; deltas improved `level +1` (`21->22`), `gold +35` (`319->354`), `inventory -2` (`6->4`) with bounded rate-limit/throttle signal (`9/20`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status` => `200` (`level=22`, `exp=1963`, `gold=359`, `area=talking_island_field`), and current field monster pool remains low-risk/high-efficiency (`rabbit`, `skeleton`), so strict threshold-gated safe hunt policy remains in force.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-gear-worse-than-equipped first.
+  - Equipment progression requirements revalidated: best-in-slot auto-equip remains `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early safe accumulation/no risky spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated and safe-skips this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=1965`, `gold=364`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`ps -ax | grep -E "live-runner-daemon.sh|live-strategy-runner.js"` shows active daemon).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-0916-response.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 08:26 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; never printed), ran `npm run -s activity:fetch -- --hours 1` (`/api/status=200`, `*/recent=404`, fallback source), then direct authenticated probes `GET /api/status` and `GET /api/logs?page=1&limit=100` against `https://bujuagent.com` both returned `401 UNAUTHORIZED`.
   - Last-hour gameplay signals: unresolved from canonical live APIs (`progression`, `wins/defeats`, `resource trends` unavailable) because status/log reads failed auth and recent-history endpoints remain degraded (`404`).
