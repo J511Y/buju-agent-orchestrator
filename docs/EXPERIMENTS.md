@@ -1116,3 +1116,10 @@ Track A/B and policy experiments.
 - Metric(s): `mixed_readpath_cycles/day`, `% hourly cycles with blocked inference due to transport/auth mismatch`, and time-to-diagnose root cause.
 - Result: Current cycle produced fallback-only summary (`/api/status=200`, all recent endpoints `404`) while direct status/log reads failed transport (`fetch failed`), leaving gameplay signals unresolved.
 - Decision: Run in next 30-min dev cycle; promote if mixed-readpath cycles drop to zero for 6 consecutive hourly runs.
+
+- Date: 2026-03-15 17:28 KST
+- Hypothesis: A unified hourly telemetry gate (`status + logs` on one shared client path) will reduce low-confidence feedback cycles caused by collector/direct transport mismatches.
+- Change: Add `hourly-telemetry-gate` that classifies `readpath_state=ok|status_only|transport_fail|auth_fail` and blocks KPI inference unless `ok`.
+- Metric(s): `mixed_readpath_cycles/day`, `% cycles with blocked inference`, and `time-to-root-cause` for transport/auth incidents.
+- Result: This cycle again showed split behavior (`activity:fetch /api/status=200` while direct `/api/status` and `/api/logs` were transport-fail), leaving wins/defeats/resource trends unresolved.
+- Decision: Implement in next 30-min dev cycle; promote if mixed-readpath cycles drop to zero for 6 consecutive hourly runs.

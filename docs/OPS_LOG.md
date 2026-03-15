@@ -3833,3 +3833,13 @@
 - Retry recommendation: run `/api/status` + `/api/logs?limit=1` using the exact same loader/header path as collector, with 2 retries (jitter 1-3s). If either stays non-200 or transport-fails, emit `telemetry_blocked` and skip gameplay inference.
 - [2026-03-15 15:28 KST] Next 30-min actionable TODO: add `scripts/hourly-readpath-check.js` to produce `readpath_state`, `transport_error_class`, and `inference_allowed` booleans consumed by hourly OPS synthesis.
 2026-03-15 16:04:26 KST - watchdog: restarted scripts/live-runner-daemon.sh
+
+## 2026-03-15 17:28 KST — Hourly gameplay feedback (status reachable via collector, direct path transport fail)
+- Evidence: loaded `BUJU_API_KEY` from `.env` at runtime (masked; raw key never printed).
+- Collector probe (`npm run -s activity:fetch -- --hours 1`): `source=fallback:local_replay`, `progress_delta(level/exp/gold)=0/0/0`, `known_outcomes(win/defeat)=0/0`; endpoint statuses: `/api/status=200`, all `*/recent` endpoints `404` (failure streak `4` in 6h summary).
+- Direct live cross-check (`GET /api/status`, `GET /api/logs?page=1&limit=50` with `X-GQ-API-Key`) failed at transport layer (`fetch failed`) before payload parsing.
+- Last-hour gameplay signals (confidence: low): progression, wins/defeats, and resource trends unresolved this cycle due to mixed read-path + log fetch transport failure.
+- Failure mode: `readpath_mismatch_transport_fail`.
+- Development feedback: keep gameplay-policy tuning frozen; prioritize a single shared preflight/client path for collector + direct probes before interpreting gameplay KPIs.
+- Retry recommendation: rerun `/api/status` and `/api/logs?limit=1` through the same HTTP client/header loader with 2 jittered retries (1-3s). If either stays non-200 or transport-fails, emit `telemetry_blocked` and skip gameplay inference.
+- [2026-03-15 17:28 KST] Next 30-min actionable TODO: implement `scripts/hourly-telemetry-gate.js` to output `{readpath_state, transport_error_class, inference_allowed}` and hard-gate hourly summary generation when `inference_allowed=false`.
