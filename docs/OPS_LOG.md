@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 22:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`12:19:02 -> 22:19:43`, `count=20`) yielded `level +1`, `gold +5`, `inventory -1`, `exp +0`, `rate/cooldown mentions 13/20`; concrete improvement evidence exists, so CHANGE was not applied.
+  - Safety/efficiency evidence: direct probes (`/api/status`, `/api/inventory`, `/api/npc/list`, `/api/logs?action=death`) were auth-blocked (`UNAUTHORIZED`), so current area/monster context was sourced from latest thinking (`talking_island_field`, `rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` and movement stays threshold-gated (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated-defeat risk.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path remains implemented and prerequisite-gated.
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=surrender_dangerous_combat`, `level=23`, `exp=3321`, `gold=354`, `code=200` (`tmp/cron-smoke-2248.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-2248.txt`).
+  - Ops telemetry post attempt: `POST /api/agent/thinking` returned `401 UNAUTHORIZED`; payload/response archived (`tmp/thinking-post-2248.json`, `tmp/thinking-post-response-2248.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=28%`, and progression `exp +>=70` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 21:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`11:19:04 -> 20:50:04`, `count=20`) yielded `level +1`, `gold +10`, `exp/death sparse`, `rate/cooldown mentions 14/20`; measurable improvement evidence exists, so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=23`, `exp=2835`, `gold=349`, `hp=286/430`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` while movement stays threshold-gated (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeat risk.
@@ -3925,3 +3935,21 @@
 - Development feedback: freeze gameplay-policy/aggression tuning this cycle; prioritize one-client telemetry preflight and DNS-path stabilization before interpreting gameplay outcomes.
 - Failure mode + retry recommendation: classify as `dns_unreachable`; retry with bounded backoff (`15s`, `45s`, `120s`), and require paired preflight success (`/api/status` + `/api/logs?limit=1`) before hourly KPI synthesis.
 - TODO (next 30-min): implement `scripts/telemetry-preflight-dns.js` to emit `{dns_state, readpath_state, inference_allowed}` and hard-block summary inference when `inference_allowed=false`.
+
+## [2026-03-15 23:19 KST] 30-minute STRATEGY DIRECTOR run (adaptive + equipment progression)
+- Adaptive loop evidence: fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`2026-03-15 12:19:02 -> 22:19:43`, `count=20`): `level +1`, `gold +5`, `inventory -1`, rate-limit/throttle mentions `14/20`.
+- Decision: **KEEP** (evidence-backed improvement present). No risky aggression uplift this cycle.
+- Live status check: `GET /api/status=200` -> `level=23`, `exp=3565`, `gold=354`, `area=talking_island_field`, `combat=in_progress(monster=skeleton)`.
+- Safety/efficiency guard confirmation: safest available target routing remains active with risk-gap control and level-threshold movement gate.
+- Hard constraints re-verified in runner config/runtime: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with `worse-than-equipped-first` liquidation when slots `>=10`.
+- Daemon continuity: process check confirms `scripts/live-runner-daemon.sh` and child `node scripts/live-strategy-runner.js` both alive.
+- Next 30m KPI target: `defeats=0`, `inventory<=8`, `wait_combat_start_rate_limit<=35%`, `exp>=3700 or gold>=370`, and smoke `code=200`.
+
+## [2026-03-15 23:26 KST] Hourly gameplay-feedback cycle
+- Evidence (live): loaded `BUJU_API_KEY` from `.env` in-process (masked); `npm run -s activity:fetch` returned `/api/status=200`, all `*/recent` endpoints `404`, and fallback payload `progress_delta=0/0/0`, `wins=0`, `defeats=0`.
+- Evidence (direct probe, same runtime): authenticated calls to `/api/status` and `/api/logs?page=1&limit=200` failed before response with DNS transport error (`ENOTFOUND webgame-api.berrysoft.kr`).
+- Last-hour gameplay signals (confidence: low): progression unresolved, wins/defeats unresolved, resource trend unresolved (canonical status/log path unavailable).
+- Failure mode: `dns_unreachable` with read-path mismatch (`collector status=200` vs direct status/log DNS failure).
+- Development feedback: hold gameplay-policy tuning for this cycle; prioritize deterministic telemetry preflight/read-path unification before any combat/economy adjustments.
+- Retry recommendation: run paired preflight (`/api/status` + `/api/logs?limit=1`) on one shared client path with bounded retries (`15s`, `45s`, `120s`); if any non-200 or transport fail, emit `telemetry_blocked` and skip KPI inference.
+- [2026-03-15 23:26 KST] Next 30-min actionable TODO: implement `scripts/telemetry-preflight-dns-v2.js` to emit `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and wire hourly feedback to hard-gate summary synthesis when `inference_allowed=false`.

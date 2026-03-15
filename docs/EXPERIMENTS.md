@@ -1158,3 +1158,10 @@ Track A/B and policy experiments.
 - Metric(s): `mixed_readpath_cycles/day`, `% cycles blocked with explicit DNS/readpath root-cause`, and false gameplay-inference count during DNS failures.
 - Result: Current cycle reproduced split behavior (`activity:fetch /api/status=200` while direct authenticated status/log probes failed with DNS resolution error).
 - Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles are classified deterministically with zero gameplay inference.
+
+- Date: 2026-03-15 23:26 KST
+- Hypothesis: A single-client DNS+readpath preflight with deterministic retry metadata (`retry_after_ms`) will cut repeated low-confidence hourly cycles by classifying transport failures before gameplay synthesis.
+- Change: Add `telemetry-preflight-dns-v2` that probes `/api/status` + `/api/logs?limit=1` on the same loader/header path and emits `dns_state`, `readpath_state`, and `inference_allowed`.
+- Metric(s): `% hourly cycles blocked with explicit root-cause`, `mixed-readpath cycles/day`, `false gameplay inference count during DNS failures`.
+- Result: Current cycle reproduced mismatch (`activity:fetch /api/status=200`) while direct status/log probes failed with `ENOTFOUND webgame-api.berrysoft.kr`; gameplay evidence remained unavailable.
+- Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles classify deterministically with zero gameplay inference.
