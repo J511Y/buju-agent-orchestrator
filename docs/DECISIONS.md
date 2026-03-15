@@ -1,5 +1,14 @@
 # Engineering Decisions
 
+## 2026-03-16
+- 30-min STRATEGY DIRECTOR (00:17 KST, adaptive mode + equipment progression) KEEP decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`): ordered window `2026-03-15 13:19:23 -> 23:50:12`, `count=20`, deltas improved (`level +1`, `gold +10`, `inventory +1`, `exp sparse`) with no death growth signal (`GET /api/logs?action=death&limit=200` => `0` rows), so KEEP was accepted.
+- Safety/efficiency evidence now: live `GET /api/status => 200` (`level=23`, `exp=4055`, `gold=349`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, and strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`) remains enforced to avoid repeated-defeat risk expansion.
+- Hard constraints preserved as invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation still sells all unequipped gear worse than equipped first before general cleanup.
+- Equipment progression requirements revalidated and kept active: BiS auto-equip remains `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan remains explicit (early safe gold/no risky spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains implemented and prerequisite-gated, safely skipped this cycle (`GET /api/npc/list => npcCount=0`, no enchant scroll in inventory).
+- Live continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active), and one-cycle smoke returned `ok=1/1`, `lastAction=combat_start`, `level=23`, `exp=4057`, `gold=354`, `code=200` (`tmp/cron-smoke-0017.txt`).
+- Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-0017.json`).
+- KPI target (next 30m): `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=28%`, and progression `exp>=4125` or `gold>=366` with smoke `code=200`.
+
 ## 2026-03-15
 - 30-min STRATEGY DIRECTOR (23:47 KST, adaptive mode + equipment progression) CHANGE decision from mandatory last-20 thinking-log delta check (`GET /api/agent/thinking/j211y?limit=20`): ordered window `12:49:18 -> 23:19:29`, `count=20`, deltas were mixed (`level +1`, `gold -5`, `inventory +1`, `exp sparse`, `rate/cooldown mentions 14/20`), so KEEP was rejected due economy drift.
 - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_MIN_HP_POTION_S 6->5` to reduce buy churn while preserving survivability and hard safety invariants.

@@ -3964,3 +3964,14 @@
 - Development feedback: hold gameplay-policy tuning for this cycle; prioritize deterministic telemetry preflight/read-path unification before any combat/economy adjustments.
 - Retry recommendation: run paired preflight (`/api/status` + `/api/logs?limit=1`) on one shared client path with bounded retries (`15s`, `45s`, `120s`); if any non-200 or transport fail, emit `telemetry_blocked` and skip KPI inference.
 - [2026-03-15 23:26 KST] Next 30-min actionable TODO: implement `scripts/telemetry-preflight-dns-v2.js` to emit `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and wire hourly feedback to hard-gate summary synthesis when `inference_allowed=false`.
+
+## [2026-03-16 00:17 KST] 30-minute STRATEGY DIRECTOR run (adaptive + equipment progression)
+- Adaptive loop evidence: fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`2026-03-15 13:19:23 -> 23:50:12`, `count=20`): `level +1`, `gold +10`, `inventory +1`, rate-limit/throttle mentions `19/20`.
+- Decision: **KEEP** (improvement evidence present; no death-growth signal in window). No parameter/logic change committed this cycle.
+- Live status check: `GET /api/status=200` -> `level=23`, `exp=4055`, `gold=349`, `area=talking_island_field`.
+- Safety/efficiency guard confirmation: available monsters remain `rabbit/skeleton`; safest high-efficiency target remains `skeleton` under strict movement threshold/risk-gap controls.
+- Hard constraints re-verified in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with `worse-than-equipped-first` liquidation when slots `>=10`.
+- Equipment progression confirmation: BiS auto-equip (`equipSlot + maxDamage+defBonus`) remains active; staged enhancement policy remains documented/active; prereq-gated enhancement path safely skipped this cycle (`GET /api/npc/list => npcCount=0`, no enchant scroll in inventory).
+- Daemon continuity + smoke: process check confirms `scripts/live-runner-daemon.sh` and child `node scripts/live-strategy-runner.js` alive; smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=23`, `exp=4057`, `gold=354`, `code=200` (`tmp/cron-smoke-0017.txt`).
+- Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-0017.json`).
+- Next 30m KPI target: `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=28%`, `exp>=4125 or gold>=366`, and smoke `code=200`.
