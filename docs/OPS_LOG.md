@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 21:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`11:19:04 -> 20:50:04`, `count=20`) yielded `level +1`, `gold +10`, `exp/death sparse`, `rate/cooldown mentions 14/20`; measurable improvement evidence exists, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=23`, `exp=2835`, `gold=349`, `hp=286/430`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` while movement stays threshold-gated (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeat risk.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path remains implemented and safely skipped (`GET /api/npc/list => npcs=[]`, enchant scroll counts `0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=23`, `exp=2839`, `gold=359`, `code=200` (`tmp/cron-smoke-2148.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-2148.txt`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-2148.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=28%`, and progression `exp +>=70` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 21:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` ordered window (`11:19:04 -> 20:50:04`, `count=20`) yielded `level +1`, `gold +10`, `inventory +0`, `exp sparse`, `rate/cooldown mentions 15/20`; measurable improvement evidence exists, so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status` read path is currently auth-blocked (`401`), so active area was sourced from latest thinking context (`talking_island_field`) and verified by `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` while movement stays threshold-gated (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeat risk.
