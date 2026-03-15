@@ -3726,3 +3726,10 @@
 - Development feedback: block gameplay-policy tuning while connectivity preflight is non-`ok`; keep outage-only feedback until status/log probes recover.
 - Retry recommendation: verify DNS path for `webgame-api.berrysoft.kr` (resolver/VPN/firewall) and re-run `GET /api/status` first, then `/api/logs`.
 - [2026-03-15 10:26 KST] Next 30-min actionable TODO: add `connectivity_preflight_v1.2` (DNS resolve + short retry with jitter + explicit `connectivity_state` in hourly output) and hard-stop gameplay inference when state != `ok`.
+- [2026-03-15 11:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked); `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`, `progress_delta(level/exp/gold)=0/0/0`, endpoint statuses `/api/status=200`, `*/recent=404`.
+  - Direct probe cross-check in same run context: `GET /api/status=401`, `GET /api/logs?limit=1=401`, while `GET /api/agent/thinking/j211y?limit=20=200` (latest points `10:50 -> 11:19`, context gold `349 -> 354`, level `22 -> 22`, inventory `7 -> 4`).
+  - Last-hour gameplay signals (confidence: low): progression appears mild-positive on strategy telemetry (`gold +5`, stable level 22); wins/defeats and resource deltas are unresolved from canonical status/log endpoints due to `401` auth failures.
+  - Anomaly: credential-path inconsistency persists (`activity:fetch` sees status healthy, direct status/log reads unauthorized), so gameplay-policy retuning is deferred this cycle.
+  - Failure mode + retry recommendation: run a single preflight pair (`/api/status` + `/api/logs?limit=1`) using the exact credential-loading path of hourly collector; if either is non-200, rotate/rebind key and block gameplay inference for that hour.
+  - Next 30m actionable TODO: implement `scripts/auth-preflight-gate.js` returning deterministic `auth_state=ok|unauthorized|source_mismatch` and make hourly cycle emit `auth_blocked` when state != `ok`.

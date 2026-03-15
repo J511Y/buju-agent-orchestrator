@@ -1075,3 +1075,9 @@ Track A/B and policy experiments.
 - Metric(s): % outage cycles with explicit root-cause classification; false gameplay inferences during transport failures; mean time-to-diagnose DNS incidents.
 - Result: Current cycle failed before auth/data collection (`/api/status`, `/api/logs` both transport DNS errors), so gameplay signals were unavailable.
 - Decision: Run in next 30-min dev cycle; promote if 4 consecutive outage cycles are classified deterministically with zero false gameplay inference.
+- Date: 2026-03-15 11:28 KST
+- Hypothesis: For hourly feedback, a hard `auth_state` gate using the collector's exact credential path will prevent false gameplay interpretation when `/api/status` and `/api/logs` drift to `401` but partial telemetry endpoints still return `200`.
+- Change: Add `scripts/auth-preflight-gate.js` and require `auth_state=ok` before computing progression/win-defeat/resource summaries.
+- Metric(s): low-confidence hourly cycles/day; split-signal incidence (`status/log 401` with parallel `200` endpoint); mean time-to-diagnose auth issues.
+- Result: Current cycle reproduced split signal (`activity:fetch /api/status=200` with fallback payload, but direct `/api/status` and `/api/logs` were both `401`; thinking endpoint remained `200`).
+- Decision: Proceed in next 30-min dev cycle; promote to mandatory gate if reproduced in the next consecutive hourly run.
