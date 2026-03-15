@@ -1193,3 +1193,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause tag`, and false gameplay-inference count during transport failures.
 - Result: Current cycle reproduced divergence (`activity:fetch` reported `/api/status=200`, while direct status/log probes both failed with `fetch failed`; recent endpoints remained `404`).
 - Decision: Execute in next 30-min dev cycle; promote if split-signal cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-16 04:28 KST
+- Hypothesis: Enforcing `auth_readpath_preflight_v5` with a single shared HTTP client fingerprint for both direct probes and collector probes will eliminate contradictory hourly states (`direct 401` vs collector status `200`) and reduce blocked-feedback churn.
+- Change: Before hourly synthesis, run same-process paired checks (`/api/status`, `/api/logs?limit=1`) on one canonical header/client path; emit `{auth_state, readpath_state, inference_allowed, client_fingerprint}` and block inference unless both checks are `200`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit auth root-cause`, and `time-to-recover after key rotate/rebind`.
+- Result: Current cycle again reproduced mismatch (direct `/api/status` and `/api/logs` both `401`, while `activity:fetch` still observed `/api/status=200` and all `*/recent` were `404`), leaving last-hour gameplay signals unavailable.
+- Decision: Execute in next 30-min dev cycle; promote if split cycles drop to zero for 6 consecutive hourly runs.

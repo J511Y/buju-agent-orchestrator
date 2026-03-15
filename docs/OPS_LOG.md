@@ -4057,3 +4057,13 @@
 - Development feedback: hold policy/aggression changes; prioritize unified preflight/read-client parity and deterministic outage classification before gameplay synthesis.
 - Failure mode + retry recommendation: classify `transport_or_readpath_blocked`; retry shared-client probes (`/api/status`, `/api/logs?limit=1`) with 2 attempts (10s, 30s jittered backoff). If non-200 persists, keep inference disabled and log only outage evidence.
 - TODO (next 30-min): add `telemetry_preflight_v3` guard that emits `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and blocks hourly KPI synthesis unless `inference_allowed=true`.
+
+## [2026-03-16 04:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked key path): loaded `BUJU_API_KEY` from `.env` in-process (masked; raw key never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com`.
+- Probe outcome: both direct endpoints returned `401 UNAUTHORIZED` (`Missing or invalid API key`), so no reliable last-hour event payload was available (`events=0`; progression/win-loss/resource trend blocked).
+- Collector cross-check: `npm run -s activity:fetch -- --hours 1` still reported `/api/status=200` while all `*/recent` endpoints were `404` and fallback KPIs remained zero (`wins=0`, `defeats=0`, `Δexp=0`, `Δgold=0`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown due to auth/read-path inconsistency.
+- Anomaly: split read-path persists (`direct status/logs=401` vs collector `/api/status=200`) with no recent-history endpoint availability.
+- Development feedback: block gameplay-policy tuning this hour; prioritize one canonical auth/read client path and deterministic preflight gate before KPI inference.
+- Failure mode + retry recommendation: classify as `auth_blocked_with_readpath_mismatch`; run paired preflight (`/api/status` + `/api/logs?limit=1`) with 2 attempts and jittered backoff (`10s`, `30s`), and keep `inference_allowed=false` until both return `200` on the same client/header path.
+- TODO (next 30-min): add `scripts/auth-readpath-preflight-v5.js` that emits `{auth_state, readpath_state, inference_allowed, retry_after_ms, client_fingerprint}` and wire hourly feedback to hard-stop synthesis unless `auth_state=ok && readpath_state=ok`.
