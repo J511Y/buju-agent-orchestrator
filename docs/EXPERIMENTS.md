@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 19:26 KST
+- Hypothesis: Adding a versioned auth preflight (`status + logs`, same env source, short retry) with explicit `expired_key` classification will reduce repeated low-confidence hourly feedback during 401 streaks.
+- Change: Implement `auth-preflight-gate-v2` that emits `ok|unauthorized|source_mismatch|expired_key` and blocks hourly gameplay synthesis unless `ok`.
+- Metric(s): `% hourly cycles blocked with deterministic auth_state`, `repeat 401 cycles before root-cause classification`, `% low-confidence summaries during auth incidents`.
+- Result: Current cycle returned `401` on both `/api/status` and `/api/logs?page=1&limit=100`; last-hour evidence set remained empty (`events=0`).
+- Decision: Run in next 30-min dev cycle; promote if 3 consecutive auth-failure cycles are classified without fallback gameplay inference.
+
 - Date: 2026-03-15 16:28 KST
 - Hypothesis: A strict connectivity-first gate (`status + logs` with short jittered retry) will reduce false gameplay feedback during transport outages by deterministically classifying outage cause before synthesis.
 - Change: Add `connectivity-preflight-v2` before hourly aggregation to emit `ok|dns_unreachable|network_unreachable|timeout` and block progression/win-defeat/resource inference unless state is `ok`.

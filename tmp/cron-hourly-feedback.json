@@ -1,0 +1,31 @@
+{
+  "base": "https://bujuagent.com",
+  "now": "2026-03-15T10:27:58.753Z",
+  "cutoff": "2026-03-15T09:27:58.753Z",
+  "status": {
+    "ok": false,
+    "status": 401,
+    "body": {
+      "error": "UNAUTHORIZED",
+      "message": "Missing or invalid API key"
+    }
+  },
+  "pages": [
+    {
+      "page": 1,
+      "status": 401,
+      "ok": false,
+      "count": null,
+      "error": "UNAUTHORIZED"
+    }
+  ],
+  "events": [],
+  "errors": [
+    {
+      "stage": "logs",
+      "page": 1,
+      "status": 401,
+      "error": "UNAUTHORIZED"
+    }
+  ]
+}

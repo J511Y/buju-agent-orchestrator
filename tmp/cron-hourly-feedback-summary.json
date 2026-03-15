@@ -1,0 +1,27 @@
+{
+  "ok": false,
+  "statusOk": false,
+  "statusCode": 401,
+  "logEvents": 0,
+  "wins": 0,
+  "defeats": 0,
+  "deaths": 0,
+  "counts": {},
+  "resourceTrend": {
+    "goldDeltaSampleSum": 0,
+    "expDeltaSampleSum": 0,
+    "samples": {
+      "gold": 0,
+      "exp": 0
+    }
+  },
+  "latestStatus": null,
+  "errors": [
+    {
+      "stage": "logs",
+      "page": 1,
+      "status": 401,
+      "error": "UNAUTHORIZED"
+    }
+  ]
+}
