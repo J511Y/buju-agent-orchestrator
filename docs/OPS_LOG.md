@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 14:27 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked), then probed `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com`; both returned `401 UNAUTHORIZED` (`Missing or invalid API key`).
+  - Last-hour gameplay signals: unavailable from live API due to read-auth failure (`window 2026-03-15T04:27:44Z~05:27:44Z`, sampled events `0`), so progression/wins-defeats/resource trends are low-confidence for this cycle.
+  - Anomaly: auth gate failed at both status and logs endpoints in the same runtime context, indicating credential invalidation/scope drift or key-source mismatch.
+  - Dev feedback: do not tune gameplay policy from this cycle; prioritize auth-path restoration and deterministic preflight before ingesting hourly metrics.
+  - Failure mode + retry recommendation: on next cycle run a single masked preflight (`/api/status` + `/api/logs?limit=1`) with the identical env-loading path used by the collector; if either remains non-200, rotate/rebind API key and rerun before summary generation.
+  - Next 30m actionable TODO: implement `scripts/auth-preflight-gate.js` that emits `ok|unauthorized|source_mismatch` and hard-blocks hourly feedback synthesis when state is not `ok`.
+
 - [2026-03-15 13:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; not printed), `GET /api/status => 200`, and paged `GET /api/logs?page=1..3&limit=100 => 200`; sampled 60-minute window `12:28:26~13:27:58 KST` (`279` events).
   - Last-hour gameplay signals: progression stable-positive (`level 22 유지`, status `exp 3795`, `gold 349`, `hp 257/415`, `area=talking_island_field`), outcomes `wins=200`, `defeats=0`, `surrender=8`, `deaths=0`; resources/trade behavior `buy=40`, `sell=1`, `rest=19`, `drop=10`.

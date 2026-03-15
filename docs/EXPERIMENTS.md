@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 14:27 KST
+- Hypothesis: Enforcing a hard `auth_preflight` gate before hourly KPI synthesis will eliminate zero-evidence gameplay summaries during credential failures.
+- Change: Add `scripts/auth-preflight-gate.js` to probe `/api/status` and `/api/logs?limit=1` using the same `.env` loader and emit `auth_state` (`ok|unauthorized|source_mismatch`).
+- Metric(s): `% hourly cycles blocked with explicit auth reason`, `% low-confidence gameplay summaries`, `time-to-recover after key rotation`.
+- Result: Current live probe failed both reads with `401` (`status` + `logs page=1`) and produced `0` in-window events, confirming need to block inference when auth is broken.
+- Decision: Run in next 30-min dev cycle; promote to default after 3 consecutive cycles with deterministic auth-state classification.
+
 - Date: 2026-03-15 13:28 KST
 - Hypothesis: A lightweight `hourly-sustainability-guard` triggered by surrender/buy spikes (`surrender>=6/h` or `buy>=35/h`) will reduce resource churn without sacrificing kill throughput.
 - Change: Add guard in the strategy loop to increase temporary HP re-engage floor, cap burst buys per short window, and force one-cycle cooldown after surrender clusters.
