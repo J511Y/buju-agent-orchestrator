@@ -1,6 +1,24 @@
 # Ops Log
 
 ## 2026-03-15
+- [2026-03-15 13:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; not printed), `GET /api/status => 200`, and paged `GET /api/logs?page=1..3&limit=100 => 200`; sampled 60-minute window `12:28:26~13:27:58 KST` (`279` events).
+  - Last-hour gameplay signals: progression stable-positive (`level 22 유지`, status `exp 3795`, `gold 349`, `hp 257/415`, `area=talking_island_field`), outcomes `wins=200`, `defeats=0`, `surrender=8`, `deaths=0`; resources/trade behavior `buy=40`, `sell=1`, `rest=19`, `drop=10`.
+  - Resource/anomaly readout: combat throughput remains high (`avg turns 8.8`, `avg 피격 7.8`) but potion/trade churn is elevated (`high_buy_frequency=40/h`, `surrender_spike=8/h`) and current gold is slightly below recent checkpoint (`12:46 status gold 359 -> 349`, `-10`).
+  - Dev feedback: keep safe-field skeleton farming baseline, but tighten sustain controls before throughput tuning (reduce unnecessary buy loop pressure, gate surrender bursts with HP floor + rest/item prechecks).
+  - Next 30m actionable TODO: implement `hourly-sustainability-guard` in strategy loop (`if surrender>=6/h or buy>=35/h -> raise HP floor + cap buy burst + delay re-engage 1 tick`) and validate with one smoke run + next hourly delta.
+
+- [2026-03-15 13:16 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`count=20`, `2026-03-15 01:19:42 -> 2026-03-15 12:49:18`): `level +1` (`21->22`), `gold +55` (`279->334`), `inventory +0` (`6->6`), `rate-limit/429 mentions 0/20`; improvement evidence present, so CHANGE was not applied.
+  - Death/risk evidence: `GET /api/logs?action=death&limit=100` remains stale at prior checkpoint (`latest death 05:09:30 KST`, `death delta from now=0`), so repeated-defeat pressure is not increasing.
+  - Safety/efficiency evidence: live status `GET /api/status => 200` (`level=22`, `exp=3725`, `gold=334`, `area=talking_island_field`) and monster probe `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton` with strict level-threshold movement (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation still prioritizes selling unequipped gear worse than equipped first.
+  - Equipment progression requirements preserved: best-in-slot auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active (live check: weapon BiS `short_sword` already equipped); staged enhancement plan remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated and safely skipped this cycle (`GET /api/npc/list => 200`, `npcCount=0`, inventory enchant scroll count `0`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=22`, `exp=3727`, `gold=339`, `code=200`.
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-1316.txt`).
+  - Ops telemetry posted: first post failed validation (`400 INVALID_INPUT action_detail<=200`), corrected and reposted successfully `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1316.json`).
+  - Next 30m KPI: `death delta=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, combined `wait_combat_start_rate_limit+wait_combat_start_cooldown<=30%`, and progression `exp +>=80` or `gold +>=12` with smoke `code=200`.
+
 - [2026-03-15 12:46 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): fetched `GET /api/agent/thinking/j211y?limit=20` and computed ordered window delta (`count=20`, `2026-03-15 00:49:26 -> 2026-03-15 12:19:02`): `level +1` (`21->22`), `gold +20` (`339->359`), `inventory -1` (`7->6`), `rate-limit/429 mentions 11/20`; improvement evidence present, so CHANGE was not applied.
   - Death/risk evidence: `GET /api/logs?action=death&limit=100` shows no fresh growth after latest checkpoint (`latest death remains 05:09 KST`, `death delta from now=0`).
@@ -3775,3 +3793,4 @@
 - Development feedback: keep gameplay policy retuning paused until one canonical read path yields consistent `200` for both `/api/status` and `/api/logs` in the same cycle; prioritize preflight parity/connectivity instrumentation over combat/economy tuning.
 - Failure retry recommendation: next cycle run deterministic preflight (`/api/status` + `/api/logs?limit=1`) using collector credential/header path first; on any non-`200`, emit `telemetry_blocked` and skip gameplay inference.
 - [2026-03-15 12:27 KST] Next 30-min actionable TODO: implement `hourly_readpath_preflight_v1` to emit `readpath_state=ok|status_only|transport_fail|auth_fail`, attach it to OPS output, and hard-gate summary inference when state != `ok`.
+[2026-03-15 12:56:09 KST] Restarted live-runner-daemon.sh via cron watchdog.

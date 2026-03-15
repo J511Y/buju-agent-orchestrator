@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-15 13:28 KST
+- Hypothesis: A lightweight `hourly-sustainability-guard` triggered by surrender/buy spikes (`surrender>=6/h` or `buy>=35/h`) will reduce resource churn without sacrificing kill throughput.
+- Change: Add guard in the strategy loop to increase temporary HP re-engage floor, cap burst buys per short window, and force one-cycle cooldown after surrender clusters.
+- Metric(s): `buy_per_hour`, `surrender_per_hour`, net `gold` delta/hour, `wins/hour` change vs prior hour baseline (`wins=200`).
+- Result: Baseline captured from live window (`279` events): `wins=200`, `defeats=0`, `surrender=8`, `buy=40`, `rest=19`, status gold `349` (below prior `359` checkpoint).
+- Decision: Run in next 30-min dev cycle; keep only if surrender and buy both drop >=20% with no >10% win-rate regression.
+
 - Date: 2026-03-15 09:27 KST
 - Hypothesis: A hard auth preflight gate (`/api/status` + `/api/logs?limit=1`) using the identical credential-loading path as hourly fetch will eliminate recurring split-signal cycles (`activity:fetch ok` vs direct `401`).
 - Change: Implement `scripts/auth-preflight-gate.js` and make hourly feedback exit with `auth_blocked` when probe state is not `ok`.
