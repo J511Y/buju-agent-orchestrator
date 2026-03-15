@@ -1186,3 +1186,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles blocked by auth/readpath mismatch`, `mixed-signal cycles/day`, `time-to-recover after key rotate/rebind`.
 - Result: Current cycle reproduced mismatch (direct status/logs both `401`, collector fallback still indicated reachable status), leaving last-hour gameplay KPIs unresolved.
 - Decision: Run in next 30-min cycle; promote if mixed-signal auth cycles drop to zero for 6 consecutive hourly runs.
+
+- Date: 2026-03-16 03:27 KST
+- Hypothesis: For hourly feedback, forcing a single shared transport client for both collector and direct probes (`/api/status` + `/api/logs?limit=1`) will eliminate split-signal cycles (`status=200` vs transport-fail) and reduce zero-evidence summaries.
+- Change: Add `telemetry_preflight_v3` that emits deterministic `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and blocks gameplay synthesis unless `inference_allowed=true`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause tag`, and false gameplay-inference count during transport failures.
+- Result: Current cycle reproduced divergence (`activity:fetch` reported `/api/status=200`, while direct status/log probes both failed with `fetch failed`; recent endpoints remained `404`).
+- Decision: Execute in next 30-min dev cycle; promote if split-signal cycles drop to zero for 4 consecutive hourly runs.

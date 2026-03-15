@@ -4036,3 +4036,13 @@
 - Development feedback: do not tune combat/economy policy this hour; first restore deterministic auth/read-path parity for hourly telemetry.
 - Failure mode + retry recommendation: classify as `auth_blocked`; retry preflight (`/api/status` + `/api/logs?limit=1`) with 2 attempts and jittered backoff (10s, 30s). If either remains non-200, keep inference disabled and rotate/rebind API key source.
 - TODO (next 30-min): implement `scripts/auth-readpath-parity-check-v1.js` that emits `{auth_state, readpath_state, inference_allowed, retry_after_ms, key_source_hash}` and hard-gates hourly feedback synthesis unless `auth_state=ok && readpath_state=ok`.
+
+## [2026-03-16 03:27 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed), queried `npm run -s activity:fetch`, and attempted direct live probes to `GET /api/status` + `GET /api/logs?page=1&limit=200`.
+- Collector path signal: `activity:fetch` returned `/api/status=200`, all `*/recent` endpoints `404`, fallback payload (`source=fallback:local_replay`) with last-hour KPIs all zero (`progress_delta=0`, `wins=0`, `defeats=0`).
+- Direct path signal: both `/api/status` and `/api/logs` failed at transport layer (`TypeError: fetch failed`), so canonical last-hour gameplay evidence was unavailable.
+- Last-hour gameplay summary (confidence: blocked): progression unknown, win/defeat unknown, resource trend unknown due to read-path inconsistency + missing live logs.
+- Anomaly: split telemetry state persisted (`collector status=200` vs direct transport-fail; recent endpoints still `404`), so feedback risk is high if inference is not gated.
+- Development feedback: hold policy/aggression changes; prioritize unified preflight/read-client parity and deterministic outage classification before gameplay synthesis.
+- Failure mode + retry recommendation: classify `transport_or_readpath_blocked`; retry shared-client probes (`/api/status`, `/api/logs?limit=1`) with 2 attempts (10s, 30s jittered backoff). If non-200 persists, keep inference disabled and log only outage evidence.
+- TODO (next 30-min): add `telemetry_preflight_v3` guard that emits `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and blocks hourly KPI synthesis unless `inference_allowed=true`.
