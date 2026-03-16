@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 07:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 21:21:29 -> 2026-03-17 07:21:11`) improved (`level +1`, `exp +0`, `gold +15`, `inventory -3`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=2285`, `gold=424`, `area=talking_island_field`, `in_combat=false`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target policy remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeats.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`, enchant scroll stock `0`).
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0748.txt`); no restart issued. Smoke probe (`tmp/cron-smoke-0748.txt`) returned `ok=0/2` with `hunt` `400`, so kept current config while logging for next adaptive decision if progression stalls.
+  - Ops telemetry post attempt: `POST /api/agent/thinking => 401 UNAUTHORIZED`; payload/response archived (`tmp/thinking-post-0748.json`, `tmp/thinking-post-response-0748.json`) for replay after auth recovery.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, cooldown/rate mentions `<=8/20`, and progression `exp>=2350` or `gold>=434`.
+
 - [2026-03-17 07:26 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed successfully (`BUJU_API_KEY` present; masked, not logged).
   - Live probes: `scripts/fetch-activity.js` reported `/api/status=200` with all `*/recent` endpoints `404` (`tmp/hourly-activity-0726.json`); direct canonical probes (`/api/status`, `/api/logs?page=1&limit=100`) failed at transport layer (`fetch failed`) in the same cycle (`tmp/hourly-live-signal-0726.json`).
