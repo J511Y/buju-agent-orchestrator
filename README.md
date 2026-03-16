@@ -90,10 +90,10 @@ npm run dev
   - `POST /combat/start`가 `429`를 반환하면 같은 틱에서 1회 `POST /hunt` 폴백(`hunt_on_combat_start_rate_limit`)을 시도해 순수 대기 비율을 낮춤
   - `/api/status.rate_limits` 기반 사전 예산 체크로 잔여 호출 0인 액션은 선제 스킵(불필요한 429/400 감소)
   - `BUJU_BASE_DELAY_MS`는 rate-limit 병목 완화를 위한 기본 페이싱 제어값으로 운영하며, 변화 시 소폭/가역 튜닝을 우선 (현재 기본값: `5400`)
-  - `BUJU_MAX_ACTIONS_PER_CYCLE`는 rate-limit 구간에서 사이클당 burst를 줄이기 위한 1차 쿼터 제어값으로 운영 (현재 기본값: `2`)
+  - `BUJU_MAX_ACTIONS_PER_CYCLE`는 rate-limit 구간에서 사이클당 burst를 줄이기 위한 1차 쿼터 제어값으로 운영 (현재 기본값: `1`)
   - 지역 이동 임계(`BUJU_MOVE_LEVEL_*`/`BUJU_AREA_LV*`)와 안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)은 연속 패배/과위험 전투를 줄이기 위한 보수적 기본값으로 유지(현재 기본값 예: `BUJU_MOVE_LEVEL_2=30`)
   - 몬스터 선택 안전 필터는 레벨 격차 + 공격력 가드 + hard danger cap(압박/무장 상태 반영) 3중 게이트를 함께 사용하며, 안전 필터가 비면 최저 위험 몬스터 우선으로 폴백
-  - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=20`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=32`)
+  - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=20`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=32`, `BUJU_BACKOFF_BASE_MS=1400`)
   - `combat/start` 429가 연속되면 연속 횟수(최대 +6 tick)를 더한 적응형 쿨다운을 추가 적용해 즉시 재시도 폭주를 억제
 
 ## Activity KPI Fetcher
