@@ -1,0 +1,16 @@
+{
+  "source": "remote-thinking",
+  "status": 200,
+  "count": 20,
+  "window": [
+    "2026-03-16 13:21:02",
+    "2026-03-16 22:51:14"
+  ],
+  "delta": {
+    "level": 1,
+    "exp": 0,
+    "gold": 10,
+    "inventory": 3
+  },
+  "rateMentions": 37
+}

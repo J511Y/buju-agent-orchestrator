@@ -1,0 +1,33 @@
+{
+  "character_name": "j211y",
+  "tick_number": 1773670820475,
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.537,
+    "mp_pct": 1,
+    "level": 25,
+    "area": "talking_island_field",
+    "gold": 409,
+    "inventory_count": 7,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "use_item",
+      "move",
+      "rest",
+      "buy",
+      "sell",
+      "skill_buy",
+      "skill_learn",
+      "enhance",
+      "teleport",
+      "surrender"
+    ]
+  },
+  "reasoning": "KEEP with evidence from remote last-20 thinking logs (20 entries, 2026-03-16 13:21:02 -> 2026-03-16 22:51:14) showing improvement delta level +1, gold +10, deaths no fresh signal, while safest current target remains skeleton in talking_island_field under strict moveLv2=30 gate.",
+  "action_detail": "keep:delta(L+1,E+0,G+10,Inv+3),target=skeleton,moveLv2=30,inv=10/8/10(worse-first>=10),BiS(slot+maxDmg+def),enhance=prereq-gated(npc0,scroll0)",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, dangerous-surrender<=1/8 cycles, wait_combat_start_rate_limit+wait_combat_start_cooldown<=11%, and progression exp>=4560 or gold>=424 with smoke code=200."
+  }
+}
