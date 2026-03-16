@@ -1,6 +1,17 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 13:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `tmp/cron-last20-delta-1317.json` (`count=20`, `2026-03-16 02:20:24 -> 11:52:15`) stayed flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`) with `rate/cooldown mentions 16/20`, so KEEP was rejected.
+  - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_STALL_429_COOLDOWN_TICKS 16->18` to reduce repeated `combat_start` throttle churn while preserving all safety gates and movement thresholds.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=24`, `exp=4901`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early no-risky-spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains implemented and prerequisite-gated (`GET /api/npc/list => npcs=[]`, no enchant scroll).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=24`, `exp=4907`, `gold=414`, `code=200` (`tmp/cron-smoke-1317.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-1317.txt`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1317.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=15%`, and progression `exp>=4980` or `gold>=426` with smoke `code=200`.
+
 - [2026-03-16 12:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=0`, so fallback local last-20 thinking posts (`tmp/thinking-post-0217.json -> tmp/thinking-post-1147.json`) were delta-scored; evidence improved (`level +1`, `gold +20`, `inventory -3`, `death +0`, `rate/cooldown mentions 16/20`), so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=24`, `exp=4375`, `gold=384`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated-defeat risk.
@@ -4222,3 +4233,4 @@
 - Development feedback: do not tune gameplay policy this cycle; prioritize transport/readpath parity and hard preflight gating before any KPI-driven strategy changes.
 - Failure mode + retry recommendation: classify as `transport_readpath_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, max 3 attempts) and keep `inference_allowed=false` until both return `200` on the same client/header path.
 - TODO (next 30-min): implement `telemetry-preflight-shared-client-v3` artifact (`tmp/hourly-preflight.json`) with `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and hard-stop hourly synthesis when blocked.
+2026-03-16 13:17:18 KST | watchdog restarted live-runner-daemon
