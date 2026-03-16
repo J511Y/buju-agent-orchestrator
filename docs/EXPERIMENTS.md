@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-16 20:26 KST
+- Hypothesis: Enforcing an hourly auth-parity gate that compares collector and direct probes in one run will eliminate split-signal summaries (`collector /api/status=200` while direct status/log are `401`) and reduce false gameplay inference.
+- Change: Before synthesis, emit `tmp/hourly-auth-parity.json` from same-process checks (`collector activity:fetch status`, direct `GET /api/status`, direct `GET /api/logs?limit=1`) and require all to be `200` for `inference_allowed=true`.
+- Metric(s): `split_signal_rate`, `% blocked cycles with deterministic auth_state`, `false gameplay-summary count during auth drift`.
+- Result: Current cycle reproduced divergence (`activity:fetch` reported `/api/status=200` + recent endpoints `404`, while direct `/api/status` and `/api/logs` were both `401`), so last-hour gameplay outcomes were unresolved.
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive split-signal cycles are deterministically blocked with zero gameplay-policy recommendations.
+
 - Date: 2026-03-16 13:26 KST
 - Hypothesis: A shared-client telemetry preflight with explicit DNS classification (`dns_unreachable`) will reduce zero-evidence hourly feedback and speed outage triage during resolver incidents.
 - Change: Run `telemetry-preflight-shared-client` before hourly synthesis (`/api/status` + `/api/logs?limit=1`), emit `{dns_state, readpath_state, inference_allowed, retry_after_ms}`, and block gameplay inference unless `inference_allowed=true`.

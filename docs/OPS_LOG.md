@@ -1,5 +1,32 @@
 # Ops Log
 
+- [2026-03-16 20:26 KST] Hourly Buju gameplay-feedback cycle executed.
+  - Evidence: loaded `BUJU_API_KEY` from local `.env` in-process (masked; secret not printed). `npm run -s activity:fetch -- --hours 1` returned fallback payload with `/api/status=200`, all `*/recent` endpoints `404` (failure streak `5`), and `progress_delta=0/0/0`.
+  - Direct authenticated read-path check (same runtime key source) failed on both probes: `GET /api/status => 401`, `GET /api/logs?page=1&limit=100 => 401`; last-hour sampled events remained `0`.
+  - Last-hour gameplay signals: progression `unknown/blocked` (collector fallback zero-delta conflicts with direct auth failure), wins/defeats `unresolved`, resource trend `unresolved`, anomaly=`read-path auth divergence` (`collector status=200` vs direct `401`).
+  - Development feedback: treat this hour as telemetry-integrity incident, not gameplay regression; block policy/aggression tuning until a canonical auth preflight returns `200` for both status and logs on the same client path.
+  - Failure mode + retry recommendation: rerun masked preflight (`/api/status` + `/api/logs?limit=1`) with 2 attempts and 5-10s jittered backoff; if either probe stays non-200, classify `auth_blocked` and skip gameplay inference.
+  - Next 30m actionable TODO: implement `tmp/hourly-auth-parity.json` emission in hourly flow (`collector_status_http`, `direct_status_http`, `direct_logs_http`, `inference_allowed`) and gate doc synthesis on `inference_allowed=true`.
+
+- [2026-03-16 20:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window delta (`2026-03-16 09:49:44 -> 19:51:31`) was mixed-positive (`level +1`, `inventory -1`, `death delta +0`, `gold -15`) with throttle wording `15/20`, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=2895`, `gold=414`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Live continuity evidence: daemon remains continuous (`tmp/live-runner-procs-2018.txt`: `live-runner-daemon.sh` pid `5854`); smoke passed (`tmp/cron-smoke-2018.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `code=200`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-2018.json`, `tmp/thinking-post-response-2018.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=13%`, and progression `exp>=2980` or `gold>=428`.
+
+- [2026-03-16 19:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window delta (`2026-03-16 09:19:24 -> 19:19:55`) was positive (`level +1`, `gold +25`, `inventory +1`, death-log delta `+0`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=2621`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Live continuity action: duplicate stale daemon lineage was cleaned and single lock-owner daemon retained (`logs/live-runner-daemon.lock` PID `5854`); runtime snapshot archived (`tmp/live-runner-procs-1948.txt`).
+  - Live smoke: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=25`, `exp=2627`, `gold=404`, `code=200` (`tmp/cron-smoke-1948.txt`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1948.json`, `tmp/thinking-post-response-1948.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=14%`, and progression `exp>=2700` or `gold>=430`.
+
 - [2026-03-16 16:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=0`, so fallback local last-20 thinking posts were delta-scored (`tmp/cron-last20-delta-1648.json`, `tmp/thinking-post-0617.json -> tmp/thinking-post-1618.json`, `count=20`); measurable improvement persisted (`level +1`, `gold +35`, `inventory +0`, `death mention pressure 11/20`, `rate/cooldown mentions 19/20`), so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=1025`, `gold=414`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
