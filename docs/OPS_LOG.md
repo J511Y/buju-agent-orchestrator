@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 08:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): remote reads failed at transport/DNS (`curl: Could not resolve host: www.buju.quest`) for thinking/status/monsters/npc/inventory, so no reliable live delta evidence was available this cycle.
+  - Fallback handling: local last-20 artifact (`tmp/cron-last20-delta-0818-local.json`) was not reliable for KEEP because latest thinking payload carried zeroed context from prior auth-path degradation; therefore adaptive policy required a minimal CHANGE.
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_429_COOLDOWN_TICKS 26->28` to widen post-429 cool-off and reduce repeated cooldown/rate-limit churn.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement action path remains prerequisite-gated.
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0818.txt`) and smoke probe completed (`tmp/cron-smoke-0818.txt`) without restart action.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, cooldown/rate mentions `<=8/20`, and progression `exp>=2350` or `gold>=434`.
+
 - [2026-03-17 07:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 21:21:29 -> 2026-03-17 07:21:11`) improved (`level +1`, `exp +0`, `gold +15`, `inventory -3`), so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=2285`, `gold=424`, `area=talking_island_field`, `in_combat=false`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target policy remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`) to avoid repeated defeats.
