@@ -4354,6 +4354,15 @@
 - Failure mode + retry recommendation: classify as `auth_blocked_with_collector_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) on the exact same client/auth stack with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts); keep `inference_allowed=false` until both return `200`.
 - TODO (next 30-min): implement `preflight-auth-parity-v2` that emits `tmp/hourly-preflight.json` with `{auth_state, endpoint_pair_ok, inference_allowed, retry_after_ms}` and hard-stop hourly gameplay inference when parity fails.
 
+## [2026-03-16 21:18 KST] 30-min STRATEGY DIRECTOR cycle
+- Ran mandatory adaptive evidence pass with fallback delta (`tmp/cron-last20-delta-2118.json`) because remote thinking endpoint returned empty (`count=0`).
+- Delta result was flat (`level/exp/gold/inventory/death = 0`), so KEEP rejected and minimal reversible tune applied.
+- Config change: `BUJU_STALL_429_COOLDOWN_TICKS 22 -> 24` in `config/strategy.env`; synced README current-default note.
+- Live safety checks: `/status=200` (`Lv25`, `EXP 3429`, `Gold 409`, `area=talking_island_field`), area monsters (`rabbit`,`skeleton`), `/npc/list=200` with `npcs=[]`, inventory `slots.used=6`.
+- Continuity checks: daemon/runner both active (`tmp/live-runner-procs-2118.txt`), smoke `ok=1/1` with `code=200` (`tmp/cron-smoke-2118.txt`).
+- Safety invariants retained: inventory hard constraints 10/8/10 + worse-than-equipped-first liquidation policy; movement threshold gate (`moveLv2=30`) unchanged.
+- Next-cycle KPI: deaths `0`, inventory `<=8`, danger surrender `<=1/8`, wait-rate-limit+cooldown `<=12%`, progression `exp>=3510` or `gold>=424`.
+
 ## [2026-03-16 19:30 KST] Hourly gameplay-feedback cycle
 - Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (raw secret never printed); live probes to `GET /api/status` and paginated `GET /api/logs` on `https://bujuagent.com/api`.
 - Probe outcome: `/api/status=200`; `/api/logs?page=1&limit=200` returned `400 INVALID_INPUT` (`limit <= 100` required); retry with `/api/logs?page=N&limit=100` succeeded and yielded 462 logs in last 60m.
