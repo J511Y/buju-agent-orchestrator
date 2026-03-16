@@ -1,0 +1,15 @@
+{
+  "count": 20,
+  "window": {
+    "from": "thinking-post-0717.json",
+    "to": "thinking-post-1648.json"
+  },
+  "delta": {
+    "level": 1,
+    "exp": -2043,
+    "gold": -15,
+    "inventory": 4
+  },
+  "deathMentions": 12,
+  "rateCooldownMentions": 18
+}

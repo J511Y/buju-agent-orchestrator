@@ -1,0 +1,21 @@
+{
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.6369565217391304,
+    "mp_pct": 1,
+    "level": 25,
+    "area": "talking_island_field",
+    "gold": 404,
+    "inventory_count": 7,
+    "inventory_max": 30,
+    "available_actions": ["hunt","use_item","move","rest","buy","sell","enhance","surrender"]
+  },
+  "reasoning": "CHANGE with evidence: last-20 delta was mixed (level +1, gold -15, inventory +4) and rate/cooldown pressure stayed high (18/20), so KEEP is rejected. Reduced per-cycle action count to cut cooldown/rate-limit churn while keeping safety-first skeleton targeting and strict level-threshold movement.",
+  "action_detail": "change:maxActions=1,safest=skeleton,moveGate=lv30,inv=10/8/10(worse-first>=10),bis(slot+maxDmg+def),enhance=prereq-gated",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, dangerous_surrender<=1/8 cycles, wait_combat_start(rate+cooldown)<=14%, progression exp>=1380 or gold>=420; daemon continuous."
+  },
+  "character_name": "j211y",
+  "tick_number": 1773649264856
+}
