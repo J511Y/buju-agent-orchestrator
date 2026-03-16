@@ -1349,3 +1349,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_auth_cycles/day`, `% hourly cycles blocked by auth`, and `% blocked cycles missing explicit failure classification`.
 - Result: Baseline this cycle shows direct canonical probes both `401` while probe summary still marks `/api/status` path `ok`; no trustworthy last-hour gameplay KPIs.
 - Decision: Run in next 30-min dev cycle; keep only if split-auth cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-17 02:28 KST
+- Hypothesis: Persisting a bounded retry budget alongside paired canonical auth probes (`/api/status`, `/api/logs?limit=1`) will reduce repeated blocked hourly cycles and speed deterministic recovery from recurring `401` windows.
+- Change: Add `hourly-auth-retry-budget-v1` output (`tmp/hourly-auth-preflight.json`) with `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,next_retry_ms}` and enforce hard-block when `auth_state!=ok`.
+- Metric(s): `blocked_hourly_cycles/day`, `mean_retries_to_first_200`, `% blocked cycles with complete failure classification`.
+- Result: Current cycle returned `/api/status=401`, `/api/logs=401`, `/api/logs/recent=404`; no trustworthy last-hour gameplay KPIs were derivable.
+- Decision: Run in next 30-min dev cycle; keep only if blocked cycles include complete classification for 3 consecutive hours and first-success retry count trends down.
