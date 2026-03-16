@@ -4317,3 +4317,12 @@
 - Retry recommendation: retry with bounded backoff `10s/30s/60s`; if DNS fails 3x, classify cycle `dns_unreachable`, skip gameplay inference, and keep ops mode in telemetry-only.
 - TODO (next 30m): implement a shared-client preflight artifact (`tmp/hourly-preflight.json`) that records `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and gate hourly summary on `inference_allowed=true`.
 
+
+## [2026-03-16 18:26 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (secret never printed), ran `npm run -s activity:fetch -- --hours 1`, then executed direct authenticated live probes `GET /api/status` + `GET /api/logs?page=1&limit=100` on `https://bujuagent.com/api`.
+- Probe outcome: collector path returned `/api/status=200` with all configured recent-history endpoints `404` and fallback payload (`Δlevel=0`, `Δexp=0`, `Δgold=0`, `wins=0`, `defeats=0`); direct status/log probes both returned `401 UNAUTHORIZED`.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown because trusted status/log telemetry could not be jointly validated this cycle.
+- Anomaly: split read/auth path persists (`activity:fetch` sees status healthy while direct bearer probes fail `401`) and recent-history APIs remain unavailable (`404`).
+- Development feedback: hold gameplay-policy/architecture tuning this hour; prioritize unifying auth-source/header path and enforcing preflight gating before synthesis.
+- Failure mode + retry recommendation: classify as `auth_blocked_with_collector_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) on the exact same client/auth stack with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts); keep `inference_allowed=false` until both return `200`.
+- TODO (next 30-min): implement `preflight-auth-parity-v2` that emits `tmp/hourly-preflight.json` with `{auth_state, endpoint_pair_ok, inference_allowed, retry_after_ms}` and hard-stop hourly gameplay inference when parity fails.

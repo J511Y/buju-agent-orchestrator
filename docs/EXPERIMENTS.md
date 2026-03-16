@@ -1291,3 +1291,10 @@ Track A/B and policy experiments.
 - Result: Current cycle had `activity:fetch` fallback with zero KPIs and direct authenticated probes failing DNS on both `/api/status` and `/api/logs`.
 - Decision: Run in next 30-min dev cycle; keep only if split-signal cycles drop to zero for 4 consecutive hourly runs.
 
+
+- Date: 2026-03-16 18:26 KST
+- Hypothesis: `preflight-auth-parity-v2` (shared client + shared env loader + paired `/api/status`/`/api/logs?limit=1` gate) will eliminate split-signal hourly cycles and reduce blocked low-confidence summaries.
+- Change: Add deterministic preflight artifact `tmp/hourly-preflight.json` with `{auth_state, endpoint_pair_ok, inference_allowed, retry_after_ms}` and block KPI synthesis when `endpoint_pair_ok=false`.
+- Metric(s): `split_auth_cycles/day`, `% cycles blocked with explicit auth root-cause`, false gameplay-inference count during `401` windows.
+- Result: Current cycle reproduced mismatch (`activity:fetch` observed `/api/status=200` with recent endpoints `404`; direct authenticated status/log probes both `401`).
+- Decision: Run in next 30-min dev cycle; keep only if split-auth cycles are zero for 4 consecutive hourly runs.
