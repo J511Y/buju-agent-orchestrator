@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 03:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`; fallback local last-20 (`tmp/cron-last20-delta-0318.json`, `thinking-post-1748.json -> thinking-post-0249.json`, `count=20`) improved (`level +1`, `exp +593`, `gold +20`, `inventory +0`, `rate/429/cooldown mentions 9/20`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=949`, `gold=444`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active (`short_sword` over `rusty_sword`); staged enhancement policy in `docs/DECISIONS.md` remains explicit (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Ops telemetry posted: first `POST /api/agent/thinking` failed validation (`reasoning <= 500 chars`), corrected payload then succeeded (`tmp/thinking-post-0318.json`, `tmp/thinking-post-response-0318.json` => `{"success":true}`).
+  - Live continuity evidence: daemon lock-owner lineage remains active (`tmp/cron-0318-procs.txt`, lock pid `72490`); strategy smoke passed (`tmp/cron-smoke-0318.txt`: `ok=1/1`, `lastAction=combat_start`, `level=26`, `exp=945`, `gold=444`, `code=200`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=11%`, and progression `exp>=1030` or `gold>=454`.
+
 - [2026-03-17 02:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`; fallback local delta (`tmp/cron-last20-delta-0249.json`, `thinking-post-1719.json -> thinking-post-0219.json`) was non-improving (`level +0`, `exp +0`, `gold +0`, `inventory +0`, `rate/429/cooldown mentions 20/20`), so KEEP was rejected.
   - Minimal reversible tuning applied: `BUJU_BACKOFF_BASE_MS 1400->1500` in `config/strategy.env`; README current-default note synchronized.
