@@ -1312,3 +1312,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles with live KPI synthesis`, `fallback:local_replay rate`, `schema/input failures per day`, and `buy_hunt_ratio` trend.
 - Result: This cycle confirmed live-read viability (`/api/status=200`, paginated logs produced 462 entries in 60m) while showing schema mismatch on `limit=200` (`400 INVALID_INPUT`) and persistent high buy churn (`buy/hunt=0.55`) despite `defeats=0`.
 - Decision: Run in next 30-min dev cycle; keep only if live KPI synthesis succeeds for 4 consecutive hourly runs and schema/input failures drop to zero.
+
+- Date: 2026-03-16 21:28 KST
+- Hypothesis: `optional_mp_buy_cooldown_v2` (1-cycle optional MP buy skip when `buy/hunt>0.50` and `mp_ratio>=0.95`) will reduce economy churn without lowering hunt throughput.
+- Change: Add guard in live policy path and emit hourly comparison fields `{buy_count, hunt_count, buy_hunt_ratio, gold_snapshot, rest_count}`.
+- Metric(s): `buy_count/hour`, `buy_hunt_ratio`, `hunt_count/hour`, `gold_snapshot_delta`, `defeat_count/hour`.
+- Result: Baseline this cycle (`20:27:46~21:27:44 KST`, `events=453`) shows strong stability (`hunt=270`, `defeats=0`) but persistent buy-heavy loop (`buy=144`, `buy/hunt≈0.53`, `sell=2`, status gold `414`).
+- Decision: Run in next 30-min dev cycle; promote if `buy_hunt_ratio<0.45` for 3 consecutive hourly cycles while `hunt_count` drop stays `<=10%` and `defeats=0`.

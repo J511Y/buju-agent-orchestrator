@@ -4372,3 +4372,13 @@
 - Development feedback: combat stability is strong (zero defeats), but economy churn is still high; prioritize buy pacing and potion-use thresholds before any aggression changes.
 - Failure mode + retry recommendation: treat `limit=200` as contract violation (`input_schema_mismatch`); standardize hourly collector to `limit=100` pagination, and on non-200 log read apply backoff (`10s`, `30s`, `60s`) then mark inference blocked only if all retries fail.
 - TODO (next 30-min): implement `hourly-log-pagination-v1` (fixed `limit=100`, up to 20 pages, stop at 60m cutoff) and emit `tmp/hourly-window-metrics.json` with `{hunt,wins,defeats,buy_hunt_ratio,avg_turns,avg_dmg,avg_hit}`.
+
+## [2026-03-16 21:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (`gq***80`, raw secret never printed), then queried live `GET /api/status` and paginated `GET /api/logs?page=N&limit=100` on `https://bujuagent.com/api`.
+- Probe outcome: `/api/status=200`; paginated logs succeeded and produced a 60-minute sample window (`20:27:46~21:27:44 KST`) with `453` events.
+- Last-hour gameplay signals: progression active (`hunt≈wins=270`, `defeats=0`, `surrender=0`), with status snapshot `Lv25 EXP=3503/6250 Gold=414 HP=232/460 MP=242/242 area=talking_island_field` and active target `skeleton`.
+- Resource trend: high buy-side pressure persists (`buy=144`, `sell=2`, `use_item=4`, `rest=15`), implying potion purchase cadence remains materially higher than inventory liquidation.
+- Anomalies: no defeat/death spike and no transport/auth mismatch this cycle; primary anomaly remains economy churn (`buy/hunt≈0.53`) under otherwise stable combat throughput.
+- Development feedback: keep combat policy unchanged (throughput/survival healthy), prioritize reducing optional MP-potion buys while preserving hunt volume and zero-defeat profile.
+- Failure mode + retry recommendation: none this cycle; if next cycle fails, classify first failing stage (`status` vs `logs`) and retry paired probes with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts) before blocking inference.
+- TODO (next 30-min): implement `optional_mp_buy_cooldown_v2` (skip optional MP buy for 1 cycle when `buy/hunt>0.5` and `mp_ratio>=0.95`), then compare `buy_count`, `buy/hunt`, and `gold_snapshot` over one validation window.
