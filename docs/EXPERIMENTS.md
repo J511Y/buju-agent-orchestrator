@@ -1235,3 +1235,9 @@ Track A/B and policy experiments.
 - Metric(s): `net_gold_flow/hour`, `buy_share/hour`, `hunt_count/hour`, `defeat_rate/hour`, `surrender_count/hour`.
 - Result: Current hour baseline shows strong throughput but economy drag (`wins=232`, `defeats=8`, `buy=138`, `sell=3`, `net_gold_flow=-1160G`, `events=435`).
 - Decision: Run in next 30-min cycle; promote if `net_gold_flow` improves to `>-600G/hour` for 3 consecutive cycles with `hunt_count` not dropping >10%.
+- Date: 2026-03-16 10:26 KST
+- Hypothesis: A single shared-client telemetry preflight (`/api/status` + `/api/logs?limit=1`) with explicit DNS/readpath state will eliminate split-signal hourly cycles (`status=200` vs direct `ENOTFOUND`) and prevent zero-evidence gameplay summaries.
+- Change: Add `telemetry_preflight_shared_client_v2` that outputs `{dns_state, readpath_state, inference_allowed}` and blocks hourly synthesis unless `inference_allowed=true`.
+- Metric(s): `split_readpath_cycles/day`, `% cycles blocked with explicit root-cause`, `false gameplay-inference count during transport failures`.
+- Result: Current cycle reproduced split behavior (`fetch-activity` path saw `/api/status=200` while direct authenticated probe failed with `ENOTFOUND`; `*/recent` endpoints stayed `404`).
+- Decision: Run in next 30-min dev cycle; keep if split-signal cycles drop to zero for 4 consecutive hourly runs.

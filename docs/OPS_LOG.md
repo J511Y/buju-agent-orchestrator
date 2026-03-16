@@ -4165,3 +4165,11 @@
 - Development feedback: keep combat throughput policy stable (win volume is strong), but tighten potion-buy cadence and surrender recovery branch to reduce hourly gold drain without reducing hunt count.
 - TODO (next 30-min): add `economy_churn_guard_v2` in runner (trigger when `buy_share>30% && netGoldFlow<-1000` => 1-cycle MP-buy cooldown + forced sell sweep if unequipped trash exists), then verify no hunt throughput regression.
 2026-03-16 08:24:57 KST restarted scripts/live-runner-daemon.sh (watchdog)
+- [2026-03-16 10:26 KST] Hourly gameplay-feedback cycle (Buju live probe, mixed transport signal).
+  - Evidence: loaded `BUJU_API_KEY` from `.env` (masked; not printed). `node scripts/fetch-activity.js` returned fallback payload with `/api/status=200` and all `*/recent` endpoints `404`; direct authenticated status/log probe in same cycle failed transport (`ENOTFOUND webgame-api.berrysoft.kr`).
+  - Last-hour gameplay signals: low-confidence only (`progress_delta: level 0, exp 0, gold 0`; `known_outcomes win/defeat: 0/0`; `action counts: empty`) because canonical recent-log path was unavailable.
+  - Resource/progression readout: no trustworthy in-window movement could be confirmed from canonical logs; treat this cycle as telemetry-blocked, not gameplay-regressed.
+  - Anomalies: persistent history endpoint outage (`/api/*/recent` all `404`) plus DNS/readpath split (`fetch-activity status=200` vs direct `ENOTFOUND`) indicates observability-path inconsistency.
+  - Dev feedback: freeze policy/aggression changes for this cycle; prioritize telemetry reliability (single shared client + deterministic DNS/readpath preflight) before strategy tuning.
+  - Failure mode + retry recommendation: classify as `transport_dns_or_readpath_mismatch`; retry with short backoff (30-60s, max 3 attempts), verify resolver/network path on runner host, then rerun preflight `GET /api/status` + `GET /api/logs?limit=1` on the same client stack.
+  - Next 30m actionable TODO: add `telemetry_preflight_shared_client` step that emits `{dns_state, readpath_state, inference_allowed}` to `tmp/hourly-preflight.json` and hard-blocks gameplay synthesis when `inference_allowed=false`.
