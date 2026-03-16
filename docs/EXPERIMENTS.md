@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-16 13:26 KST
+- Hypothesis: A shared-client telemetry preflight with explicit DNS classification (`dns_unreachable`) will reduce zero-evidence hourly feedback and speed outage triage during resolver incidents.
+- Change: Run `telemetry-preflight-shared-client` before hourly synthesis (`/api/status` + `/api/logs?limit=1`), emit `{dns_state, readpath_state, inference_allowed, retry_after_ms}`, and block gameplay inference unless `inference_allowed=true`.
+- Metric(s): `% blocked cycles with explicit root-cause`, `false gameplay inference count during transport failures`, `time-to-retry recommendation generation`.
+- Result: Current cycle failed pre-data collection with `ENOTFOUND webgame-api.berrysoft.kr` while loading key from `.env` successfully, leaving `events=0` and no trustworthy last-hour gameplay evidence.
+- Decision: Run in next 30-min dev cycle; keep if 4 consecutive transport-failure cycles are classified deterministically with zero gameplay inference.
+
 - Date: 2026-03-16 09:26 KST
 - Hypothesis: Hard-gating hourly feedback on an auth preflight artifact (`status + logs`) will prevent invalid gameplay summaries during key failures and shorten root-cause time.
 - Change: Add required preflight step that emits `tmp/hourly-auth-preflight.json` (`ok|unauthorized|source_mismatch`) and skips gameplay synthesis unless `ok`.

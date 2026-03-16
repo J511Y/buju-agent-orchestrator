@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 13:26 KST] Hourly gameplay-feedback cycle (Buju API live probe, transport-failed).
+  - Evidence: loaded `BUJU_API_KEY` from local `.env` (masked) and attempted live `GET /api/status` + paged `GET /api/logs?page=1&limit=200` against `https://webgame-api.berrysoft.kr`.
+  - Failure mode: DNS resolution failure at transport layer (`ENOTFOUND webgame-api.berrysoft.kr`) before authenticated payload retrieval.
+  - Last-hour gameplay signals: unavailable (`progression/wins/defeats/resource trends/anomalies` not inferable without trusted live status/log payload).
+  - Dev feedback: classify this cycle as `connectivity_blocked` (not a gameplay-policy regression); keep existing combat/economy policy unchanged until telemetry recovers.
+  - Retry recommendation: rerun preflight in ~5-10 minutes (`/api/status` + `/api/logs?limit=1`) and record `dns_state/readpath_state` before any gameplay synthesis.
+  - Next 30m actionable TODO: add `scripts/telemetry-preflight-shared-client.js` artifact output (`dns_state`, `readpath_state`, `inference_allowed`, `retry_after_ms`) and hard-block hourly summary when `inference_allowed=false`.
+
 - [2026-03-16 13:17 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `tmp/cron-last20-delta-1317.json` (`count=20`, `2026-03-16 02:20:24 -> 11:52:15`) stayed flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`) with `rate/cooldown mentions 16/20`, so KEEP was rejected.
   - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_STALL_429_COOLDOWN_TICKS 16->18` to reduce repeated `combat_start` throttle churn while preserving all safety gates and movement thresholds.
