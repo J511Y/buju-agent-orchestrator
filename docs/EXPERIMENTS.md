@@ -1241,3 +1241,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_readpath_cycles/day`, `% cycles blocked with explicit root-cause`, `false gameplay-inference count during transport failures`.
 - Result: Current cycle reproduced split behavior (`fetch-activity` path saw `/api/status=200` while direct authenticated probe failed with `ENOTFOUND`; `*/recent` endpoints stayed `404`).
 - Decision: Run in next 30-min dev cycle; keep if split-signal cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-16 11:30 KST
+- Hypothesis: Applying an explicit low-reserve buy gate (`gold<500`) with HP/MP emergency exceptions will reduce hourly net gold drain without materially hurting hunt throughput.
+- Change: Add `economy_reserve_guard_v3` in hourly/live policy path: skip optional potion buys when reserve is low unless `hp_ratio<0.45` or `mp_ratio<0.25`.
+- Metric(s): `net_trade/hour`, `buy_count/hour`, `hunt_count/hour`, `surrender/hour`, and `defeat_rate/hour`.
+- Result: Current baseline hour (`events=496`) shows strong throughput (`hunt=266`, `wins=266`, `defeats=0`) but persistent economy drag (`buy=154`, `buy_spent=1540G`, `sell_gain=210G`, `net_trade=-1330G`, `gold=389`).
+- Decision: Run in next 30-min dev cycle; promote if `net_trade` improves by >=30% for 3 consecutive hourly cycles while `hunt_count` drops <=10%.
