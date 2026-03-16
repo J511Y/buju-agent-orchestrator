@@ -1,5 +1,24 @@
 # Ops Log
 
+- [2026-03-17 06:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 19:51:31 -> 2026-03-17 05:50:44`) improved (`level +1`, `exp +0`, `gold +20`, `inventory +1`, `rate/cooldown mentions 10/20`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=2285`, `gold=424`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (scored: `skeleton` 106 > `rabbit` 93 with equal danger), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan remains documented in `docs/DECISIONS.md`; minimal safe enhancement path stays prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`, enchant scroll stock all `0`, `gold=424<600`).
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0618.txt`); no stop/restart issued.
+  - Smoke probe note: `tmp/cron-smoke-0618.txt` returned `ok=0/1` with `lastAction=hunt code=400`, so no policy change was applied because macro delta stayed positive; continue monitoring cooldown/rate wording next cycle.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-0618.json`, `tmp/thinking-post-response-0618.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, cooldown/rate mentions `<=8/20`, and progression `exp>=2360` or `gold>=434`.
+
+- [2026-03-17 05:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 19:19:55 -> 2026-03-17 05:21:37`) improved (`level +1`, `exp +0`, `gold +20`, `inventory -1`, `429 mentions 8/20`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=2285`, `gold=424`, `area=talking_island_field`), `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`short_sword` > `rusty_sword`); staged enhancement plan in `docs/DECISIONS.md` remains explicit; minimal safe enhancement path remains prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0548.txt`); strategy smoke passed (`tmp/cron-smoke-0548.txt`: `ok=1/1`, `lastAction=buy_mp`, `level=26`, `exp=2291`, `gold=429`, `code=200`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-0548.json`, `tmp/thinking-post-response-0548.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, cooldown/wait share `<=8%`, and progression `exp>=2365` or `gold>=434`.
+
 - [2026-03-17 05:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`; fallback local delta (`tmp/cron-last20-delta-0518.json`, `thinking-post-1948.json -> thinking-post-0448.json`) was non-improving (`level +0`, `exp +0`, `gold +0`, `inventory +0`, `rate/429/cooldown mentions 27/20`), so KEEP was rejected.
   - Minimal reversible tuning applied: `BUJU_USE_COMBAT_START 1->0` (`config/strategy.env`) to reduce `combat_start` cooldown/rate-limit churn and favor direct hunt progression.
