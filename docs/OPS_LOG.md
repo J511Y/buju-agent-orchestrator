@@ -1,6 +1,14 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 09:26 KST] Hourly gameplay-feedback cycle (Buju API live probe, auth-failed).
+  - Evidence: loaded `BUJU_API_KEY` from local `.env` (masked) and called live `GET /api/status` + `GET /api/logs?page=1&limit=5` on `https://bujuagent.com`; both returned `401 UNAUTHORIZED` (`Missing or invalid API key`).
+  - Last-hour gameplay signals: unavailable due to auth failure (`progression/wins/defeats/resources/anomalies` not inferable without trusted live payload).
+  - Failure mode: credential rejected at gateway before gameplay payload retrieval; this cycle is classified `auth_blocked` (no fallback gameplay synthesis).
+  - Dev feedback: treat this as access-path reliability issue, not gameplay-policy signal; keep combat/economy heuristics unchanged until authenticated telemetry resumes.
+  - Retry recommendation: re-issue/verify active API key in provider dashboard, update `.env` on runner host, then rerun preflight (`/api/status` + `/api/logs?limit=1`) before next hourly cycle.
+  - Next 30m actionable TODO: implement `scripts/auth-preflight-gate.js` invocation at cycle start with hard fail on non-200 and explicit `auth_state` artifact (`ok|unauthorized|source_mismatch`) saved to `tmp/hourly-auth-preflight.json`.
+
 - [2026-03-16 08:28 KST] Hourly gameplay-feedback cycle (Buju API live probe).
   - Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked) and queried live `GET /api/status` (`200`) + paged `GET /api/logs?page=1..8&limit=100` (`200` across sampled pages) on `https://bujuagent.com`.
   - Last-hour sample (`07:28~08:28 KST`): `events=379`, action mix `hunt=205`, `buy=118`, `use_item=31`, `surrender=7`, `drop=16`, `sell=2`; explicit `death=0` in sampled window.

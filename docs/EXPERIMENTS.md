@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-16 09:26 KST
+- Hypothesis: Hard-gating hourly feedback on an auth preflight artifact (`status + logs`) will prevent invalid gameplay summaries during key failures and shorten root-cause time.
+- Change: Add required preflight step that emits `tmp/hourly-auth-preflight.json` (`ok|unauthorized|source_mismatch`) and skips gameplay synthesis unless `ok`.
+- Metric(s): `% auth-failed cycles with deterministic state`, `false gameplay-summary count during 401 windows`, `mean time-to-recover after key update`.
+- Result: Current live probe returned `401` for both `GET /api/status` and `GET /api/logs?page=1&limit=5`; no trustworthy last-hour gameplay data was available.
+- Decision: Run in next 30-min dev cycle; keep if two consecutive auth-failure cycles produce deterministic classification with zero inferred gameplay output.
+
 - Date: 2026-03-16 08:28 KST
 - Hypothesis: A `buy-sell balance guard v1` (`buy>=110/h && sell<=3/h`) that inserts buy cooldown + forced pre-buy inventory sell-check will cut economy churn while preserving hunt throughput.
 - Change: Add guard path in live loop before buy burst execution; require one sell-check pass and short cooldown when trigger condition is met.
