@@ -1342,3 +1342,10 @@ Track A/B and policy experiments.
 - Result: Baseline this cycle (`23:26~00:26 KST`) is stable but buy-heavy: `hunt=332`, `death=0`, `buy=181`, `sell=3`, `drop=29`, `surrender=26`, `buy/hunt≈0.55`, status gold `434`.
 - Decision: Run in next 30-min dev cycle; promote only if `buy_hunt_ratio<0.45` for 3 consecutive hourly cycles with `hunt_count` drop `<=10%` and `death=0`.
 
+
+- Date: 2026-03-17 01:28 KST
+- Hypothesis: A single shared auth adapter used by both collector probes and canonical hourly status/log fetches will eliminate split-signal cycles (`probe ok` + `canonical 401`) and reduce blocked feedback windows.
+- Change: Add `auth-preflight-parity-v4` (same header/client for `/api/status` and `/api/logs?limit=1`) and gate KPI synthesis on `endpoint_pair_ok=true`.
+- Metric(s): `split_auth_cycles/day`, `% hourly cycles blocked by auth`, and `% blocked cycles missing explicit failure classification`.
+- Result: Baseline this cycle shows direct canonical probes both `401` while probe summary still marks `/api/status` path `ok`; no trustworthy last-hour gameplay KPIs.
+- Decision: Run in next 30-min dev cycle; keep only if split-auth cycles drop to zero for 4 consecutive hourly runs.

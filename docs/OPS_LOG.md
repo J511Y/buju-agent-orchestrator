@@ -1,5 +1,23 @@
 # Ops Log
 
+- [2026-03-17 01:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 15:21:13 -> 2026-03-17 00:51:19`) improved (`level +0`, `gold +25`, `inventory -8`) with latest death unchanged (`2026-03-15 05:09:30`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=5815`, `gold=444`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement policy in `docs/DECISIONS.md` remains explicit (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-0118.json`, `tmp/thinking-post-response-0118.json`).
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0118.txt`); strategy smoke passed (`tmp/cron-smoke-0118.txt`: `ok=1/1`, `lastAction=combat_start`, `level=25`, `exp=5827`, `gold=444`, `code=200`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=11%`, and progression `exp>=5900` or `gold>=454`.
+
+- [2026-03-17 00:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 14:50:02 -> 2026-03-17 00:22:03`) improved (`level +1`, `gold +30`, `inventory -8`) with latest death unchanged (`2026-03-15 05:09:30`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=5477`, `gold=439`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` (`score 103` vs `rabbit 90`), movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-0048.json`, `tmp/thinking-post-response-0048.json`).
+  - Live continuity evidence: daemon remains continuous (`tmp/live-runner-procs-0048.txt`), strategy smoke passed (`tmp/cron-smoke-0048.txt`: `ok=1/1`, `lastAction=buy_hp`, `level=25`, `exp=5491`, `gold=514`, `code=200`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=11%`, and progression `exp>=5570` or `gold>=524`.
+
 - [2026-03-17 00:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`; fallback local last-20 (`tmp/cron-last20-delta-local-0020.json`, `count=20`, `14:18 -> 23:48 KST`) was non-improving (`level +1`, `exp +0`, `gold -5`, `inventory +0`, `rate/429/cooldown mentions 23`), so KEEP was rejected.
   - Minimal reversible tuning applied: `BUJU_MIN_GOLD_RESERVE 400->430` (`config/strategy.env`) to suppress buy-spend churn in low-gold windows.
@@ -4448,3 +4466,12 @@
 - Development feedback: keep combat-risk policy stable this cycle; prioritize economy controls (optional-buy suppression + inventory churn reduction) before any aggression increase.
 - TODO (next 30-min): implement `buy-pressure-guard-v1` to skip optional buys for 1 cycle when `buy/hunt>0.50` and `mp_ratio>=0.95`, and log `{buy,hunt,buy_hunt_ratio,gold_snapshot,sell,drop}` to `tmp/hourly-window-metrics.json`.
 
+
+## [2026-03-17 01:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (raw secret never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com/api`.
+- Probe outcome: both endpoints returned `401 UNAUTHORIZED` (`Missing or invalid API key`); `activity:fetch` cross-check still reports only `/api/status` probe path as `ok` while `*/recent` endpoints remain `http_fail`.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (`events_in_window` unavailable from canonical logs path).
+- Anomaly: auth/read-path inconsistency persists (collector status probe appears healthy while canonical status/log endpoints reject the same key path).
+- Development feedback: freeze gameplay-policy tuning this hour; prioritize unified auth preflight and endpoint-parity gating before KPI inference.
+- Failure mode + retry recommendation: classify as `auth_blocked_with_probe_mismatch`; retry paired preflight on same client stack (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts), and keep `inference_allowed=false` until both return `200` in the same run.
+- TODO (next 30-min): implement `auth-preflight-parity-v4` that writes `tmp/hourly-auth-preflight.json` with `{timestamp,status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and hard-blocks hourly summary when parity fails.
