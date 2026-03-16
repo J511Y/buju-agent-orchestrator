@@ -1,5 +1,15 @@
 # Ops Log
 
+- [2026-03-17 00:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): remote `GET /api/agent/thinking/j211y?limit=20` returned `count=0`; fallback local last-20 (`tmp/cron-last20-delta-local-0020.json`, `count=20`, `14:18 -> 23:48 KST`) was non-improving (`level +1`, `exp +0`, `gold -5`, `inventory +0`, `rate/429/cooldown mentions 23`), so KEEP was rejected.
+  - Minimal reversible tuning applied: `BUJU_MIN_GOLD_RESERVE 400->430` (`config/strategy.env`) to suppress buy-spend churn in low-gold windows.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=5149`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement policy in `docs/DECISIONS.md` remains explicit (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Ops telemetry posted: first `POST /api/agent/thinking` failed validation (`400 action_detail <= 200 chars` + required inventory fields), corrected payload then succeeded (`tmp/thinking-post-response-0022.json` => `{"success":true}`).
+  - Live continuity evidence: daemon was kept running continuously (no stop/restart command); strategy smoke passed (`node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=buy_mp`, `code=200`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=11%`, and progression `exp>=5230` or `gold>=424`.
+
 - [2026-03-16 23:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window delta (`2026-03-16 13:21:02 -> 22:51:14`) stayed positive (`level +1`, `gold +10`, `inventory +3`, `rate/429/cooldown mentions 37`), so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=4489`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
@@ -4427,3 +4437,4 @@
 - Development feedback: freeze gameplay-policy tuning for this cycle; prioritize auth recovery + deterministic preflight gate before any KPI-based strategy changes.
 - Failure mode + retry recommendation: classify as `auth_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts). Keep `inference_allowed=false` until both probes return `200` in the same run.
 - TODO (next 30-min): implement `auth_preflight_retry_v1` artifact writer (`tmp/hourly-auth-preflight.json`) with `{auth_state,status_code_status,status_code_logs,retry_after_ms,inference_allowed}` and wire hourly summary hard-stop when `auth_state!=ok`.
+2026-03-16 23:31:40 KST | Restarted live-runner-daemon.sh via watchdog
