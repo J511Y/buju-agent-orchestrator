@@ -1377,3 +1377,10 @@ Track A/B and policy experiments.
 - Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit auth_state`, `false gameplay-inference count during auth anomalies`.
 - Result: Baseline this cycle remained inconsistent (`fetch-activity /status=200` probe path, direct `/api/status=401`, direct `/api/logs=401`, no trustworthy in-window events).
 - Decision: Execute in next 30-min dev cycle; keep only if parity mismatches drop for 3 consecutive hourly runs.
+
+- Date: 2026-03-17 06:28 KST
+- Hypothesis: Adding an explicit hourly liveness metric (`minutes_since_last_log`) and activity-gap flag will catch silent-runner stalls earlier than KPI-only summaries when status is healthy but gameplay logs stop.
+- Change: Implement `hourly-liveness-check-v1` to persist `tmp/hourly-liveness.json` with `{last_log_ts,minutes_since_last_log,status_code_status,status_code_logs,status_code_recent,activity_gap_detected}` and to force fallback windowing via paginated `/api/logs` when `/api/logs/recent` is `404`.
+- Metric(s): `activity_gap_cycles/day`, `mean_minutes_to_detect_stall`, `% hourly cycles with complete endpoint+liveness classification`.
+- Result: Baseline this cycle had `/api/status=200`, `/api/logs=200`, `/api/logs/recent=404`, and `events_in_window=0` for 05:26~06:26 KST (no last-hour progression evidence).
+- Decision: Run in next 30-min dev cycle; keep only if activity-gap cycles become explicitly classified for 3 consecutive hourly runs.

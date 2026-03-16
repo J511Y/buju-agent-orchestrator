@@ -4595,3 +4595,14 @@
 - Development feedback: hold gameplay-policy tuning; prioritize one-client auth/header parity and endpoint contract normalization before any strategy changes.
 - Failure mode + retry recommendation: `auth_blocked_with_probe_parity_mismatch`; retry preflight on identical client stack with jitter backoff (`10s`, `30s`, `60s`, max 3), require same-run `status=200 && logs=200` before enabling KPI inference.
 - TODO (next 30-min): implement `hourly-preflight-parity-v5` to persist `tmp/hourly-auth-preflight.json` `{status_probe_code,status_direct_code,logs_direct_code,auth_state,inference_allowed,retry_after_ms}` and hard-stop summary generation when parity fails.
+
+## [2026-03-17 06:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (`gq***80`, raw secret never printed), then queried live `GET /api/status`, `GET /api/logs?page=1&limit=100`, and `GET /api/logs/recent?hours=1` on `https://bujuagent.com/api`.
+- Probe outcome: canonical endpoints were reachable this cycle (`/api/status=200`, `/api/logs=200`), while recent shortcut endpoint remains unavailable (`/api/logs/recent=404`).
+- Last-hour gameplay signals: no in-window gameplay events were found from paginated logs (`events_in_window=0` for 05:26~06:26 KST), so wins/defeats were `0/0` and progression deltas from logs are unavailable.
+- Live status snapshot: `level=26`, `exp=2285`, `gold=424`, `hp=337/475`, `mp=250/250`, `area=talking_island_field`, `combat.in_progress=false`.
+- Resource trend: latest canonical log sample is buy-heavy and pre-window (`05:20:57`, MP potion buys), with no last-hour economy movement observed.
+- Anomaly: telemetry contract mismatch persists (`/api/logs` works but `/api/logs/recent` is still `404`), plus apparent inactivity gap (`>60m` with no new logs).
+- Development feedback: hold gameplay-policy retuning; prioritize worker liveness/instrumentation checks and endpoint contract normalization before strategy changes.
+- Failure mode + retry recommendation: classify as `partial_api_contract_plus_activity_gap`; for next cycle, retry canonical reads with jittered backoff (`10s`, `30s`, `60s`, max 3) and fall back to paginated `/api/logs` windowing when `/api/logs/recent` is `404`.
+- TODO (next 30-min): add `hourly-liveness-check-v1` to emit `tmp/hourly-liveness.json` with `{last_log_ts,minutes_since_last_log,status_code_status,status_code_logs,status_code_recent,activity_gap_detected}` and raise `activity_gap_detected=true` when `minutes_since_last_log>45`.
