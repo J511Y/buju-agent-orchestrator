@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 07:26 KST
+- Hypothesis: A same-runtime shared-client preflight with bounded retry metadata will reduce split-signal hourly cycles where collector `/api/status` is reachable but direct canonical reads fail at transport (`fetch failed`).
+- Change: Add `hourly-preflight-shared-client-v2` before synthesis (`/api/status` + `/api/logs?page=1&limit=100`), emit `{dns_state, readpath_state, inference_allowed, retry_after_ms}`, and block gameplay inference unless `inference_allowed=true`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit failure class`, false gameplay-inference count during transport failures.
+- Result: This cycle showed collector `/api/status=200` with recent endpoints `404`, while direct canonical status/log probes both failed transport (`fetch failed`), leaving last-hour gameplay evidence unavailable (`events=0`).
+- Decision: Run in next 30-min dev cycle; keep if 4 consecutive split cycles are deterministically blocked with zero gameplay-policy output.
+
 - Date: 2026-03-16 20:26 KST
 - Hypothesis: Enforcing an hourly auth-parity gate that compares collector and direct probes in one run will eliminate split-signal summaries (`collector /api/status=200` while direct status/log are `401`) and reduce false gameplay inference.
 - Change: Before synthesis, emit `tmp/hourly-auth-parity.json` from same-process checks (`collector activity:fetch status`, direct `GET /api/status`, direct `GET /api/logs?limit=1`) and require all to be `200` for `inference_allowed=true`.

@@ -1,5 +1,13 @@
 # Ops Log
 
+- [2026-03-17 07:26 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed successfully (`BUJU_API_KEY` present; masked, not logged).
+  - Live probes: `scripts/fetch-activity.js` reported `/api/status=200` with all `*/recent` endpoints `404` (`tmp/hourly-activity-0726.json`); direct canonical probes (`/api/status`, `/api/logs?page=1&limit=100`) failed at transport layer (`fetch failed`) in the same cycle (`tmp/hourly-live-signal-0726.json`).
+  - Last-hour gameplay signals: progression/win-defeat/resource trends unresolved (`events=0`, confidence=`low`) due read-path failure; no evidence-safe policy inference emitted.
+  - Anomaly: split telemetry state persisted (collector status-path reachable vs direct status/log transport-fail).
+  - Retry recommendation: run shared-client preflight retry (10s -> 30s -> 60s), then re-check `/api/status` and first `/api/logs` page before any gameplay synthesis.
+  - Next 30m TODO: implement `scripts/hourly-preflight-shared-client-v2.js` emitting `{dns_state,readpath_state,inference_allowed,retry_after_ms}` and hard-block summary generation unless `inference_allowed=true`.
+
 - [2026-03-17 07:19 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` (`count=20`) plus last-20 delta artifact (`tmp/cron-last20-delta-0719.json`) stayed flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`, `death/defeat mentions 16`, `rate/cooldown mentions 9`), so KEEP was rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_POTION_USE_MAX_QUANTITY 2->3` to improve low-HP recovery throughput and reduce repeated low-HP loops without increasing buy churn.
