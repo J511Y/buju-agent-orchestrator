@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 15:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20` (window `2026-03-16 04:20:16 -> 14:50:02`); computed deltas were `level +0`, `gold +40`, `inventory +4`, `rate/cooldown mentions 18/20`, and no fresh defeat signal in live-runner tail, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=213`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Runtime continuity evidence: daemon remains continuous (`ps` shows active `live-runner-daemon.sh` and `live-strategy-runner.js`).
+  - Ops telemetry posted: `POST /api/agent/thinking` => `200 {"success":true}` (`tmp/thinking-post-response-1518.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=14%`, and progression `exp>=300` or `gold>=425`.
+
 - [2026-03-16 14:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): local last-20 thinking delta (`tmp/thinking-post-0648.json -> tmp/thinking-post-1348.json`, `count=20`) was flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`) with throttle wording `17/20`, so KEEP was rejected.
   - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_COMBAT_STRATEGY_REFRESH_TICKS 28->32` to reduce strategy refresh churn under throttle while preserving all safety invariants.
@@ -4260,3 +4269,12 @@
 - Anomalies: no defeat spike, but buy-heavy loop persists (`buy/hunt≈0.61`) which can reintroduce net-gold drag under slower drop/sell windows.
 - Development feedback: keep current combat policy (throughput + survival healthy), focus next on reducing optional buy frequency without reducing hunt volume.
 - TODO (next 30-min): implement `buy_pacing_guard_v1` (skip optional MP buy for 1 cycle when `buy/hunt>0.55` and `mp_ratio>=0.9`), then validate one-cycle impact on `buy_count`, `hunt_count`, and `gold`.
+
+## [2026-03-16 15:27 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed), then attempted live `GET /api/status` and `GET /api/logs?page=1&limit=200` against `https://webgame-api.berrysoft.kr`.
+- Probe outcome: both calls failed at transport layer (`TypeError: fetch failed`), so canonical last-hour telemetry was unavailable.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (no trustworthy status/log payload this cycle).
+- Anomaly: full read-path outage (status + logs both transport-fail) with no fallback evidence suitable for KPI inference.
+- Development feedback: skip gameplay-policy changes this hour; prioritize transport-path reliability and deterministic preflight classification before synthesis.
+- Failure mode + retry recommendation: classify as `transport_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts). Keep `inference_allowed=false` until both return `200` on the same client path.
+- TODO (next 30-min): implement a `shared-fetch-with-timeout` wrapper (connect timeout + one retry budget) and emit `tmp/hourly-preflight.json` with `{dns_state, readpath_state, retry_after_ms, inference_allowed}`.

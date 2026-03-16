@@ -1269,3 +1269,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_count/hour`, `buy_hunt_ratio`, `hunt_count/hour`, `gold_snapshot_delta`, `defeat_count/hour`.
 - Result: Baseline this cycle (`13:28~14:27 KST`) shows healthy outcomes (`hunt=264`, `wins≈264`, `defeats=0`) but elevated buy churn (`buy=160`, `buy/hunt≈0.61`, `sell=3`, status gold `409`).
 - Decision: Run in next 30-min dev cycle; promote if `buy/hunt` drops below `0.45` for 3 consecutive cycles with `hunt_count` drop <=10% and no defeat increase.
+
+- Date: 2026-03-16 15:27 KST
+- Hypothesis: A shared fetch wrapper with explicit connect timeout and bounded retry (`10s/30s/60s`) will reduce opaque `fetch failed` hourly cycles and improve deterministic outage classification.
+- Change: Add `shared-fetch-with-timeout` for `/api/status` + `/api/logs?limit=1`, emit `tmp/hourly-preflight.json` (`dns_state`, `readpath_state`, `retry_after_ms`, `inference_allowed`), and hard-block gameplay inference unless both probes return `200`.
+- Metric(s): `% blocked cycles with explicit failure class`, `opaque transport-failure count`, `false gameplay-inference count during transport outages`.
+- Result: Current cycle failed both live probes at transport (`TypeError: fetch failed`) with zero reliable last-hour evidence.
+- Decision: Run in next 30-min dev cycle; keep if 4 consecutive transport-failure cycles are classified deterministically with zero gameplay inference.
