@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 08:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): remote thinking/status reads failed DNS (`tmp/cron-thinking-now-0848.json` => `fetch failed`), so fallback local last-20 delta (`tmp/last20-thinking-now.json` -> `tmp/cron-last20-delta-0848.json`) was used and was non-improving/mixed (`level +1`, `exp +0`, `gold -5`, `inventory +0`, `death/defeat mentions 12`, `rate/429/cooldown mentions 14`); KEEP rejected.
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_COOLDOWN_TICKS 8->10` to reduce repeated hunt-400 loop pressure while preserving strict safety/movement controls.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path stays prerequisite-gated.
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0848.txt`); smoke probe (`tmp/cron-smoke-0848.txt`) returned non-fatal `lastAction=hunt`, `code=400`; no restart action.
+  - Ops telemetry post attempt: `POST /api/agent/thinking` failed DNS (`curl: Could not resolve host: www.buju.quest`); artifacts saved (`tmp/thinking-post-0848.json`, `tmp/thinking-post-response-0848.json`, `tmp/thinking-post-0848.http`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `hunt code=400 mentions<=6/20`, dangerous-surrender `<=1/8 cycles`, and progression `exp>=2350` or `gold>=434`.
+
 - [2026-03-17 08:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): remote reads failed at transport/DNS (`curl: Could not resolve host: www.buju.quest`) for thinking/status/monsters/npc/inventory, so no reliable live delta evidence was available this cycle.
   - Fallback handling: local last-20 artifact (`tmp/cron-last20-delta-0818-local.json`) was not reliable for KEEP because latest thinking payload carried zeroed context from prior auth-path degradation; therefore adaptive policy required a minimal CHANGE.
