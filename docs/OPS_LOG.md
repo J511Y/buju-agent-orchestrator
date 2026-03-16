@@ -4641,3 +4641,10 @@
 - Development feedback: hold gameplay-policy retuning; prioritize worker liveness/instrumentation checks and endpoint contract normalization before strategy changes.
 - Failure mode + retry recommendation: classify as `partial_api_contract_plus_activity_gap`; for next cycle, retry canonical reads with jittered backoff (`10s`, `30s`, `60s`, max 3) and fall back to paginated `/api/logs` windowing when `/api/logs/recent` is `404`.
 - TODO (next 30-min): add `hourly-liveness-check-v1` to emit `tmp/hourly-liveness.json` with `{last_log_ts,minutes_since_last_log,status_code_status,status_code_logs,status_code_recent,activity_gap_detected}` and raise `activity_gap_detected=true` when `minutes_since_last_log>45`.
+
+## 2026-03-17 08:26 KST
+- Hourly Buju gameplay-feedback cycle executed with `.env`-loaded auth (key masked); live probes attempted on canonical endpoints: `GET /api/status`, `GET /api/logs?page=1&limit=100`.
+- Probe result: transport failure on both endpoints (`nodename nor servname provided, or not known`), base URL resolved from env/default as `https://www.buju.quest`; no authenticated gameplay payload could be collected.
+- Last-hour gameplay signals (progression/wins/defeats/resources): **unavailable due to DNS/host resolution failure**; no evidence-safe inference emitted.
+- Ops recommendation: classify as `dns_unreachable` and retry with bounded backoff (`5m -> 15m -> 30m`), then verify host resolution + API base before next synthesis run.
+- Next 30-min dev TODO: add/verify a single preflight artifact (`tmp/hourly-preflight.json`) that records `{dns_state, status_probe, logs_probe, inference_allowed, retry_after_ms}` and hard-blocks KPI synthesis when `dns_state!=ok`.

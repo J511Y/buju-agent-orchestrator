@@ -1391,3 +1391,10 @@ Track A/B and policy experiments.
 - Metric(s): `activity_gap_cycles/day`, `mean_minutes_to_detect_stall`, `% hourly cycles with complete endpoint+liveness classification`.
 - Result: Baseline this cycle had `/api/status=200`, `/api/logs=200`, `/api/logs/recent=404`, and `events_in_window=0` for 05:26~06:26 KST (no last-hour progression evidence).
 - Decision: Run in next 30-min dev cycle; keep only if activity-gap cycles become explicitly classified for 3 consecutive hourly runs.
+
+- Date: 2026-03-17 08:26 KST
+- Hypothesis: A DNS-first fail-fast preflight with staged retry metadata will reduce repeated zero-evidence hourly cycles and speed outage triage when Buju host resolution fails.
+- Change: Before hourly synthesis, run canonical probes (`/api/status`, `/api/logs?page=1&limit=100`) and persist `tmp/hourly-preflight.json` with `{dns_state,status_probe,logs_probe,inference_allowed,retry_after_ms}`; block gameplay inference unless `inference_allowed=true`.
+- Metric(s): `% blocked cycles with explicit dns_state`, `time-to-first-successful-probe after outage`, `false gameplay inference count during DNS failures`.
+- Result: Current cycle failed both probes with host-resolution error (`nodename nor servname provided, or not known`); last-hour events were unavailable (`window_events=0`).
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive outage cycles are classified deterministically with zero gameplay-policy output.
