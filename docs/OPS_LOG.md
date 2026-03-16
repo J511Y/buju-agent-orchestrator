@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 14:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): local last-20 thinking delta (`tmp/thinking-post-0648.json -> tmp/thinking-post-1348.json`, `count=20`) was flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`) with throttle wording `17/20`, so KEEP was rejected.
+  - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_COMBAT_STRATEGY_REFRESH_TICKS 28->32` to reduce strategy refresh churn under throttle while preserving all safety invariants.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=24`, `exp=5437`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => npcs=[]`).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=24`, `exp=5439`, `gold=414`, `code=200` (`tmp/cron-smoke-1418.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`tmp/live-runner-procs-1418.txt`).
+
 - [2026-03-16 13:26 KST] Hourly gameplay-feedback cycle (Buju API live probe, transport-failed).
   - Evidence: loaded `BUJU_API_KEY` from local `.env` (masked) and attempted live `GET /api/status` + paged `GET /api/logs?page=1&limit=200` against `https://webgame-api.berrysoft.kr`.
   - Failure mode: DNS resolution failure at transport layer (`ENOTFOUND webgame-api.berrysoft.kr`) before authenticated payload retrieval.
