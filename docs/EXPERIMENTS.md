@@ -1319,3 +1319,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_count/hour`, `buy_hunt_ratio`, `hunt_count/hour`, `gold_snapshot_delta`, `defeat_count/hour`.
 - Result: Baseline this cycle (`20:27:46~21:27:44 KST`, `events=453`) shows strong stability (`hunt=270`, `defeats=0`) but persistent buy-heavy loop (`buy=144`, `buy/hunt≈0.53`, `sell=2`, status gold `414`).
 - Decision: Run in next 30-min dev cycle; promote if `buy_hunt_ratio<0.45` for 3 consecutive hourly cycles while `hunt_count` drop stays `<=10%` and `defeats=0`.
+
+- Date: 2026-03-16 22:28 KST
+- Hypothesis: Enforcing strict hourly auth-source parity (`/api/status` + `/api/logs?limit=1` on the identical client/header path) will eliminate split-signal cycles (`direct 401` vs collector `/api/status=200`) and reduce blocked low-confidence feedback.
+- Change: Add `hourly-auth-parity-preflight-v3` contract `tmp/hourly-preflight.json` with `{auth_state, endpoint_pair_ok, inference_allowed, retry_after_ms}` and block KPI synthesis unless `endpoint_pair_ok=true`.
+- Metric(s): `split_auth_cycles/day`, `% blocked cycles with explicit auth root-cause`, and false gameplay-inference count during `401` windows.
+- Result: Current cycle reproduced mismatch: direct authenticated probes (`/api/status`, `/api/logs?page=1&limit=100`) both returned `401`, while `activity:fetch` still reported `/api/status=200` and `*/recent=404` with fallback zero KPIs.
+- Decision: Run in next 30-min dev cycle; keep only if split-auth cycles drop to zero for 4 consecutive hourly cycles.
