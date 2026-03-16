@@ -1356,3 +1356,10 @@ Track A/B and policy experiments.
 - Metric(s): `blocked_hourly_cycles/day`, `mean_retries_to_first_200`, `% blocked cycles with complete failure classification`.
 - Result: Current cycle returned `/api/status=401`, `/api/logs=401`, `/api/logs/recent=404`; no trustworthy last-hour gameplay KPIs were derivable.
 - Decision: Run in next 30-min dev cycle; keep only if blocked cycles include complete classification for 3 consecutive hours and first-success retry count trends down.
+
+- Date: 2026-03-17 03:27 KST
+- Hypothesis: Enforcing a hard auth preflight gate (`/api/status` + `/api/logs?limit=1`) before hourly aggregation will reduce repeated low-confidence feedback cycles during recurring `401` windows.
+- Change: Add `auth-preflight-gate-v1` artifact `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and skip KPI synthesis unless both probes are `200`.
+- Metric(s): `blocked_hourly_cycles/day`, `% blocked cycles with explicit failure classification`, `false KPI summaries during auth failure`.
+- Result: Baseline this cycle shows paired canonical auth failure (`/api/status=401`, `/api/logs=401`) with no trustworthy last-hour gameplay evidence.
+- Decision: Run in next 30-min dev cycle; keep only if blocked cycles remain fully classified for 3 consecutive hourly runs.
