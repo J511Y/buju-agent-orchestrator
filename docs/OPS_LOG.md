@@ -4213,3 +4213,12 @@
 - Development feedback: keep current combat/target policy (throughput and survival are stable), but prioritize economy guard tightening (buy cadence + reserve protection) before aggression tuning.
 - Failure mode + retry recommendation: none this cycle (status/log reads succeeded with canonical header path); if next cycle read fails, classify and log as `auth_or_transport_blocked`, then retry paired probes (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`).
 - TODO (next 30-min): implement `economy_reserve_guard_v3` to suppress optional potion buys when `gold<500` unless `hp_ratio<0.45 || mp_ratio<0.25`, then re-check 1-cycle impact on `net_trade` and `surrender`.
+
+## [2026-03-16 12:26 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=200` against `https://webgame-api.berrysoft.kr`.
+- Live probe outcome: direct status/log reads both failed at transport (`fetch failed`), so canonical last-hour API telemetry could not be collected.
+- Collector cross-check: `npm run -s activity:fetch` returned `/api/status=200`, all `*/recent` endpoints `404`, and fallback payload (`source=fallback:local_replay`) with zeroed KPIs (`Δexp=0`, `Δgold=0`, `wins=0`, `defeats=0`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown; anomaly remains split read-path (`collector status=200` vs direct transport-fail) with persistent history endpoint outage.
+- Development feedback: do not tune gameplay policy this cycle; prioritize transport/readpath parity and hard preflight gating before any KPI-driven strategy changes.
+- Failure mode + retry recommendation: classify as `transport_readpath_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, max 3 attempts) and keep `inference_allowed=false` until both return `200` on the same client/header path.
+- TODO (next 30-min): implement `telemetry-preflight-shared-client-v3` artifact (`tmp/hourly-preflight.json`) with `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and hard-stop hourly synthesis when blocked.

@@ -1248,3 +1248,10 @@ Track A/B and policy experiments.
 - Metric(s): `net_trade/hour`, `buy_count/hour`, `hunt_count/hour`, `surrender/hour`, and `defeat_rate/hour`.
 - Result: Current baseline hour (`events=496`) shows strong throughput (`hunt=266`, `wins=266`, `defeats=0`) but persistent economy drag (`buy=154`, `buy_spent=1540G`, `sell_gain=210G`, `net_trade=-1330G`, `gold=389`).
 - Decision: Run in next 30-min dev cycle; promote if `net_trade` improves by >=30% for 3 consecutive hourly cycles while `hunt_count` drops <=10%.
+
+- Date: 2026-03-16 12:26 KST
+- Hypothesis: Enforcing a shared-client telemetry preflight (`/api/status` + `/api/logs?limit=1`) with deterministic block states will eliminate split-signal hourly cycles (`collector status=200` vs direct transport-fail) and prevent zero-evidence gameplay inference.
+- Change: Add `telemetry-preflight-shared-client-v3` output contract `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and hard-block gameplay synthesis unless `inference_allowed=true`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause`, and `false gameplay-inference count during transport failures`.
+- Result: Current cycle reproduced mismatch (direct status/log probes failed with `fetch failed`, while `activity:fetch` still observed `/api/status=200` and all `*/recent` endpoints `404`); trustworthy last-hour events were unavailable.
+- Decision: Run in next 30-min dev cycle; keep only if split-signal cycles drop to zero for 4 consecutive hourly runs.
