@@ -4417,3 +4417,13 @@
 - Development feedback: pause gameplay-policy tuning this hour; prioritize canonical auth/header path parity and preflight gating before KPI synthesis.
 - Failure mode + retry recommendation: classify as `auth_blocked_with_collector_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) on the same client/auth stack with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts). Keep `inference_allowed=false` until both probes return `200`.
 - TODO (next 30-min): implement `hourly-auth-parity-preflight-v3` that emits `tmp/hourly-preflight.json` with `{auth_state, endpoint_pair_ok, inference_allowed, retry_after_ms}` and hard-stops hourly inference when parity fails.
+
+
+## [2026-03-16 23:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (`gq***80`, raw secret never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com/api`.
+- Probe outcome: both endpoints returned `401 UNAUTHORIZED` (`Missing or invalid API key`), so canonical last-hour gameplay telemetry was unavailable.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (`events_in_window=0`).
+- Anomaly: full auth read-path failure persisted for paired status/log probes in the same client path.
+- Development feedback: freeze gameplay-policy tuning for this cycle; prioritize auth recovery + deterministic preflight gate before any KPI-based strategy changes.
+- Failure mode + retry recommendation: classify as `auth_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts). Keep `inference_allowed=false` until both probes return `200` in the same run.
+- TODO (next 30-min): implement `auth_preflight_retry_v1` artifact writer (`tmp/hourly-auth-preflight.json`) with `{auth_state,status_code_status,status_code_logs,retry_after_ms,inference_allowed}` and wire hourly summary hard-stop when `auth_state!=ok`.

@@ -1326,3 +1326,11 @@ Track A/B and policy experiments.
 - Metric(s): `split_auth_cycles/day`, `% blocked cycles with explicit auth root-cause`, and false gameplay-inference count during `401` windows.
 - Result: Current cycle reproduced mismatch: direct authenticated probes (`/api/status`, `/api/logs?page=1&limit=100`) both returned `401`, while `activity:fetch` still reported `/api/status=200` and `*/recent=404` with fallback zero KPIs.
 - Decision: Run in next 30-min dev cycle; keep only if split-auth cycles drop to zero for 4 consecutive hourly cycles.
+
+
+- Date: 2026-03-16 23:29 KST
+- Hypothesis: Explicitly persisting paired auth probe results (`status` + `logs`) with bounded retry metadata will shorten recovery from recurring `401` cycles and reduce repeated low-confidence hourly summaries.
+- Change: Add `auth_preflight_retry_v1` output contract (`tmp/hourly-auth-preflight.json`) with deterministic fields for retry gating.
+- Metric(s): `time-to-first-200` after failure, `% hourly cycles blocked with explicit auth_state`, `% cycles with blocked inference but missing failure reason`.
+- Result: Current cycle returned `401` on both direct probes (`/api/status`, `/api/logs?page=1&limit=100`) with zero in-window events.
+- Decision: Implement in next 30-min dev cycle; promote if two consecutive cycles report deterministic auth classification.
