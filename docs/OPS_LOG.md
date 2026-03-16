@@ -4538,3 +4538,12 @@
 - Development feedback: freeze gameplay-policy tuning for this hour; prioritize auth-path recovery and preflight gating before KPI-driven strategy changes.
 - Failure mode + retry recommendation: classify as `auth_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts) and keep `inference_allowed=false` until both return `200` in one run.
 - TODO (next 30-min): implement `auth-preflight-gate-v1` to persist `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and hard-stop hourly KPI synthesis when `auth_state!=ok`.
+
+## [2026-03-17 04:27 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (`gq***80`, raw secret never printed), then queried live `GET /api/status`, `GET /api/logs?page=1&limit=100`, and `GET /api/logs/recent?hours=1` on `https://bujuagent.com/api`.
+- Probe outcome: canonical reads failed with `401 UNAUTHORIZED` (`/api/status=401`, `/api/logs=401`), and recent endpoint remains unavailable (`/api/logs/recent=404`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (`events_in_window=0` from canonical logs path).
+- Anomaly: recurring auth/read-path failure pattern persists (paired auth failure + missing recent endpoint).
+- Development feedback: hold gameplay-policy tuning this hour; prioritize auth preflight parity and deterministic fail-fast gating before any KPI-derived strategy changes.
+- Failure mode + retry recommendation: classify as `auth_blocked_plus_recent_unavailable`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) on the same client/header path with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts), keep `inference_allowed=false` until both return `200` in one run.
+- TODO (next 30-min): implement `hourly-auth-failfast-v1` to write `tmp/hourly-auth-preflight.json` `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and hard-stop hourly KPI synthesis when `auth_state!=ok`.

@@ -1363,3 +1363,10 @@ Track A/B and policy experiments.
 - Metric(s): `blocked_hourly_cycles/day`, `% blocked cycles with explicit failure classification`, `false KPI summaries during auth failure`.
 - Result: Baseline this cycle shows paired canonical auth failure (`/api/status=401`, `/api/logs=401`) with no trustworthy last-hour gameplay evidence.
 - Decision: Run in next 30-min dev cycle; keep only if blocked cycles remain fully classified for 3 consecutive hourly runs.
+
+- Date: 2026-03-17 04:27 KST
+- Hypothesis: Enforcing `hourly-auth-failfast-v1` (paired auth preflight + recent-endpoint status persisted per cycle) will reduce repeated low-confidence gameplay summaries during `401/404` windows.
+- Change: Persist `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and skip KPI synthesis unless `status=200 && logs=200`.
+- Metric(s): `blocked_hourly_cycles/day`, `% blocked cycles with explicit failure classification`, `false gameplay inferences during auth-blocked windows`.
+- Result: Baseline this cycle remained blocked (`/api/status=401`, `/api/logs=401`, `/api/logs/recent=404`; `events_in_window=0`).
+- Decision: Run in next 30-min dev cycle; keep only if failure classification remains complete for 3 consecutive hourly cycles and false inference count stays zero.
