@@ -1,6 +1,16 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 09:47 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned empty (`count=0`), so fallback local last-20 thinking posts were used; computed deltas were flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`) with `rate/cooldown mentions 15/20`, so KEEP was rejected.
+  - Minimal/reversible CHANGE committed: `config/strategy.env` tuned `BUJU_COMBAT_STRATEGY_REFRESH_TICKS 24->28` to reduce strategy-refresh churn under throttle while preserving safety gates.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=24`, `exp=3081`, `gold=419`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` remains explicit (early no-risky-spam -> mid weapon-first with reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains implemented and prerequisite-gated (`GET /api/npc/list => npcs=[]`, no enchant scroll).
+  - Live evidence: smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=24`, `exp=3083`, `gold=424`, `code=200` (`tmp/cron-smoke-0947.txt`).
+  - Runtime continuity evidence: daemon remains continuous (`live-runner-daemon.sh` + `live-strategy-runner.js` active; `tmp/live-runner-procs-0947.txt`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=20%`, and progression `exp>=3160` or `gold>=435` with smoke `code=200`.
+
 - [2026-03-16 09:26 KST] Hourly gameplay-feedback cycle (Buju API live probe, auth-failed).
   - Evidence: loaded `BUJU_API_KEY` from local `.env` (masked) and called live `GET /api/status` + `GET /api/logs?page=1&limit=5` on `https://bujuagent.com`; both returned `401 UNAUTHORIZED` (`Missing or invalid API key`).
   - Last-hour gameplay signals: unavailable due to auth failure (`progression/wins/defeats/resources/anomalies` not inferable without trusted live payload).
