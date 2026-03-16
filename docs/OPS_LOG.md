@@ -1,5 +1,15 @@
 # Ops Log
 
+- [2026-03-16 16:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=0`, so fallback local last-20 thinking posts were delta-scored (`tmp/cron-last20-delta-1648.json`, `tmp/thinking-post-0617.json -> tmp/thinking-post-1618.json`, `count=20`); measurable improvement persisted (`level +1`, `gold +35`, `inventory +0`, `death mention pressure 11/20`, `rate/cooldown mentions 19/20`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=1025`, `gold=414`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Live continuity evidence: daemon remains continuous (`logs/live-runner-daemon.lock` PID `20502` alive, `live-runner-daemon.sh` + `live-strategy-runner.js` active; artifact `tmp/live-runner-procs-1648.txt`).
+  - Live smoke: `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` => `ok=1/1`, `lastAction=combat_start`, `level=25`, `exp=1031`, `gold=414`, `code=200` (`tmp/cron-smoke-1648.txt`).
+  - Ops telemetry posted: first post failed validation (`400 context.inventory_count number required`), corrected payload then succeeded (`POST /api/agent/thinking => 200 {"success":true}`; `tmp/thinking-post-1648.json`, `tmp/thinking-post-response-1648.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=14%`, and progression `exp>=1110` or `gold>=430`.
+
 ## 2026-03-16
 - [2026-03-16 15:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20` (window `2026-03-16 04:49:22 -> 15:21:13`); computed deltas were `level +1`, `gold +45`, `inventory +0`, `rate/cooldown mentions 18/20`, so CHANGE was not applied.
@@ -4297,3 +4307,13 @@
 - Development feedback: do not tune gameplay policy this cycle; prioritize a single canonical auth/header path and preflight hard-gate before KPI synthesis.
 - Failure mode + retry recommendation: classify as `auth_blocked_with_source_mismatch`; rerun paired preflight (`/api/status`, `/api/logs?limit=1`) on the same client/header stack with jittered retries (`10s`, `30s`, max 3 attempts). Keep `inference_allowed=false` until both return `200`.
 - TODO (next 30-min): implement `auth-preflight-source-parity-v1` to emit `{auth_state, header_path, inference_allowed, retry_after_ms}` and hard-stop hourly feedback when parity check fails.
+
+- Date: 2026-03-16 17:28 KST
+- Source: hourly buju gameplay-feedback cycle (`npm run -s activity:fetch` + direct authenticated probes)
+- Evidence: `activity:fetch` reported `fallback:local_replay` with zero KPIs (`progress Δexp=0, Δgold=0; wins=0, defeats=0`) while recent endpoints stayed `404` and `/api/status` surfaced as `200` on collector path.
+- Live API check (same cycle): direct authenticated `curl` to `/api/status` and `/api/logs?page=1&limit=200` both failed at transport (`curl: Could not resolve host`, DNS failure).
+- Last-hour signal summary: progression/outcome/resource trends are **not trustworthy** this cycle due read-path conflict (collector status reachable vs direct DNS failure) and no usable recent-log stream.
+- Anomaly: persistent split-signal condition (collector `/api/status=200` + direct DNS `ENOTFOUND`) blocks evidence-safe win/defeat inference.
+- Retry recommendation: retry with bounded backoff `10s/30s/60s`; if DNS fails 3x, classify cycle `dns_unreachable`, skip gameplay inference, and keep ops mode in telemetry-only.
+- TODO (next 30m): implement a shared-client preflight artifact (`tmp/hourly-preflight.json`) that records `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and gate hourly summary on `inference_allowed=true`.
+

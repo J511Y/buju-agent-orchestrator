@@ -1283,3 +1283,11 @@ Track A/B and policy experiments.
 - Metric(s): `split_auth_cycles/day`, `% blocked cycles with explicit auth root-cause`, `false gameplay-inference count during 401 windows`.
 - Result: Current cycle had direct `/api/status` and `/api/logs` both `401 UNAUTHORIZED` while collector path still reported `/api/status=200` and recent endpoints `404`, leaving last-hour gameplay evidence unavailable.
 - Decision: Run in next 30-min dev cycle; keep if split-auth cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-16 17:28 KST
+- Hypothesis: For hourly feedback, forcing both collector and direct probes through one shared HTTP client + DNS preflight will collapse split-signal cycles (`collector /api/status=200` vs direct DNS failure) and reduce zero-evidence summaries.
+- Change: Add `telemetry-preflight-shared-client-v4` to probe `/api/status` and `/api/logs?limit=1` with deterministic output `{dns_state, readpath_state, inference_allowed, retry_after_ms}`; hard-block gameplay inference unless `inference_allowed=true`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause`, false gameplay-inference count during DNS failures.
+- Result: Current cycle had `activity:fetch` fallback with zero KPIs and direct authenticated probes failing DNS on both `/api/status` and `/api/logs`.
+- Decision: Run in next 30-min dev cycle; keep only if split-signal cycles drop to zero for 4 consecutive hourly runs.
+
