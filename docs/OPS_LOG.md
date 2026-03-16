@@ -4326,3 +4326,13 @@
 - Development feedback: hold gameplay-policy/architecture tuning this hour; prioritize unifying auth-source/header path and enforcing preflight gating before synthesis.
 - Failure mode + retry recommendation: classify as `auth_blocked_with_collector_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) on the exact same client/auth stack with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts); keep `inference_allowed=false` until both return `200`.
 - TODO (next 30-min): implement `preflight-auth-parity-v2` that emits `tmp/hourly-preflight.json` with `{auth_state, endpoint_pair_ok, inference_allowed, retry_after_ms}` and hard-stop hourly gameplay inference when parity fails.
+
+## [2026-03-16 19:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (raw secret never printed); live probes to `GET /api/status` and paginated `GET /api/logs` on `https://bujuagent.com/api`.
+- Probe outcome: `/api/status=200`; `/api/logs?page=1&limit=200` returned `400 INVALID_INPUT` (`limit <= 100` required); retry with `/api/logs?page=N&limit=100` succeeded and yielded 462 logs in last 60m.
+- Last-hour gameplay signals (log-derived): `hunt wins=267`, `defeats=0`, actions `{buy=148, rest=12, sell=3, drop=32, use_item=11}`, `buy/hunt=0.55`, avg hunt profile `~7.0 turns`, `~50.5 DMG`, `~6.0 피격`.
+- Resource/State snapshot: status shows `Lv25`, `EXP 2425/6250`, `gold=409`, area `talking_island_field`, active combat vs `skeleton`, `HP 277/460 (0.60)`, `MP 242/242 (1.00)`.
+- Anomalies: no defeat/death/rate-limit strings in last-hour logs; main inefficiency remains high optional buy frequency relative to hunt volume.
+- Development feedback: combat stability is strong (zero defeats), but economy churn is still high; prioritize buy pacing and potion-use thresholds before any aggression changes.
+- Failure mode + retry recommendation: treat `limit=200` as contract violation (`input_schema_mismatch`); standardize hourly collector to `limit=100` pagination, and on non-200 log read apply backoff (`10s`, `30s`, `60s`) then mark inference blocked only if all retries fail.
+- TODO (next 30-min): implement `hourly-log-pagination-v1` (fixed `limit=100`, up to 20 pages, stop at 60m cutoff) and emit `tmp/hourly-window-metrics.json` with `{hunt,wins,defeats,buy_hunt_ratio,avg_turns,avg_dmg,avg_hit}`.

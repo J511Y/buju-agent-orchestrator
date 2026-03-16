@@ -1298,3 +1298,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_auth_cycles/day`, `% cycles blocked with explicit auth root-cause`, false gameplay-inference count during `401` windows.
 - Result: Current cycle reproduced mismatch (`activity:fetch` observed `/api/status=200` with recent endpoints `404`; direct authenticated status/log probes both `401`).
 - Decision: Run in next 30-min dev cycle; keep only if split-auth cycles are zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-16 19:30 KST
+- Hypothesis: Canonical hourly pagination (`/api/logs?page=N&limit=100`) plus 60-minute cutoff aggregation will produce stable, non-fallback gameplay KPIs and reduce blocked/zero-signal hourly summaries.
+- Change: Add `hourly-log-pagination-v1` collector path (max 20 pages, stop on cutoff breach), write `tmp/hourly-window-metrics.json`, and compute `{wins, defeats, buy_hunt_ratio, avg_turns, avg_dmg, avg_hit}` directly from logs.
+- Metric(s): `% hourly cycles with live KPI synthesis`, `fallback:local_replay rate`, `schema/input failures per day`, and `buy_hunt_ratio` trend.
+- Result: This cycle confirmed live-read viability (`/api/status=200`, paginated logs produced 462 entries in 60m) while showing schema mismatch on `limit=200` (`400 INVALID_INPUT`) and persistent high buy churn (`buy/hunt=0.55`) despite `defeats=0`.
+- Decision: Run in next 30-min dev cycle; keep only if live KPI synthesis succeeds for 4 consecutive hourly runs and schema/input failures drop to zero.
