@@ -1262,3 +1262,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_readpath_cycles/day`, `% blocked cycles with explicit root-cause`, and `false gameplay-inference count during transport failures`.
 - Result: Current cycle reproduced mismatch (direct status/log probes failed with `fetch failed`, while `activity:fetch` still observed `/api/status=200` and all `*/recent` endpoints `404`); trustworthy last-hour events were unavailable.
 - Decision: Run in next 30-min dev cycle; keep only if split-signal cycles drop to zero for 4 consecutive hourly runs.
+
+- Date: 2026-03-16 14:28 KST
+- Hypothesis: A lightweight `buy_pacing_guard_v1` (1-cycle optional MP-buy skip when `buy/hunt>0.55` and `mp_ratio>=0.9`) will reduce hourly buy churn and protect gold without hurting hunt throughput.
+- Change: Add guard in live policy path and record hourly comparison fields `{buy_count, hunt_count, buy_hunt_ratio, gold_snapshot}` before/after.
+- Metric(s): `buy_count/hour`, `buy_hunt_ratio`, `hunt_count/hour`, `gold_snapshot_delta`, `defeat_count/hour`.
+- Result: Baseline this cycle (`13:28~14:27 KST`) shows healthy outcomes (`hunt=264`, `wins≈264`, `defeats=0`) but elevated buy churn (`buy=160`, `buy/hunt≈0.61`, `sell=3`, status gold `409`).
+- Decision: Run in next 30-min dev cycle; promote if `buy/hunt` drops below `0.45` for 3 consecutive cycles with `hunt_count` drop <=10% and no defeat increase.

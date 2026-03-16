@@ -4251,3 +4251,12 @@
 - Failure mode + retry recommendation: classify as `transport_readpath_mismatch`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, max 3 attempts) and keep `inference_allowed=false` until both return `200` on the same client/header path.
 - TODO (next 30-min): implement `telemetry-preflight-shared-client-v3` artifact (`tmp/hourly-preflight.json`) with `{dns_state, readpath_state, inference_allowed, retry_after_ms}` and hard-stop hourly synthesis when blocked.
 2026-03-16 13:17:18 KST | watchdog restarted live-runner-daemon
+
+## [2026-03-16 14:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (secret never printed), then queried live `GET /api/status` + paged `GET /api/logs?page=n&limit=100` on `https://bujuagent.com`.
+- Probe outcome: status/log reads succeeded (`/api/status=200`, `/api/logs` pages `1..5=200`), sampled 60-minute window `13:28:15~14:27:58 KST` with `493` events.
+- Last-hour gameplay signals: progression continued (`hunt=264`, `wins≈264`, `defeats=0`, `surrender=2`), status snapshot `Lv24 EXP=5513 Gold=409 HP=261/445 MP=234/234 area=talking_island_field`.
+- Resource trend: potion-economy churn remains high (`buy=160`, `use_item=41`, `sell=3`) while gold stayed flat around current snapshot (`409`), indicating high spend offset by hunt income.
+- Anomalies: no defeat spike, but buy-heavy loop persists (`buy/hunt≈0.61`) which can reintroduce net-gold drag under slower drop/sell windows.
+- Development feedback: keep current combat policy (throughput + survival healthy), focus next on reducing optional buy frequency without reducing hunt volume.
+- TODO (next 30-min): implement `buy_pacing_guard_v1` (skip optional MP buy for 1 cycle when `buy/hunt>0.55` and `mp_ratio>=0.9`), then validate one-cycle impact on `buy_count`, `hunt_count`, and `gold`.
