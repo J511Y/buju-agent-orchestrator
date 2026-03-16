@@ -1276,3 +1276,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit failure class`, `opaque transport-failure count`, `false gameplay-inference count during transport outages`.
 - Result: Current cycle failed both live probes at transport (`TypeError: fetch failed`) with zero reliable last-hour evidence.
 - Decision: Run in next 30-min dev cycle; keep if 4 consecutive transport-failure cycles are classified deterministically with zero gameplay inference.
+
+- Date: 2026-03-16 16:26 KST
+- Hypothesis: Enforcing credential-source parity (same env loader + same auth header path) for hourly probes will eliminate recurring split-auth cycles (`direct 401` vs collector `/api/status=200`) and reduce blocked feedback runs.
+- Change: Add `auth-preflight-source-parity-v1` that probes `/api/status` + `/api/logs?limit=1`, records `{auth_state, header_path, inference_allowed, retry_after_ms}`, and blocks synthesis unless both probes succeed on identical auth path.
+- Metric(s): `split_auth_cycles/day`, `% blocked cycles with explicit auth root-cause`, `false gameplay-inference count during 401 windows`.
+- Result: Current cycle had direct `/api/status` and `/api/logs` both `401 UNAUTHORIZED` while collector path still reported `/api/status=200` and recent endpoints `404`, leaving last-hour gameplay evidence unavailable.
+- Decision: Run in next 30-min dev cycle; keep if split-auth cycles drop to zero for 4 consecutive hourly runs.

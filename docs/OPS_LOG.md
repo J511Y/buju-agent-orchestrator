@@ -4287,3 +4287,13 @@
 - Development feedback: skip gameplay-policy changes this hour; prioritize transport-path reliability and deterministic preflight classification before synthesis.
 - Failure mode + retry recommendation: classify as `transport_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts). Keep `inference_allowed=false` until both return `200` on the same client path.
 - TODO (next 30-min): implement a `shared-fetch-with-timeout` wrapper (connect timeout + one retry budget) and emit `tmp/hourly-preflight.json` with `{dns_state, readpath_state, retry_after_ms, inference_allowed}`.
+
+## [2026-03-16 16:26 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (secret never printed), then queried live `GET /api/status` and `GET /api/logs?page=1&limit=100` on `https://bujuagent.com`.
+- Probe outcome: both endpoints returned `401 UNAUTHORIZED` (`Missing or invalid API key`), so no trustworthy last-hour event/status telemetry could be used.
+- Collector cross-check: `npm run -s activity:fetch` still reported `/api/status=200`, all configured `*/recent` endpoints `404`, and fallback zero-signal payload (`wins=0`, `defeats=0`, `Δexp=0`, `Δgold=0`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown due to auth/read-path inconsistency.
+- Anomaly: split read-path persisted (`direct status/logs=401` vs collector `/api/status=200`) while recent-history endpoints remain unavailable.
+- Development feedback: do not tune gameplay policy this cycle; prioritize a single canonical auth/header path and preflight hard-gate before KPI synthesis.
+- Failure mode + retry recommendation: classify as `auth_blocked_with_source_mismatch`; rerun paired preflight (`/api/status`, `/api/logs?limit=1`) on the same client/header stack with jittered retries (`10s`, `30s`, max 3 attempts). Keep `inference_allowed=false` until both return `200`.
+- TODO (next 30-min): implement `auth-preflight-source-parity-v1` to emit `{auth_state, header_path, inference_allowed, retry_after_ms}` and hard-stop hourly feedback when parity check fails.
