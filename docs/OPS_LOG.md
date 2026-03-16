@@ -4438,3 +4438,13 @@
 - Failure mode + retry recommendation: classify as `auth_blocked`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts). Keep `inference_allowed=false` until both probes return `200` in the same run.
 - TODO (next 30-min): implement `auth_preflight_retry_v1` artifact writer (`tmp/hourly-auth-preflight.json`) with `{auth_state,status_code_status,status_code_logs,retry_after_ms,inference_allowed}` and wire hourly summary hard-stop when `auth_state!=ok`.
 2026-03-16 23:31:40 KST | Restarted live-runner-daemon.sh via watchdog
+
+## [2026-03-17 00:26 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret not printed), then queried live `GET /api/status` and paginated `GET /api/logs?page=N&limit=100` on `https://bujuagent.com/api`.
+- Probe outcome: `/api/status=200`; logs pagination succeeded across `7` pages (`594` events in last 60m).
+- Last-hour gameplay signals: strong progression/throughput (`hunt=332`, `death=0`), no defeat burst in the sampled hour, and live snapshot `Lv25 EXP=5239/6250 Gold=434 HP=309/460 MP=242/242 area=talking_island_field`.
+- Resource trend: buy pressure remains high versus kills (`buy=181` vs `hunt=332`, buy/hunt≈`0.55`), with low liquidation (`sell=3`) and non-trivial churn (`drop=29`, `surrender=26`).
+- Anomaly: primary inefficiency is economy churn under otherwise stable combat (zero deaths + high hunt success).
+- Development feedback: keep combat-risk policy stable this cycle; prioritize economy controls (optional-buy suppression + inventory churn reduction) before any aggression increase.
+- TODO (next 30-min): implement `buy-pressure-guard-v1` to skip optional buys for 1 cycle when `buy/hunt>0.50` and `mp_ratio>=0.95`, and log `{buy,hunt,buy_hunt_ratio,gold_snapshot,sell,drop}` to `tmp/hourly-window-metrics.json`.
+

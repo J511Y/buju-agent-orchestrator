@@ -1334,3 +1334,11 @@ Track A/B and policy experiments.
 - Metric(s): `time-to-first-200` after failure, `% hourly cycles blocked with explicit auth_state`, `% cycles with blocked inference but missing failure reason`.
 - Result: Current cycle returned `401` on both direct probes (`/api/status`, `/api/logs?page=1&limit=100`) with zero in-window events.
 - Decision: Implement in next 30-min dev cycle; promote if two consecutive cycles report deterministic auth classification.
+
+- Date: 2026-03-17 00:26 KST
+- Hypothesis: `buy-pressure-guard-v1` (skip optional buy for one cycle when `buy/hunt>0.50` and `mp_ratio>=0.95`) will reduce economy churn without reducing hunt throughput.
+- Change: Add conditional optional-buy suppression and emit hourly metrics `{buy,hunt,buy_hunt_ratio,gold_snapshot,sell,drop,surrender}`.
+- Metric(s): `buy_count/hour`, `buy_hunt_ratio`, `hunt_count/hour`, `gold_snapshot_delta`, `death_count/hour`.
+- Result: Baseline this cycle (`23:26~00:26 KST`) is stable but buy-heavy: `hunt=332`, `death=0`, `buy=181`, `sell=3`, `drop=29`, `surrender=26`, `buy/hunt≈0.55`, status gold `434`.
+- Decision: Run in next 30-min dev cycle; promote only if `buy_hunt_ratio<0.45` for 3 consecutive hourly cycles with `hunt_count` drop `<=10%` and `death=0`.
+
