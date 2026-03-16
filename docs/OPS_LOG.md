@@ -1,6 +1,15 @@
 # Ops Log
 
 ## 2026-03-16
+- [2026-03-16 15:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20` (window `2026-03-16 04:49:22 -> 15:21:13`); computed deltas were `level +1`, `gold +45`, `inventory +0`, `rate/cooldown mentions 18/20`, so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=483`, `gold=414`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active; staged enhancement plan remains explicit in `docs/DECISIONS.md` (early safe gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Runtime continuity evidence: daemon lock PID alive (`logs/live-runner-daemon.lock` => `20502`), and `logs/live-runner-daemon.log` continued appending through this run.
+  - Ops telemetry posted: first post attempt failed validation (`400 tick_number required`), corrected payload then succeeded (`POST /api/agent/thinking` => `200 {"success":true}`; artifacts `tmp/thinking-post-1549.json`, `tmp/thinking-post-response-1549.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=14%`, and progression `exp>=760` or `gold>=430`.
+
 - [2026-03-16 15:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20` (window `2026-03-16 04:20:16 -> 14:50:02`); computed deltas were `level +0`, `gold +40`, `inventory +4`, `rate/cooldown mentions 18/20`, and no fresh defeat signal in live-runner tail, so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=213`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
