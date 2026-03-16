@@ -4566,3 +4566,13 @@
 - Development feedback: hold gameplay-policy tuning this hour; prioritize auth preflight parity and deterministic fail-fast gating before any KPI-derived strategy changes.
 - Failure mode + retry recommendation: classify as `auth_blocked_plus_recent_unavailable`; retry paired preflight (`/api/status`, `/api/logs?limit=1`) on the same client/header path with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts), keep `inference_allowed=false` until both return `200` in one run.
 - TODO (next 30-min): implement `hourly-auth-failfast-v1` to write `tmp/hourly-auth-preflight.json` `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and hard-stop hourly KPI synthesis when `auth_state!=ok`.
+
+## [2026-03-17 05:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from local `.env` in-process (secret never printed), then ran live probes via `scripts/fetch-activity.js --hours 1` plus direct canonical reads `GET /api/status`, `GET /api/logs?page=1&limit=100`.
+- Probe outcome: `fetch-activity` returned `source=fallback:local_replay` with endpoint statuses `recent/logs endpoints=404`, `/api/status=200` (probe path), while direct canonical reads returned `/api/status=401`, `/api/logs=401`.
+- Last-hour gameplay signals (confidence: blocked): progression `Δlevel=0, Δexp=0, Δgold=0`; wins/defeats `0/0`; action counts `success=0, failed=0, skipped=0` (fallback payload only).
+- Resource trend: unavailable from canonical telemetry this hour (auth blocked); fallback replay shows no trustworthy movement.
+- Anomaly: persistent endpoint/auth parity mismatch (`probe /status ok` vs canonical `/status` unauthorized in same cycle).
+- Development feedback: hold gameplay-policy tuning; prioritize one-client auth/header parity and endpoint contract normalization before any strategy changes.
+- Failure mode + retry recommendation: `auth_blocked_with_probe_parity_mismatch`; retry preflight on identical client stack with jitter backoff (`10s`, `30s`, `60s`, max 3), require same-run `status=200 && logs=200` before enabling KPI inference.
+- TODO (next 30-min): implement `hourly-preflight-parity-v5` to persist `tmp/hourly-auth-preflight.json` `{status_probe_code,status_direct_code,logs_direct_code,auth_state,inference_allowed,retry_after_ms}` and hard-stop summary generation when parity fails.

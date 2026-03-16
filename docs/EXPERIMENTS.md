@@ -1370,3 +1370,10 @@ Track A/B and policy experiments.
 - Metric(s): `blocked_hourly_cycles/day`, `% blocked cycles with explicit failure classification`, `false gameplay inferences during auth-blocked windows`.
 - Result: Baseline this cycle remained blocked (`/api/status=401`, `/api/logs=401`, `/api/logs/recent=404`; `events_in_window=0`).
 - Decision: Run in next 30-min dev cycle; keep only if failure classification remains complete for 3 consecutive hourly cycles and false inference count stays zero.
+
+- Date: 2026-03-17 05:28 KST
+- Hypothesis: Enforcing `hourly-preflight-parity-v5` (probe+direct status parity + direct logs auth check) will reduce false-confidence hourly feedback during mixed `200/401` endpoint windows.
+- Change: Persist `tmp/hourly-auth-preflight.json` with `{status_probe_code,status_direct_code,logs_direct_code,auth_state,inference_allowed,retry_after_ms}` and block KPI synthesis unless direct canonical preflight is fully green.
+- Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit auth_state`, `false gameplay-inference count during auth anomalies`.
+- Result: Baseline this cycle remained inconsistent (`fetch-activity /status=200` probe path, direct `/api/status=401`, direct `/api/logs=401`, no trustworthy in-window events).
+- Decision: Execute in next 30-min dev cycle; keep only if parity mismatches drop for 3 consecutive hourly runs.
