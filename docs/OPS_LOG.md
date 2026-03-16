@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-16 22:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window delta (`2026-03-16 12:20:08 -> 21:50:48`) was positive (`level +1`, `gold +25`, `inventory -5`) with unchanged latest death timestamp (`2026-03-15 05:09:30`), so CHANGE was not applied.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=25`, `exp=3957`, `gold=409`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`); safest high-efficiency target remains `skeleton`, movement threshold gate remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) active (`short_sword` retained over `rusty_sword`); staged enhancement plan remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`, enchant-scroll stock `0`).
+  - Live continuity evidence: daemon remains continuous (`tmp/live-runner-procs-2218.txt`: `live-runner-daemon.sh` + `live-strategy-runner.js`); smoke passed (`tmp/cron-smoke-2218.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `code=200`).
+  - Ops telemetry posted: first `POST /api/agent/thinking` failed validation (`reasoning max 500`), corrected payload then succeeded (`tmp/thinking-post-response-2218.json` => `{"success":true}`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=11%`, and progression `exp>=4040` or `gold>=424`.
+
 - [2026-03-16 20:26 KST] Hourly Buju gameplay-feedback cycle executed.
   - Evidence: loaded `BUJU_API_KEY` from local `.env` in-process (masked; secret not printed). `npm run -s activity:fetch -- --hours 1` returned fallback payload with `/api/status=200`, all `*/recent` endpoints `404` (failure streak `5`), and `progress_delta=0/0/0`.
   - Direct authenticated read-path check (same runtime key source) failed on both probes: `GET /api/status => 401`, `GET /api/logs?page=1&limit=100 => 401`; last-hour sampled events remained `0`.
