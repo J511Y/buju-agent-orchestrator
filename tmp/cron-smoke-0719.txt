@@ -1,0 +1,1 @@
+live-strategy ok=0/1 lastAction=hunt level=26 exp=2285 gold=424 code=400

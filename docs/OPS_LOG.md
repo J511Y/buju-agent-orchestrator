@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 07:19 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` (`count=20`) plus last-20 delta artifact (`tmp/cron-last20-delta-0719.json`) stayed flat (`level +0`, `exp +0`, `gold +0`, `inventory +0`, `death/defeat mentions 16`, `rate/cooldown mentions 9`), so KEEP was rejected.
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_POTION_USE_MAX_QUANTITY 2->3` to improve low-HP recovery throughput and reduce repeated low-HP loops without increasing buy churn.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=2285`, `gold=424`, `area=talking_island_field`, `in_combat=false`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan remains in `docs/DECISIONS.md`; minimal safe enhancement path remains prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`, enchant scroll stock `0`).
+  - Live continuity evidence: daemon lineage remains active (`tmp/live-runner-procs-0719.txt`); smoke probe recorded (`tmp/cron-smoke-0719.txt`: `ok=0/1`, `lastAction=hunt`, `code=400`) with no daemon restart.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, dangerous-surrender `<=1/8 cycles`, low-HP stall mentions `<=6/20`, and progression `exp>=2350` or `gold>=434`.
+
 - [2026-03-17 06:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP (mandatory loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered window (`2026-03-16 19:51:31 -> 2026-03-17 05:50:44`) improved (`level +1`, `exp +0`, `gold +20`, `inventory +1`, `rate/cooldown mentions 10/20`), so CHANGE was not applied.
   - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=2285`, `gold=424`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (scored: `skeleton` 106 > `rabbit` 93 with equal danger), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).

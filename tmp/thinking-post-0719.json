@@ -1,0 +1,38 @@
+{
+  "character_name": "j211y",
+  "tick_number": 1773699670753,
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.7095,
+    "mp_pct": 1,
+    "level": 26,
+    "area": "talking_island_field",
+    "gold": 424,
+    "inventory_count": 3,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "rest",
+      "use_item",
+      "sell",
+      "buy",
+      "move",
+      "enhance"
+    ],
+    "last20_delta": {
+      "count": 20,
+      "level": 0,
+      "exp": 0,
+      "gold": 0,
+      "inventory": 0,
+      "death_mentions": 16,
+      "rate_mentions": 9
+    }
+  },
+  "reasoning": "CHANGE by evidence: last-20 delta flat (lv 0, exp 0, gold 0, inv 0) with defeat mentions 16/20; KEEP rejected. Applied safe parameter change BUJU_POTION_USE_MAX_QUANTITY 2->3 to reduce low-HP loop risk while preserving strict move threshold (30), safest-target skeleton policy, and hard inventory sell invariants (10/8/10).",
+  "action_detail": "changed:potion_use_max_quantity 2->3; kept:safest skeleton targeting, move threshold gate, BiS equip scoring, enhancement prereq-gate, inventory hard constraints",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, low-HP stall mentions<=6/20, and progression to exp>=2350 or gold>=434 with daemon continuity."
+  }
+}
