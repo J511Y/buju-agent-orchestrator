@@ -1490,3 +1490,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit auth_state`, `false gameplay-policy outputs during auth failure`, `time-to-first dual-200 after key-path fix`.
 - Result: Current live probes were auth-blocked (`status=401`, `logs=401`, `recent=404`, `events_in_last_hour=0`), so progression/outcome/resource signals were unresolved.
 - Decision: Run in next 30-min dev cycle; keep if 3 consecutive auth-failure cycles are fully classified with zero gameplay-policy output.
+
+- Date: 2026-03-17 22:29 KST
+- Hypothesis: A canonical auth-parity preflight that validates the same key/header path used by hourly probes will reduce repeated `401` blocked cycles and prevent fallback-only gameplay summaries.
+- Change: Add/verify `hourly-auth-parity-preflight-v2` to write `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and block synthesis unless dual `200` is observed in the same run.
+- Metric(s): `% hourly cycles classified as auth_blocked_401`, `false gameplay-inference outputs during 401 windows`, `time-to-first dual-200 after auth-path fix`.
+- Result: Baseline this cycle: canonical `GET /api/status=401`, `GET /api/logs?page=1&limit=100=401`, `events_last_hour=0` from blocked canonical window (`tmp/hourly-live-signal-latest.json`).
+- Decision: Run in next 30-min dev cycle; keep only if 3 consecutive blocked cycles are explicitly classified with zero gameplay-policy output.

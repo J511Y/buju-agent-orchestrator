@@ -4888,3 +4888,12 @@
 - Retry recommendation: revalidate key source parity (`.env` load path vs runtime header path), then retry canonical probes with bounded backoff (e.g., 30s -> 60s) and only resume KPI synthesis after dual `200`.
 - TODO (next 30-min dev cycle): implement/verify `auth-preflight-failfast` artifact `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and gate hourly summary on `inference_allowed=true`.
 2026-03-17 21:04:24 KST | watchdog restart: live-runner-daemon.sh was not running; restarted
+
+## [2026-03-17 22:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed) and queried canonical `GET /api/status` + `GET /api/logs?page=1&limit=100` against current base path.
+- Live probe outcome: both endpoints returned `401` (auth-blocked); no canonical last-hour log payload was available for reliable KPI extraction (`events_last_hour=0`).
+- Last-hour gameplay signals (blocked): progression unknown, wins/defeats unknown, resource trend unknown (auth gate prevented evidence collection).
+- Anomaly: canonical read-path auth failure persisted while fallback activity path can still emit partial status, so this run stays inference-blocked by evidence policy.
+- Development feedback: keep strategy/policy unchanged this hour; prioritize auth-path parity (`.env` load -> Authorization header -> canonical endpoint`) and fail-fast gating before gameplay tuning.
+- Failure mode + retry recommendation: classify as `auth_blocked_401`; retry canonical probes with bounded backoff (`30s -> 60s -> 120s`, max 3) and only resume inference after same-run `status=200 && logs=200`.
+- TODO (next 30-min): implement/verify `hourly-auth-parity-preflight-v2` to persist `tmp/hourly-auth-preflight.json` `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and hard-stop hourly synthesis when `inference_allowed=false`.
