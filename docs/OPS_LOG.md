@@ -4813,3 +4813,11 @@
 - Development feedback: hold gameplay-policy tuning this cycle; prioritize read-path health classification and parity gating before any KPI-driven strategy updates.
 - Failure mode + retry recommendation: classify as `transport_unreachable_with_parity_mismatch`; retry canonical `status+logs` with bounded backoff (`5m -> 15m -> 30m`, max 3) and require same-run `status=200 && logs=200` before inference.
 - TODO (next 30-min): implement `hourly-canonical-preflight-v3` artifact `tmp/hourly-preflight.json` with `{dns_state,transport_state,status_code_status,status_code_logs,probe_status_code,inference_allowed,retry_after_ms}` and hard-block synthesis when `inference_allowed=false`.
+
+## [2026-03-17 18:27 KST] Hourly gameplay feedback (live API auth-blocked)
+- Evidence (live): loaded `BUJU_API_KEY` from `.env` (masked); `GET /api/status -> 401`, `GET /api/logs?page=1&limit=100 -> 401`, `GET /api/logs/recent?hours=1 -> 404`.
+- Last-hour gameplay signals: **unresolved** (progression, wins/defeats, resource trend unavailable) because canonical read-path auth failed (`events_in_last_hour=0`).
+- Anomaly: probe-path mismatch risk remains (`recent=404` while canonical status/log are unauthorized), so confidence is `low-auth-blocked`.
+- Dev feedback: block policy/aggression inference when canonical preflight returns non-200 on both `/api/status` and `/api/logs`; prefer deterministic auth-state output over fallback summary text.
+- Retry recommendation: revalidate key source parity (`.env` load path vs runtime header path), then retry canonical probes with bounded backoff (e.g., 30s -> 60s) and only resume KPI synthesis after dual `200`.
+- TODO (next 30-min dev cycle): implement/verify `auth-preflight-failfast` artifact `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and gate hourly summary on `inference_allowed=true`.

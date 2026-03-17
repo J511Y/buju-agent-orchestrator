@@ -1462,3 +1462,10 @@ Track A/B and policy experiments.
 - Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit transport_state`, `false gameplay-inference outputs during canonical transport failure`.
 - Result: Baseline this cycle (`16:28 KST`) canonical `status/logs` both failed at transport (`fetch failed`, no HTTP), while `activity:fetch` still reported probe `/api/status=200` and all `*/recent=404` with `source=fallback:local_replay`.
 - Decision: Run in next 30-min dev cycle; keep if false-confidence summaries remain zero for 3 consecutive outage windows.
+
+- Date: 2026-03-17 18:27 KST
+- Hypothesis: A strict canonical auth fail-fast gate (`/api/status` + `/api/logs?page=1&limit=100`) will eliminate low-confidence hourly gameplay feedback during recurring `401` windows.
+- Change: Emit `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and hard-block KPI synthesis unless `inference_allowed=true`.
+- Metric(s): `% blocked cycles with explicit auth_state`, `false gameplay-policy outputs during auth failure`, `time-to-first dual-200 after key-path fix`.
+- Result: Current live probes were auth-blocked (`status=401`, `logs=401`, `recent=404`, `events_in_last_hour=0`), so progression/outcome/resource signals were unresolved.
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive auth-failure cycles are fully classified with zero gameplay-policy output.
