@@ -1930,3 +1930,14 @@
 - Runtime logic update: in `scripts/live-strategy-runner.js`, added `combatStart429Streak` and scaled `combat_start` cooldown on repeated `429` (`stall429CooldownTicks + min(6, streak)`), while preserving safe hunt fallback and hard safety contracts.
 - Expected effect: reduce repeated `wait_combat_start_rate_limit` churn, allow rate budget recovery between combat-start attempts, and keep runner continuous without aggression increase.
 - Invariants preserved: inventory hard constraints (`10/8/10` + worse-than-equipped-first), BiS equip scoring (`equipSlot`, `maxDamage+defBonus`), strict level-threshold movement gate, and prerequisite-gated minimal enhancement path.
+
+- Adaptive step-94 (2026-03-17 14:48 KST): checked trailing 20 thinking logs (`tmp/cron-thinking-now-1420.json`) and computed edge deltas (`level 26->26`, `gold 444->439`, `inventory 0->7`, `death delta 0`, `rate/cooldown wording 20/20` via local parser). KEEP was rejected because no net progression evidence in the mandated window.
+- CHANGE (reversible): increased `BUJU_BASE_DELAY_MS` from `5400` to `5600` to lower `combat_start` throttle collisions while preserving safe single-action cadence.
+- Safety/efficiency status: safest available high-efficiency target remains `skeleton` in `talking_island_field` (monsters: `rabbit`, `skeleton`), and movement remains level-threshold gated (`BUJU_MOVE_LEVEL_2=30`).
+- Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, liquidation still prioritizes unequipped gear worse than equipped first.
+- Equipment progression (explicit, staged):
+  - Early game: safe gold accumulation, no risky enhancement spam.
+  - Mid game: weapon-first enhancement only when `scroll + blacksmith npc + resource + reserve` prerequisites are all satisfiable.
+  - Late game: broaden to armor/accessory with cooldown and failure-risk controls.
+- Enhancement action path status: minimal safe path remains active and prerequisite-gated (`/npc/list` -> `/npc/{npc_id}/enhance`), skipped automatically when any prerequisite is missing (`npc list` currently empty).
+- KPI target (next 30 min): `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit<=30%` of ticks, and progression to `exp>=5780` or `gold>=449` with smoke `code=200` and daemon continuity.
