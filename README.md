@@ -91,6 +91,7 @@ npm run dev
   - `/api/status.rate_limits` 기반 사전 예산 체크로 잔여 호출 0인 액션은 선제 스킵(불필요한 429/400 감소)
   - `BUJU_BASE_DELAY_MS`는 rate-limit 병목 완화를 위한 기본 페이싱 제어값으로 운영하며, 변화 시 소폭/가역 튜닝을 우선 (현재 기본값: `5600`)
   - `BUJU_MAX_ACTIONS_PER_CYCLE`는 rate-limit 구간에서 사이클당 burst를 줄이기 위한 1차 쿼터 제어값으로 운영 (현재 기본값: `1`)
+  - `BUJU_BUY_COOLDOWN_TICKS`는 소모품 자동 보충 빈도를 제한해 저효율 반복 구매를 줄이는 쿨다운 가드로 운영 (현재 기본값: `10`)
   - 지역 이동 임계(`BUJU_MOVE_LEVEL_*`/`BUJU_AREA_LV*`)와 안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)은 연속 패배/과위험 전투를 줄이기 위한 보수적 기본값으로 유지(현재 기본값 예: `BUJU_MOVE_LEVEL_2=30`)
   - 몬스터 선택 안전 필터는 레벨 격차 + 공격력 가드 + hard danger cap(압박/무장 상태 반영) 3중 게이트를 함께 사용하며, 안전 필터가 비면 최저 위험 몬스터 우선으로 폴백
   - 위험 전투 압박(최근 패배 1회 이상 또는 최근 4틱 위험 항복 2회 이상) 구간에서는 효율 점수보다 안전성을 우선해 단일 최저 위험 몬스터로 타깃을 수축
