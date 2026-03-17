@@ -1,5 +1,24 @@
 # Ops Log
 
+- [2026-03-17 19:28 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, never printed).
+  - Live probe evidence: canonical `GET /api/status` => `401`, `GET /api/logs?page=1&limit=100` => `401` (`tmp/hourly-live-snapshot.json`).
+  - Parallel collector signal: `npm run -s activity:fetch` reported probe `/api/status=200` while all `*/recent` endpoints were `404` and fallbacked to `source=fallback:local_replay` (zero in-window gameplay KPIs).
+  - Last-hour gameplay signals: progression `unresolved`, wins/defeats `unresolved`, resource trends `unresolved` (`events_in_window=0` under auth block).
+  - Anomaly: canonical-auth vs probe-status mismatch persisted (`401` canonical vs `200` probe), so this cycle is telemetry-integrity failure, not gameplay-behavior evidence.
+  - Dev feedback: freeze strategy/policy tuning until same-cycle dual canonical recovery (`/api/status=200` and `/api/logs=200`).
+  - Failure mode + retry recommendation: classify as `auth_blocked_with_probe_mismatch`; retry after `5m` with a single auth-parity preflight (same key source, same header path, dual endpoint probe) before KPI synthesis.
+  - Next 30m TODO: implement `scripts/hourly-auth-parity-preflight-v6.js` that emits `{status_code_status,status_code_logs,probe_status_code,auth_state,inference_allowed,retry_after_ms}` and hard-gates summary generation on `inference_allowed=true`.
+
+- [2026-03-17 19:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered delta (`tmp/cron-last20-delta-1918.json`, window `05:21:37 -> 17:52:28`) improved (`level +1`, `exp +0`, `gold +10`, `inventory -2`), so CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=27`, `exp=2143`, `gold=439`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement policy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`, no satisfiable `scroll+npc+resource` path).
+  - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-1918.txt`) and smoke passed (`tmp/cron-smoke-1918.txt`: `verify:cycle passed`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1918.json`, `tmp/thinking-post-response-1918.json`, `tmp/thinking-post-status-1918.txt`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=9/20`, and progression `exp>=2220` or `gold>=449` with daemon continuity.
+
 - [2026-03-17 17:27 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, not printed).
   - Live probe evidence: `GET /api/status` returned `401`; `GET /api/logs?page=1&limit=100` failed auth in the same run; artifact `tmp/hourly-cycle-raw.json`.

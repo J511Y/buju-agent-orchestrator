@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 19:28 KST
+- Hypothesis: A strict auth-parity preflight that compares canonical reads (`/api/status`,`/api/logs`) against collector probe status in the same run will eliminate split-signal hourly summaries (`canonical=401` while probe status appears `200`).
+- Change: Add `hourly-auth-parity-preflight-v6` artifact `tmp/hourly-auth-parity-preflight-v6.json` with `{status_code_status,status_code_logs,probe_status_code,auth_state,inference_allowed,retry_after_ms}` and block gameplay KPI synthesis unless `inference_allowed=true`.
+- Metric(s): `split_signal_cycles/day`, `% blocked cycles with explicit auth_state`, `false gameplay-policy outputs during auth mismatch windows`.
+- Result: Current cycle reproduced mismatch (`tmp/hourly-live-snapshot.json`: status/logs `401`; `activity:fetch`: `/api/status=200` + `recent=404`), leaving last-hour progression/outcomes/resources unresolved.
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive mismatch cycles are deterministically blocked with zero gameplay-policy output.
+
 - Date: 2026-03-17 17:27 KST
 - Hypothesis: A hard auth-preflight gate (`/api/status` + `/api/logs?page=1&limit=100`) with credential-source parity metadata will eliminate zero-evidence hourly gameplay summaries during `401` windows.
 - Change: Add `hourly-auth-preflight-v2` artifact `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and block KPI synthesis unless `inference_allowed=true`.
