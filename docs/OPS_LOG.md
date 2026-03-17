@@ -1,5 +1,13 @@
 # Ops Log
 
+- [2026-03-18 07:31 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
+  - Live API evidence: `GET /api/status => 200`; paged `GET /api/logs?page=n&limit=100` succeeded through page `7` before crossing window boundary (`tmp/hourly-feedback-2026-03-17-22-31.json`).
+  - Last-hour gameplay signals (06:31~07:31 KST): progression `active` (`Lv28`, `EXP 3765`, `Gold 439`, `HP 385/505`), outcomes `wins=362`, `defeats=0` (hunt-result derived), activity mix `events=670`, `hunt=362`, `buy=199`, `surrender=54`, `rest=15`, `sell=4`.
+  - Resource/anomaly trend: gold remained flat (`~439`) while potion-pressure stayed high (`buy:hunt≈0.55`) and surrender density remained elevated (`surrender:hunt≈0.15`), indicating efficiency drag without safety collapse (`deaths=0`).
+  - Development feedback: keep strict safety gates (`defeats=0` preserved), but prioritize reducing buy+surrender churn in `talking_island_field` combat loop before any aggression increase.
+  - Next 30m TODO: implement `scripts/hourly-churn-guard-kpi.js` (or equivalent in current hourly pipeline) to emit `buy_hunt_ratio`, `surrender_hunt_ratio`, `deaths`, and `guard_state=on` when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.15`, then surface one concrete throttle recommendation.
+
 - [2026-03-18 06:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0650.json`), and ordered delta was mixed/non-improving (`tmp/cron-last20-delta-0650.json`: `level +1`, `gold +5`, but `inventory +5`, `death/defeat mentions 28`, `rate/429/cooldown mentions 54`; `exp` unavailable in thinking context).
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_429_COOLDOWN_TICKS 50->52` (README current-default note synced) to widen post-429 cooling and reduce immediate throttle re-entry while preserving strict safety/movement/equipment invariants.

@@ -1554,3 +1554,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles with parsable in-window events`, `false outage classifications/day`, `non-empty signal cycles/day`.
 - Result: Current cycle showed `/api/status=200`, `/api/logs?page=1..7&limit=100=200`, but `/api/logs?page=1&limit=200=400`; with `limit=100`, last-hour evidence recovered (`events=665`, `hunt=360`, `buy=195`, `surrender=54`, inferred defeats `0`).
 - Decision: Run in next 30-min dev cycle; keep if non-empty hourly signal rate stays high for 3 consecutive runs without new false outage tags.
+
+- Date: 2026-03-18 07:31 KST
+- Hypothesis: A churn guard that auto-flags high `buy:hunt` + `surrender:hunt` windows will reduce resource-drain loops without increasing defeats.
+- Change: Add `hourly-churn-guard-v1` output in hourly feedback (`buy_hunt_ratio`, `surrender_hunt_ratio`, `defeats`, `guard_state`) and emit one bounded recommendation when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.15`.
+- Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `defeat_count`, and `% windows with gold rebound while guard_state=on`.
+- Result: Current live window (`06:31~07:31 KST`) showed sustained churn with safety intact (`events=670`, `hunt=362`, `buy=199`, `surrender=54`, `defeats=0`, status gold `439`).
+- Decision: Run in next 30-min dev cycle; keep only if churn ratios trend downward for 2 consecutive windows while `defeats` remains `0`.
