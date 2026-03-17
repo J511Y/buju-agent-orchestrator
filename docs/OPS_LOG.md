@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 23:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-2348.json`, `count=0`), so ordered local fallback deltas were recomputed (`tmp/cron-last20-delta-now.json`) and remained improving (`level +1`, `exp +0`, `gold +5`, `inventory +1`), so CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=27`, `exp=5435`, `gold=439`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-2348.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=27`, `exp=5441`, `gold=444`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-2348.txt`) with no stop/restart action.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-2348.json`, `tmp/thinking-post-response-2348.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=10/20`, and progression `exp>=5510` or `gold>=449` with daemon continuity.
+
 - [2026-03-17 23:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered delta (`tmp/cron-last20-delta-2320.json`, window `10:50:45 -> 22:51:37`) improved (`level +1`, `gold +5`, `inventory -1`), and live 30-minute baseline also improved (`tmp/cron-status-now-2248.json -> tmp/cron-status-now-2320.json`: `exp +372`, `gold +10`, `level +0`), so CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
