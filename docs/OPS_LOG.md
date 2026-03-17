@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 03:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20` (`tmp/cron-thinking-now-0350.json`), and ordered delta was non-improving (`tmp/cron-last20-delta-0350.json`: `level +2`, `exp +0`, `gold -5`, `inventory +5`, `death/defeat mentions 25`, `rate/429/cooldown mentions 53`), so KEEP was rejected.
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BACKOFF_BASE_MS 1900->2000` (README default note synced) to reduce immediate retry re-entry under sustained throttle wording while preserving strict safety/movement/equipment invariants.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-0350.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-0350.json`) keep safest high-efficiency target as `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-0350.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-0350.json`).
+  - Live continuity preserved: no stop/restart action taken; daemon continuity left intact.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=10/20 mentions`, and progression `exp>=900` or `gold>=444` with daemon continuity.
+
 - [2026-03-18 02:30 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked only as `gq_***80`, raw secret never printed).
   - Live API evidence: `GET /api/status => 200` and paged `GET /api/logs?page=n&limit=100` succeeded on pages `1..7` (`tmp/hourly-feedback-run-now.json`).
