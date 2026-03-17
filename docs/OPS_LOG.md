@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 09:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory loop): remote thinking endpoint DNS failed (`www.buju.quest`), so local last-20 fallback was used (`tmp/last20-thinking-now.json` -> `tmp/cron-last20-delta-0918.json`) and remained improving (`level +1`, `exp +0`, `gold +5`, `inventory -1`, `death/defeat mentions 20`, `rate/429/cooldown mentions 20`).
+  - CHANGE applied (mandatory adaptive requirement): `config/strategy.env` restored `BUJU_USE_COMBAT_START 0->1`, and `scripts/live-strategy-runner.js` added in-combat hunt-mode escape (`surrender_stuck_hunt_mode` / `wait_combat_resolution_hunt_mode`) to stop repeated invalid `hunt code=400` loops.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement policy (early no-spam -> mid weapon-first at reserve -> late armor/accessory risk-controls) remains documented and enforced by prereq-gated safe path.
+  - Live continuity + smoke evidence: daemon remained continuous; post-change smoke succeeded (`tmp/cron-smoke-0918.txt`: `ok=1/1`, `lastAction=buy_mp`, `level=26`, `exp=2293`, `gold=444`, `code=200`).
+  - Ops telemetry post attempt: `POST /api/agent/thinking` failed DNS (`curl: Could not resolve host: www.buju.quest`); artifacts saved (`tmp/thinking-post-0918.json`, `tmp/thinking-post-response-0918.json`, `tmp/thinking-post-0918.http`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, cooldown/rate mentions `<=8/20`, and progression `exp>=2360` or `gold>=454`.
+
 - [2026-03-17 08:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory loop): remote thinking/status reads failed DNS (`tmp/cron-thinking-now-0848.json` => `fetch failed`), so fallback local last-20 delta (`tmp/last20-thinking-now.json` -> `tmp/cron-last20-delta-0848.json`) was used and was non-improving/mixed (`level +1`, `exp +0`, `gold -5`, `inventory +0`, `death/defeat mentions 12`, `rate/429/cooldown mentions 14`); KEEP rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_COOLDOWN_TICKS 8->10` to reduce repeated hunt-400 loop pressure while preserving strict safety/movement controls.

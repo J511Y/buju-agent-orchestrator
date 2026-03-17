@@ -747,6 +747,17 @@ async function step() {
     return { ok: true, action: 'wait_hunt_rate_limit', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
   }
 
+  if (inCombat && !CFG.useCombatStart) {
+    if (hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_stuck_hunt_mode')) {
+      const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
+      recordActionResult('surrender_stuck_hunt_mode', sr.status);
+      if (sr.status === 200) {
+        return { ok: true, action: 'surrender_stuck_hunt_mode', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      }
+    }
+    return { ok: true, action: 'wait_combat_resolution_hunt_mode', level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+  }
+
   const skills = await req('/skill/list');
   const skillId = chooseBestSkill(skills.status === 200 ? skills.json.skills : [], c.mp?.current || 0);
 
