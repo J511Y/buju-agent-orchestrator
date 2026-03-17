@@ -1,0 +1,31 @@
+{
+  "character_name": "j211y",
+  "tick_number": 1773764461521,
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 1,
+    "mp_pct": 1,
+    "level": 27,
+    "exp": 6547,
+    "area": "talking_island_field",
+    "gold": 439,
+    "inventory_count": 6,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "use_item",
+      "move",
+      "rest",
+      "buy",
+      "sell",
+      "enhance",
+      "surrender"
+    ]
+  },
+  "reasoning": "KEEP with delta evidence: local ordered last-20 improved (level +2, gold +30, inventory +0), live state advanced since prior run (exp 6547, gold 439), and no fresh death burst (latest death still 2026-03-15). Safest available target remains skeleton over rabbit in talking_island_field; risk gate keeps movement locked until lv30 to avoid repeat defeats.",
+  "action_detail": "keep:safest=skeleton, moveGate=lv30, inv=10/8/10(worse-than-equipped-first at>=10), BiS(slot+maxDmg+def), enhance=prereq-gated(scroll+npc+resource)",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, surrender_dangerous_combat<=1/20, wait_combat_start_rate_limit+cooldown<=10/20, progression exp>=6620 or gold>=449; daemon continuous."
+  }
+}

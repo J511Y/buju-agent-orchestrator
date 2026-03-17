@@ -1,0 +1,15 @@
+{
+  "count": 20,
+  "from": "thinking-post-2048.json",
+  "to": "thinking-post-2348.json",
+  "delta": {
+    "level": 2,
+    "exp": 0,
+    "gold": 30,
+    "inventory": 0
+  },
+  "mentions": {
+    "death_or_defeat": 19,
+    "rate_429_cooldown": 21
+  }
+}

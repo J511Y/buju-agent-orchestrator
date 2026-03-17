@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 01:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-0118.json`, `count=0`), so ordered local fallback deltas were recomputed (`tmp/cron-last20-delta-0118-local.json`) and remained improving (`level +2`, `gold +30`, `inventory +0`), so CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=27`, `exp=6547`, `gold=439`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated (`GET /api/npc/list => 200`, `npcCount=0`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-0118.txt`: `ok=1/1`, `lastAction=combat_start`, `level=27`, `exp=6549`, `gold=444`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-0118.txt`) with no stop/restart action.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-0118-cron.json`, `tmp/thinking-post-response-0118-cron.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=10/20`, and progression `exp>=6620` or `gold>=449` with daemon continuity.
+
 - [2026-03-17 23:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-2348.json`, `count=0`), so ordered local fallback deltas were recomputed (`tmp/cron-last20-delta-now.json`) and remained improving (`level +1`, `exp +0`, `gold +5`, `inventory +1`), so CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
