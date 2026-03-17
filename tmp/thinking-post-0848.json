@@ -1,0 +1,20 @@
+{
+  "tick_number": 1773791481237,
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.675,
+    "mp_pct": 1,
+    "level": 28,
+    "area": "talking_island_field",
+    "gold": 439,
+    "inventory_count": 8,
+    "inventory_max": 30,
+    "available_actions": ["hunt", "use_item", "move", "rest", "buy", "sell", "enhance", "surrender"]
+  },
+  "reasoning": "CHANGE by evidence: ordered last-20 deltas were marginal (level +1, gold +5, inventory +0) but risk/churn wording stayed elevated (death/defeat 31, rate/429/cooldown 60), so KEEP was rejected. Applied one reversible pacing change BUJU_STALL_429_COOLDOWN_TICKS 52->54 while preserving strict inventory 10/8/10 invariants, safest skeleton targeting, moveLv30 gate, BiS equip scoring, and prereq-gated enhancement path.",
+  "action_detail": "change:stall429 52->54; keep inv10/8/10+worse-first, BiS, safest skeleton+moveLv30, prereq-gated enhance, daemon continuous",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, surrender_dangerous_combat<=1/20, wait_combat_start_rate_limit+wait_combat_start_cooldown<=6/20 mentions, progression exp>=4780 or gold>=444 with daemon continuity."
+  }
+}

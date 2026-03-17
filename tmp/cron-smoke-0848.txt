@@ -1,0 +1,1 @@
+live-strategy ok=1/1 lastAction=combat_start level=28 exp=4711 gold=444 code=200
