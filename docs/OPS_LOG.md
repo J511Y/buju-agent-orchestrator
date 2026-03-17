@@ -4944,3 +4944,13 @@
 - Development feedback: keep safety policy unchanged (zero-defeat), but prioritize reducing surrender-triggered potion/buy loop before any aggression increase; tune retreat/engage thresholds and optional MP-buy gating together.
 - Failure mode + retry recommendation: canonical recent endpoint family still unavailable (`404` on `/api/logs/recent`); continue paged `/api/logs` fallback and retry recent endpoint each hourly cycle. Re-enable recent-endpoint-first aggregation only after `>=2` consecutive `200` recoveries.
 - TODO (next 30-min dev cycle): implement `surrender-pressure-guard-v2` that tags each cycle with `{surrender_rate,buy_hunt_ratio,inference_source}` and skips optional MP buy when `buy_hunt_ratio > 0.50` and `mp_ratio >= 0.95`.
+
+## [2026-03-18 01:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` via runtime loader (secret not printed); ran live probe `node scripts/fetch-activity.js --hours 1`.
+- API/status results: `/api/status=200`; recent-activity/log endpoints remained unavailable (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*` all `404`), so source fell back to `fallback:local_replay`.
+- Last-hour gameplay signals (evidence-constrained): progression `Δlevel=0, Δexp=0, Δgold=0`; wins/defeats `win=0, defeat=0`; action statuses `success=0, failed=0, skipped=0`.
+- Resource trend: neutral/unknown in-window (no canonical recent event payload available); treat as `low-confidence` rather than true zero activity.
+- Anomaly: endpoint-availability asymmetry persists (`/api/status` healthy while all recent endpoints fail), with probe summary showing sustained failure streaks (`failure_streak=6` on each recent endpoint family).
+- Development feedback: keep gameplay policy unchanged this hour; prioritize data-plane reliability before tuning strategy (maintain fallback but mark KPI confidence low when recent endpoints are all non-200).
+- Failure mode + retry recommendation: classify as `recent_endpoints_404_persistent`; keep hourly bounded retries and re-test canonical recent endpoints each cycle. Promote recent-endpoint-first aggregation only after `>=2` consecutive hourly runs with at least one recent endpoint `200`.
+- TODO (next 30-min dev cycle): implement `recent-endpoint-health-gate-v1` to emit `tmp/hourly-recent-endpoint-health.json` with `{status_ok,recent_ok_count,recent_total,source,kpi_confidence}` and force `kpi_confidence=low` when `recent_ok_count=0`.

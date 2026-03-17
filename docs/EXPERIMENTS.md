@@ -1511,3 +1511,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio`, `surrender_rate`, `gold_delta_per_30m`, `defeat_count`.
 - Result (baseline): last 60m had `hunt=365`, `buy=190` (`buy/hunt=0.52`), `surrender=66` (`9.5%`), inferred `defeats=0`, `Δgold=+10`, `Δexp=+716`.
 - Decision: Run in next 30-min cycle; keep only if `buy_hunt_ratio <= 0.45` with `defeat_count=0` for two consecutive windows.
+
+- Date: 2026-03-18 01:29 KST
+- Hypothesis: Explicit confidence-gating from recent-endpoint health will prevent false "flat gameplay" interpretations during fallback-only windows.
+- Change: Add `recent-endpoint-health-gate-v1` that records `{status_ok,recent_ok_count,recent_total,source,kpi_confidence}` and tags hourly summaries `kpi_confidence=low` when all recent endpoints are non-200.
+- Metric(s): `low_confidence_cycles/day`, `false flat-activity summaries/day`, `time-to-recovery after first recent-endpoint 200`.
+- Result: Current cycle had `/api/status=200` with all six recent endpoints `404`; payload returned `source=fallback:local_replay` and zero deltas/outcomes.
+- Decision: Run in next 30-min cycle; keep only if low-confidence tagging captures 100% of fallback-only cycles for 3 consecutive hours.
