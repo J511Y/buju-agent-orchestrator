@@ -4675,3 +4675,12 @@
 - Last-hour gameplay signals (progression/wins/defeats/resources): **unavailable due to DNS/host resolution failure**; no evidence-safe inference emitted.
 - Ops recommendation: classify as `dns_unreachable` and retry with bounded backoff (`5m -> 15m -> 30m`), then verify host resolution + API base before next synthesis run.
 - Next 30-min dev TODO: add/verify a single preflight artifact (`tmp/hourly-preflight.json`) that records `{dns_state, status_probe, logs_probe, inference_allowed, retry_after_ms}` and hard-blocks KPI synthesis when `dns_state!=ok`.
+
+## [2026-03-17 10:26 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed), then ran `npm run -s activity:fetch` plus direct canonical probes to `GET /api/status` and `GET /api/logs?page=1&limit=100`.
+- Probe outcome: `activity:fetch` still reports `/api/status=200` with all `*/recent` endpoints `404`, but direct canonical probes failed at transport (`ENOTFOUND www.buju.quest`) before auth/data read.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (`events_in_window` unavailable from canonical logs path).
+- Anomaly: split read-path persists (`probe status ok` vs canonical DNS failure), so gameplay inference is not evidence-safe this hour.
+- Development feedback: freeze gameplay-policy tuning; prioritize one-client DNS/readpath preflight and canonical endpoint health gating before any strategy changes.
+- Failure mode + retry recommendation: classify as `dns_unreachable_with_readpath_mismatch`; retry paired canonical probes (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts) and keep `inference_allowed=false` until both succeed in the same run.
+- TODO (next 30-min): implement `shared-client-preflight-v4` that writes `tmp/hourly-preflight.json` with `{dns_state, status_code_status, status_code_logs, readpath_state, inference_allowed, retry_after_ms}` and hard-blocks hourly KPI synthesis when `dns_state!=ok` or `readpath_state!=ok`.

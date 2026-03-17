@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 10:26 KST
+- Hypothesis: Forcing both collector and canonical probes through a single shared DNS-resolved client (`/api/status` + `/api/logs?limit=1`) will eliminate split-signal cycles where probe path shows `status=200` but canonical reads fail transport (`ENOTFOUND`).
+- Change: Add `shared-client-preflight-v4` to emit `tmp/hourly-preflight.json` `{dns_state, readpath_state, status_code_status, status_code_logs, inference_allowed, retry_after_ms}` and block gameplay synthesis unless `dns_state=ok && readpath_state=ok`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with deterministic DNS/readpath class`, false gameplay-summary count during DNS failures.
+- Result: Current cycle reproduced mismatch (`activity:fetch` reported `/api/status=200` + `recent=404`, while direct canonical status/log probes failed with `ENOTFOUND www.buju.quest`), leaving last-hour outcomes/resources unresolved.
+- Decision: Run in next 30-min dev cycle; keep if 4 consecutive mismatch cycles are deterministically blocked with zero gameplay-policy output.
+
 - Date: 2026-03-17 09:27 KST
 - Hypothesis: A single-runtime shared-client preflight (collector + direct probes through the same fetch stack) will eliminate transport split-signals and prevent zero-evidence gameplay summaries.
 - Change: Add `hourly-shared-client-preflight-v3` that checks `/api/status` + `/api/logs?page=1&limit=100`, emits `{dns_state, transport_state, status_http, logs_http, inference_allowed, retry_after_ms}`, and blocks synthesis unless `inference_allowed=true`.
