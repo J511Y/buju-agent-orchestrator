@@ -1,5 +1,24 @@
 # Ops Log
 
+- [2026-03-17 20:28 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked only as `gq_***80`, raw secret never logged).
+  - Live canonical probes: `GET /api/status` => `401`, `GET /api/logs?page=1&limit=100` => `401` (`tmp/hourly-live-signal-20260317-2027.json`).
+  - Collector signal: `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`, `/api/status=200`, and all `*/recent` endpoints `404` (`tmp/hourly-activity-20260317-2027.json`).
+  - Last-hour gameplay signals: progression `unresolved` (`Δlevel/Δexp/Δgold=0/0/0` from fallback only), wins/defeats `unresolved` (`0/0`), resource trend `unresolved` (`events_in_last_hour=0` under canonical auth block).
+  - Anomaly: same-cycle auth/parity mismatch persisted (`collector status=200` vs canonical `status/logs=401`), so this hour is telemetry-integrity failure, not gameplay-behavior evidence.
+  - Dev feedback: freeze gameplay-policy tuning and architecture changes until one same-cycle dual-canonical recovery (`/api/status=200` and `/api/logs=200`) is observed.
+  - Failure mode + retry recommendation: classify `auth_blocked_with_probe_mismatch`; retry in `5m` with a single shared-auth preflight (`status`,`logs`,`collector-status`) and skip KPI inference unless all pass.
+  - Next 30m TODO: implement `scripts/hourly-auth-parity-preflight-v7.js` that emits `{status_code_status,status_code_logs,probe_status_code,auth_state,inference_allowed,retry_after_ms}` and hard-gates summary generation on `inference_allowed=true`.
+
+- [2026-03-17 20:19 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` DNS-failed (`tmp/cron-thinking-now-2019.err`), so ordered local last-20 posts were recomputed (`tmp/cron-last20-delta-2019-local.json`, `count=20`) and improved (`level +1`, `gold +10`, `inventory +0`); CHANGE not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: live endpoint probes DNS-failed (`tmp/cron-status-now-2019.err`, `tmp/cron-monsters-now-2019.err`), so safest high-efficiency policy remains pinned to validated baseline (`skeleton` in `talking_island_field`) and strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite/DNS-gated this cycle.
+  - Live continuity preserved: smoke passed (`tmp/cron-smoke-2019.txt`: `verify:cycle passed`) and daemon lineage remained active (`tmp/live-runner-procs-2019.txt`), with no stop/restart action.
+  - Ops telemetry post attempt: `POST /api/agent/thinking` DNS-failed (`tmp/thinking-post-response-2019.err`); payload archived (`tmp/thinking-post-2019.json`) for replay.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=9/20`, and progression `exp>=2570` or `gold>=444` with daemon continuity.
+
 - [2026-03-17 19:49 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered delta (`tmp/cron-last20-delta-1949.json`, window `17:52:28 -> 19:21:05`) was non-improving (`level +0`, `exp +0`, `gold -5`, `inventory +1`, `death/defeat mentions 13`, `rate/429/cooldown mentions 11`), so KEEP was rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_COMBAT_STRATEGY_REFRESH_TICKS 44->48` (README current-default note synced) to further reduce strategy-control churn under throttle pressure while preserving strict safety/movement/equipment invariants.

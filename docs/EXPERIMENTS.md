@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 20:28 KST
+- Hypothesis: Bumping auth-parity preflight to v7 with explicit tri-probe output (`status`,`logs`,`collector-status`) will eliminate false hourly gameplay synthesis during persistent `401 vs 200` split-signal windows.
+- Change: Add `hourly-auth-parity-preflight-v7` artifact `tmp/hourly-auth-parity-preflight-v7.json` with `{status_code_status,status_code_logs,probe_status_code,auth_state,inference_allowed,retry_after_ms}` and block summary unless `inference_allowed=true`.
+- Metric(s): `split_signal_cycles/day`, `% blocked cycles with deterministic auth_state`, `false gameplay-policy outputs during auth mismatch windows`.
+- Result: Current cycle reproduced mismatch (`tmp/hourly-live-signal-20260317-2027.json`: canonical status/logs `401`; `tmp/hourly-activity-20260317-2027.json`: collector `/api/status=200` + recent endpoints `404`), leaving last-hour progression/outcomes/resources unresolved.
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive mismatch cycles are blocked with zero gameplay-policy output.
+
 - Date: 2026-03-17 19:28 KST
 - Hypothesis: A strict auth-parity preflight that compares canonical reads (`/api/status`,`/api/logs`) against collector probe status in the same run will eliminate split-signal hourly summaries (`canonical=401` while probe status appears `200`).
 - Change: Add `hourly-auth-parity-preflight-v6` artifact `tmp/hourly-auth-parity-preflight-v6.json` with `{status_code_status,status_code_logs,probe_status_code,auth_state,inference_allowed,retry_after_ms}` and block gameplay KPI synthesis unless `inference_allowed=true`.
