@@ -1,5 +1,24 @@
 # Ops Log
 
+- [2026-03-17 21:31 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, never printed).
+  - Live API evidence: `GET /api/status => 200` (`tmp/hourly-status-20260317-2129.json`), canonical `GET /api/logs?page=1&limit=100 => 200` (`tmp/hourly-live-signal-20260317-2129.json`), and paged last-hour log window fetched across 7 pages (`tmp/hourly-logs-summary-20260317-2129.json`).
+  - Last-hour gameplay signals (20:30~21:30 KST): progression `active` (current status `Lv27 exp=3735 gold=439`, area `talking_island_field`), wins/defeats `368/0`, action mix `hunt=368 buy=200 surrender=65 rest=19 sell=3` (`events=684`).
+  - Resource trend: strong combat throughput but economy churn remains high (`buy:hunt=0.54`, heavy potion spend implied by 200 buys while gold is flat-to-low at `439`).
+  - Anomaly: hourly collector path still degrades (`activity:fetch` fallback zero signal; all `*/recent` endpoints `404`, streak now `5`) despite canonical status/logs being healthy (`tmp/hourly-activity-20260317-2129.json`).
+  - Dev feedback: prioritize logs-paged KPI path as source-of-truth for hourly feedback while `*/recent` endpoints remain degraded; avoid policy conclusions from `activity:fetch` fallback zeros.
+  - Next 30m TODO: implement `scripts/hourly-paged-logs-kpi-v1.js` (windowed `/api/logs?page=n&limit=100` aggregator) and emit `{wins,defeats,hunt,buy,surrender,rest,sell,events,confidence}` for downstream feedback.
+
+- [2026-03-17 21:25 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): fresh local ordered last-20 payload window `thinking-post-1118.json -> thinking-post-2049.json` (`tmp/cron-last20-delta-2122-local.json`, `count=20`) was non-improving on safety/economy despite `level +1` (`exp +0`, `gold -35`, `inventory +3`, `rate mentions 19/20`, `death mentions 18/20`), so KEEP was rejected.
+  - Minimal reversible logic change applied: `scripts/live-strategy-runner.js` now collapses sustained danger-pressure targeting to the single least-danger monster after recent danger-surrender clustering or a recent defeat, reducing repeat risky engagements while preserving strict movement gates.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan stays explicit in `docs/DECISIONS.md` (early safe-gold/no spam -> mid weapon-first after reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remained prerequisite-gated this cycle.
+  - Verification: `npm run verify:cycle` passed; direct smoke `BUJU_MAX_ACTIONS_PER_CYCLE=1 node scripts/live-strategy-runner.js` failed transiently with `live-strategy error=fetch failed`; daemon tail in `logs/live-runner-daemon.log` still showed continuous progression (`exp 3637 -> 3649`) and no manual restart was issued.
+  - Operational note: multiple `live-runner-daemon.sh`/`live-strategy-runner.js` lineages were already active during this cycle; to preserve continuity, no restart or dedupe action was attempted.
+  - Ops telemetry post attempt: `POST /api/agent/thinking` archived payload/response at `tmp/thinking-post-2125.json` and `tmp/thinking-post-response-2125.json`; request failed transiently with `fetch failed`, so replay is needed after network recovery.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=9/20`, and progression `exp>=3720` or `gold>=449` with daemon continuity.
+
 - [2026-03-17 20:28 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked only as `gq_***80`, raw secret never logged).
   - Live canonical probes: `GET /api/status` => `401`, `GET /api/logs?page=1&limit=100` => `401` (`tmp/hourly-live-signal-20260317-2027.json`).
@@ -4868,3 +4887,4 @@
 - Dev feedback: block policy/aggression inference when canonical preflight returns non-200 on both `/api/status` and `/api/logs`; prefer deterministic auth-state output over fallback summary text.
 - Retry recommendation: revalidate key source parity (`.env` load path vs runtime header path), then retry canonical probes with bounded backoff (e.g., 30s -> 60s) and only resume KPI synthesis after dual `200`.
 - TODO (next 30-min dev cycle): implement/verify `auth-preflight-failfast` artifact `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and gate hourly summary on `inference_allowed=true`.
+2026-03-17 21:04:24 KST | watchdog restart: live-runner-daemon.sh was not running; restarted

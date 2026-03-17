@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 21:31 KST
+- Hypothesis: Promoting hourly feedback to canonical paged `/api/logs` aggregation (instead of `*/recent` probes) will stabilize gameplay signals and reduce false zero-activity windows while `recent` endpoints stay `404`.
+- Change: Add `hourly-paged-logs-kpi-v1` to fetch `/api/logs?page=n&limit=100` until 60m cutoff, then emit `{wins,defeats,hunt,buy,surrender,rest,sell,events,confidence}` and treat this as primary hourly source.
+- Metric(s): `zero_signal_cycles/day`, `collector_vs_canonical divergence rate`, `buy:hunt ratio`, `surrender/hour`.
+- Result: Current cycle shows canonical data is healthy (`/api/status=200`, `/api/logs=200`) with strong evidence (`events=684`, `wins=368`, `defeats=0`, `buy=200`, `surrender=65`) while collector `activity:fetch` still fallbacked with `recent` endpoints `404` and zero KPIs.
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive hourly cycles avoid fallback-zero and keep divergence rate near 0.
+
 - Date: 2026-03-17 20:28 KST
 - Hypothesis: Bumping auth-parity preflight to v7 with explicit tri-probe output (`status`,`logs`,`collector-status`) will eliminate false hourly gameplay synthesis during persistent `401 vs 200` split-signal windows.
 - Change: Add `hourly-auth-parity-preflight-v7` artifact `tmp/hourly-auth-parity-preflight-v7.json` with `{status_code_status,status_code_logs,probe_status_code,auth_state,inference_allowed,retry_after_ms}` and block summary unless `inference_allowed=true`.
