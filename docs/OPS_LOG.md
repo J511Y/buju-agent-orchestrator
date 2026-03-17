@@ -4731,3 +4731,12 @@
 - Evidence artifact: `tmp/hourly-feedback-summary.json`, `tmp/hourly-feedback-raw.json`.
 - Dev feedback: keep hourly synthesis blocked on transport failure; do not infer progression/win-defeat/resource from empty window.
 - Next 30-min TODO: run canonical DNS/readpath preflight (`/api/status` + `/api/logs?limit=1`) with 10s timeout and 30s retry backoff; classify `dns_unreachable|network_unreachable|timeout` before synthesis.
+2026-03-17 13:56:24 KST | restarted live-runner-daemon.sh
+
+## 2026-03-17 14:27 KST (hourly gameplay feedback)
+- Evidence: Loaded `BUJU_API_KEY` from `.env` (masked) and queried live `GET /api/status` + `GET /api/logs?page=1&limit=100` (`200/200`).
+- Last-hour signals (from 100 in-window logs): `hunt=57`, `death=0`, `surrender=2`, `rest=3`, `buy=34`, `sell=1`, `drop=3`.
+- Progression/resource snapshot: current `Lv26`, `EXP=5451`, `gold=439`, `HP=250/475`, active combat vs `skeleton`; run remains stable with no defeat signal.
+- Trend/anomaly: economy churn is still high (`buy/hunt=0.60`) while survivability is stable (`death=0`), suggesting over-buy pressure vs throughput.
+- Dev feedback: prioritize optional-buy suppression and verify whether cooldown/backoff settings reduce buy-heavy loops without reducing hunt count.
+- TODO (next 30m): add a lightweight hourly KPI emitter (`buy_hunt_ratio`, `net_trade`, `deaths`) and gate optional MP buys when `buy_hunt_ratio > 0.55` and `mp_ratio >= 0.95`.

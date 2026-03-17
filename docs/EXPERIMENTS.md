@@ -1434,3 +1434,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit failure class`, `false gameplay inference count during transport failures`, `time-to-retry-guidance generation`.
 - Result: Current cycle failed transport before any HTTP response (`statusCode=null`, `logsCode=null`, `events=0`).
 - Decision: Run in next 30-min dev cycle; keep if 3 consecutive failures are explicitly classified with zero gameplay-policy output.
+
+- Date: 2026-03-17 14:27 KST
+- Hypothesis: A strict optional-MP-buy gate (`buy/hunt > 0.55 && mp_ratio >= 0.95`) will reduce economy churn without harming hunt throughput in stable zero-death windows.
+- Change: In the next 30-min cycle, emit hourly `buy_hunt_ratio` + `net_trade` KPIs and skip optional MP buys for one cycle when trigger is met.
+- Metric(s): `buy_hunt_ratio/hour`, `net_trade/hour`, `hunt_count/hour`, `death_count/hour`.
+- Result: Baseline this cycle (`13:27~14:27 KST`) from live logs: `hunt=57`, `buy=34`, `sell=1`, `death=0` (`buy/hunt=0.60`) with status `Lv26`, `EXP=5451`, `gold=439`.
+- Decision: Run in next 30-min dev cycle; keep if `buy_hunt_ratio <= 0.45` for 3 consecutive windows with hunt drop <=10% and `death=0`.
