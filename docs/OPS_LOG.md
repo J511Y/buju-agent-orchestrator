@@ -1,5 +1,12 @@
 # Ops Log
 
+- [2026-03-18 04:29 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
+  - Live API evidence: canonical probes failed at transport (`GET /api/status` fetch failed, `GET /api/logs?page=1&limit=100` fetch failed; `tmp/hourly-feedback-2026-03-17-19-30.json`).
+  - Last-hour gameplay signals: **unresolved** (progression, wins/defeats, and resource trend unavailable due transport failure before data read).
+  - Failure mode + retry recommendation: classify as `transport_fetch_failed`; retry in next cycle with short staged backoff (e.g., 10s/30s/60s) and re-check DNS/network path to `www.buju.quest` before policy inference.
+  - Next 30m TODO: add a lightweight preflight (`/api/status` + `/api/logs`) that writes explicit `transport_state` and blocks gameplay-policy synthesis unless canonical reads return `200`.
+
 - [2026-03-18 04:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0418.json`), and ordered delta was non-improving (`tmp/cron-last20-delta-0418.json`: `level +0`, `exp +0`, `gold +0`, `inventory +0`, `death/defeat mentions 19`, `rate/429/cooldown mentions 20`), so KEEP was rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BACKOFF_BASE_MS 2000->2100` (README default note synced) to lower immediate retry re-entry under sustained throttle wording while preserving strict safety/movement/equipment invariants.

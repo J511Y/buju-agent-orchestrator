@@ -12,6 +12,13 @@ Track A/B and policy experiments.
 
 ## Entries
 
+- Date: 2026-03-18 04:29 KST
+- Hypothesis: A tiny transport preflight gate (`status+logs` with staged retry metadata) will reduce zero-evidence hourly summaries during fetch-failure windows.
+- Change: Before hourly synthesis, probe `GET /api/status` + `GET /api/logs?page=1&limit=100`; emit `{transport_state,retry_after_ms,inference_allowed}` and block gameplay-policy output when either probe transport-fails.
+- Metric(s): `% blocked cycles with explicit transport_state`, `false gameplay-policy outputs during transport failures`, `time-to-first-successful-canonical-read`.
+- Result: Current cycle transport-failed both canonical probes (`fetch failed`) with no last-hour evidence (`tmp/hourly-feedback-2026-03-17-19-30.json`).
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive failure cycles are explicitly classified with zero gameplay-policy output.
+
 - Date: 2026-03-18 02:30 KST
 - Hypothesis: A pressure-classifier KPI (`buy_hunt_ratio`, `surrender_hunt_ratio`) with a hard `high` threshold will reduce economy churn while preserving no-defeat safety by steering the next 30-minute tuning cycle.
 - Change: Add `hourly-pressure-kpi-v1` that reads paged `/api/logs` last-60m window and emits `{buy_hunt_ratio,surrender_hunt_ratio,wins,defeats,events,pressure_state}` with `pressure_state=high` when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.15`.
