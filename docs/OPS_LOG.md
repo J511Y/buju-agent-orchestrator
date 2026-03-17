@@ -5017,3 +5017,12 @@
 - Development feedback: keep gameplay policy unchanged; prioritize auth-path parity validation (`.env` load -> Authorization header -> canonical endpoint`) before any strategy tuning.
 - Failure mode + retry recommendation: classify as `auth_blocked_401`; retry canonical probes with bounded backoff (`30s -> 60s -> 120s`, max 3) and resume KPI synthesis only after same-run `status=200 && logs=200`.
 - TODO (next 30-min dev cycle): add `tmp/hourly-auth-check.json` emitter in hourly task with `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and hard-gate summary generation on `inference_allowed=true`.
+
+## [2026-03-18 05:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret not printed). `npm run activity:fetch -- --hours 1` reported `/api/status=200` while all configured recent endpoints stayed `404`; direct canonical probe artifact `tmp/hourly-live-signal-latest.json` failed transport on both `GET /api/status` and `GET /api/logs?page=1&limit=200` (`fetch failed`).
+- Last-hour gameplay signals: unresolved from canonical logs (`events_last_hour=0` in direct probe; no trusted paged-log payload available this cycle).
+- Progression / wins-defeats / resource trend: low-confidence only (`activity:fetch` fallback returned zero deltas/outcomes); do not treat as true inactivity.
+- Anomaly: read-path divergence persists in same hour (collector sees `/api/status=200`, direct canonical reads fail transport), so feedback confidence is `low`.
+- Development feedback: prioritize network/client-path parity before gameplay tuning; keep survival policy unchanged until canonical log reads recover.
+- Failure mode + retry recommendation: classify as `canonical_transport_fail_split_signal`; retry canonical `/api/status` + `/api/logs` with bounded backoff (`30s/60s/120s`) and continue hourly fallback labeling as low-confidence until same-run dual-200 is restored.
+- TODO (next 30-min dev cycle): add `shared-client-canonical-read-v1` to force hourly status/log probes through the same HTTP client/runtime path as `activity:fetch`, emitting `tmp/hourly-readpath-parity.json` `{status_http,logs_http,transport_state,inference_allowed}`.

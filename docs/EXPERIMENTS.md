@@ -1540,3 +1540,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles blocked with explicit auth_state`, `time-to-first dual-200 after key-path fix`, `false gameplay summaries during 401 windows`.
 - Result: Current live probes were `status=401`, `logs=401`, `recent=404`; no evidence-grade last-hour gameplay payload available.
 - Decision: Run in next 30-min dev cycle; keep if blocked cycles are fully classified for 3 consecutive runs and no fallback-only KPI text is emitted.
+
+- Date: 2026-03-18 05:30 KST
+- Hypothesis: Enforcing same-runtime/same-client canonical reads for `/api/status` and `/api/logs` will eliminate split-signal cycles where `activity:fetch` reports status `200` but direct probes fail transport.
+- Change: Implement `shared-client-canonical-read-v1` that performs canonical status/log probes through the fetch-activity HTTP stack and emits `tmp/hourly-readpath-parity.json` `{status_http,logs_http,transport_state,inference_allowed}`.
+- Metric(s): split-signal cycle rate (`status_ok && canonical_transport_fail`), `% cycles with dual-200 canonical reads`, `low-confidence hourly summaries/day`.
+- Result: This cycle reproduced divergence (`activity:fetch` showed `/api/status=200` + recent endpoints `404`; direct canonical status/log probes both `fetch failed` in `tmp/hourly-live-signal-latest.json`).
+- Decision: Run in next 30-min cycle; keep only if split-signal rate drops for 3 consecutive hourly runs.
