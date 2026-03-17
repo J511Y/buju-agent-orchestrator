@@ -1,5 +1,13 @@
 # Ops Log
 
+- [2026-03-17 23:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered delta (`tmp/cron-last20-delta-2320.json`, window `10:50:45 -> 22:51:37`) improved (`level +1`, `gold +5`, `inventory -1`), and live 30-minute baseline also improved (`tmp/cron-status-now-2248.json -> tmp/cron-status-now-2320.json`: `exp +372`, `gold +10`, `level +0`), so CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=27`, `exp=5069`, `gold=444`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-2320.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=27`, `exp=5069`, `gold=434`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-2320.txt`), with no stop/restart action.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=8/20`, and progression `exp>=5140` or `gold>=454` with daemon continuity.
+
 - [2026-03-17 21:31 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, never printed).
   - Live API evidence: `GET /api/status => 200` (`tmp/hourly-status-20260317-2129.json`), canonical `GET /api/logs?page=1&limit=100 => 200` (`tmp/hourly-live-signal-20260317-2129.json`), and paged last-hour log window fetched across 7 pages (`tmp/hourly-logs-summary-20260317-2129.json`).
@@ -4897,3 +4905,4 @@
 - Development feedback: keep strategy/policy unchanged this hour; prioritize auth-path parity (`.env` load -> Authorization header -> canonical endpoint`) and fail-fast gating before gameplay tuning.
 - Failure mode + retry recommendation: classify as `auth_blocked_401`; retry canonical probes with bounded backoff (`30s -> 60s -> 120s`, max 3) and only resume inference after same-run `status=200 && logs=200`.
 - TODO (next 30-min): implement/verify `hourly-auth-parity-preflight-v2` to persist `tmp/hourly-auth-preflight.json` `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and hard-stop hourly synthesis when `inference_allowed=false`.
+2026-03-17 22:32:52 KST | watchdog restarted live-runner-daemon
