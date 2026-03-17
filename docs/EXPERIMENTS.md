@@ -1,5 +1,12 @@
 # Experiments Log
 
+- Date: 2026-03-18 08:30 KST
+- Hypothesis: Introducing an MP-efficiency classifier (`mp_potion_buys_per_100_hunts`) alongside existing churn ratios will cut potion spend pressure without harming no-defeat safety.
+- Change: Add `hourly-mp-efficiency-kpi-v1` from paged `/api/logs` last-60m window and emit `{mp_potion_buys_per_100_hunts,buy_hunt_ratio,surrender_hunt_ratio,defeats,efficiency_state}` with `efficiency_state=degraded` when `mp_potion_buys_per_100_hunts>=50 || surrender_hunt_ratio>=0.14`.
+- Metric(s): `mp_potion_buys_per_100_hunts`, `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta/hour`, `defeats/hour`.
+- Result: Current baseline remains degraded despite stable safety (`events=673`, `hunt=361`, `buy=198`, `surrender=51`, `defeats=0`, `mp_potion_buys_per_100_hunts≈54.8`, `buy:hunt≈0.55`, `surrender:hunt≈0.14`, `gold=439`; `tmp/hourly-feedback-2026-03-17-23-30.json`).
+- Decision: Execute in next 30-min dev cycle; keep only if classifier drops below threshold for 3 consecutive hourly windows while `defeats=0` is maintained.
+
 Track A/B and policy experiments.
 
 ## Template

@@ -1,5 +1,13 @@
 # Ops Log
 
+- [2026-03-18 08:30 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
+  - Live API evidence: `GET /api/status => 200`; paged `GET /api/logs?page=n&limit=100` succeeded through page `7` before crossing the 60m window (`tmp/hourly-feedback-2026-03-17-23-30.json`).
+  - Last-hour gameplay signals (07:30~08:30 KST): progression `active` (`Lv28`, `EXP 4473`, `Gold 439`, `HP 307/505`), outcomes `wins≈361` (hunt-result derived), `defeats=0` observed, activity mix `events=673`, `hunt=361`, `buy=198`, `surrender=51`, `rest=12`, `sell=4`, `drop=37`.
+  - Resource/anomaly trend: progression continued (`EXP Δ+708` vs prior hourly snapshot `tmp/hourly-feedback-2026-03-17-22-31.json`) while economy stayed flat (`Gold Δ+0`) and churn remained elevated (`buy:hunt≈0.55`, `surrender:hunt≈0.14`).
+  - Development feedback: preserve no-defeat safety posture, but prioritize potion-economy efficiency and surrender suppression in the current combat loop before increasing engagement aggressiveness.
+  - Next 30m TODO: implement `scripts/hourly-mp-efficiency-kpi.js` (or equivalent in hourly pipeline) to emit `{mp_potion_buys_per_100_hunts, buy_hunt_ratio, surrender_hunt_ratio, defeats, efficiency_state}` and flag `efficiency_state=degraded` when `mp_potion_buys_per_100_hunts>=50 || surrender_hunt_ratio>=0.14`.
+
 - [2026-03-18 08:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0818.json`), and ordered delta was mixed/non-improving on risk/churn (`tmp/cron-last20-delta-0818.json`: `level +3`, `gold +30`, but `inventory +6`, `death/defeat mentions 31`, `rate/429/cooldown mentions 64`; `exp` unavailable in thinking context).
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BUY_COOLDOWN_TICKS 10->12` (README current-default note synced) to reduce buy-driven slot creep while preserving strict safety/movement/equipment invariants.
