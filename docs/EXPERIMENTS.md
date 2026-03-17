@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 17:27 KST
+- Hypothesis: A hard auth-preflight gate (`/api/status` + `/api/logs?page=1&limit=100`) with credential-source parity metadata will eliminate zero-evidence hourly gameplay summaries during `401` windows.
+- Change: Add `hourly-auth-preflight-v2` artifact `tmp/hourly-auth-preflight.json` with `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and block KPI synthesis unless `inference_allowed=true`.
+- Metric(s): `% blocked cycles with explicit auth_state`, `false gameplay-policy outputs during auth failures`, `time-to-first dual-200 after key/source fix`.
+- Result: Current cycle returned `401` on `/api/status` and auth-failed `/api/logs` with `events_in_window=0`; last-hour gameplay outcomes/resources were unresolved.
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive auth-failure cycles are fully classified with zero gameplay-policy output.
+
 - Date: 2026-03-17 10:26 KST
 - Hypothesis: Forcing both collector and canonical probes through a single shared DNS-resolved client (`/api/status` + `/api/logs?limit=1`) will eliminate split-signal cycles where probe path shows `status=200` but canonical reads fail transport (`ENOTFOUND`).
 - Change: Add `shared-client-preflight-v4` to emit `tmp/hourly-preflight.json` `{dns_state, readpath_state, status_code_status, status_code_logs, inference_allowed, retry_after_ms}` and block gameplay synthesis unless `dns_state=ok && readpath_state=ok`.

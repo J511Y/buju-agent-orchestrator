@@ -1,5 +1,23 @@
 # Ops Log
 
+- [2026-03-17 17:27 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, not printed).
+  - Live probe evidence: `GET /api/status` returned `401`; `GET /api/logs?page=1&limit=100` failed auth in the same run; artifact `tmp/hourly-cycle-raw.json`.
+  - Last-hour gameplay signals: progression `unresolved`, wins/defeats `unresolved`, resource trend `unresolved` (`events_in_window=0` due auth block).
+  - Anomaly: canonical read path is auth-blocked, so this cycle is telemetry-integrity failure (not gameplay-behavior evidence).
+  - Dev feedback: block gameplay-policy tuning and keep prior runtime policy unchanged until canonical auth is restored (`/api/status=200` and `/api/logs=200` in same cycle).
+  - Failure mode + retry recommendation: classify as `auth_blocked`; retry with credential-source parity preflight (`.env` reload + masked key fingerprint check + status/log dual probe) after `5m` backoff, then resume hourly synthesis only on dual-200.
+  - Next 30m TODO: implement `scripts/hourly-auth-preflight-v2.js` to emit `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and hard-gate summary generation on `inference_allowed=true`.
+
+- [2026-03-17 17:19 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): remote probes failed DNS (`tmp/cron-thinking-now-1719.json`, status/monsters/npc/inventory resolve-fail), so fallback local last-20 was recomputed from valid `thinking-post-####.json` artifacts (`tmp/cron-last20-delta-1719-local.json`, `count=20`) and showed concrete progression (`level +1`, `exp +357`, `gold +10`, `death delta +0`); CHANGE not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: smoke succeeded (`tmp/cron-smoke-1719.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=27`, `exp=713`, `gold=444`, `code=200`); safest high-efficiency target policy remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan in `docs/DECISIONS.md` unchanged (early safe-gold/no spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remained prerequisite-gated this cycle (DNS prevented fresh `scroll+npc` satisfiability probe).
+  - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-1719.txt`), and no stop/restart action was issued.
+  - Ops telemetry post attempt: `POST /api/agent/thinking` failed DNS (`curl: Could not resolve host: www.buju.quest`); payload/response archived (`tmp/thinking-post-1719.json`, `tmp/thinking-post-response-1719.json`, `tmp/thinking-post-status-1719.txt`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=10/20`, and progression `exp>=790` or `gold>=454` with daemon continuity.
+
 - [2026-03-17 16:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory adaptive loop): remote probes failed DNS (`tmp/cron-thinking-now-1650.json` and status/monsters/npc/inventory artifacts), so fallback local last-20 was recomputed from valid `thinking-post-####.json` files (`tmp/cron-last20-delta-now.json`, `count=20`) and was non-improving on safety/throughput (`level +0`, `gold +20`, `inventory +5`, `death/defeat mentions 12`, `rate/429/cooldown mentions 11`); KEEP rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_429_COOLDOWN_TICKS 36->38` (README current-default note synced) to widen post-429 cool-off and reduce repeated throttle re-entry while preserving strict safety/movement/equipment invariants.

@@ -1,0 +1,18 @@
+{
+  "ts": "2026-03-17T08:28:14.349Z",
+  "base": "https://bujuagent.com",
+  "status": {
+    "http": 401
+  },
+  "logs": {
+    "pages": 0,
+    "totalFetched": 0,
+    "inWindow": 0,
+    "actions": {}
+  },
+  "errors": [
+    "logs_page_1:http_401"
+  ],
+  "samples": {},
+  "resourceDelta": null
+}
