@@ -1526,3 +1526,10 @@ Track A/B and policy experiments.
 - Metric(s): `low_confidence_cycles/day`, `false flat-activity summaries/day`, `time-to-recovery after first recent-endpoint 200`.
 - Result: Current cycle had `/api/status=200` with all six recent endpoints `404`; payload returned `source=fallback:local_replay` and zero deltas/outcomes.
 - Decision: Run in next 30-min cycle; keep only if low-confidence tagging captures 100% of fallback-only cycles for 3 consecutive hours.
+
+- Date: 2026-03-18 03:30 KST
+- Hypothesis: A single-source auth preflight artifact consumed by both hourly feedback and runner startup will reduce repeated `401` cycles caused by key/header path drift.
+- Change: Implement `hourly-auth-check-v1` to persist `tmp/hourly-auth-check.json` `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and require `inference_allowed=true` before KPI summary rendering.
+- Metric(s): `% hourly cycles blocked with explicit auth_state`, `time-to-first dual-200 after key-path fix`, `false gameplay summaries during 401 windows`.
+- Result: Current live probes were `status=401`, `logs=401`, `recent=404`; no evidence-grade last-hour gameplay payload available.
+- Decision: Run in next 30-min dev cycle; keep if blocked cycles are fully classified for 3 consecutive runs and no fallback-only KPI text is emitted.

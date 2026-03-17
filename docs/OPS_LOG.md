@@ -4963,3 +4963,12 @@
 - Development feedback: keep gameplay policy unchanged this hour; prioritize data-plane reliability before tuning strategy (maintain fallback but mark KPI confidence low when recent endpoints are all non-200).
 - Failure mode + retry recommendation: classify as `recent_endpoints_404_persistent`; keep hourly bounded retries and re-test canonical recent endpoints each cycle. Promote recent-endpoint-first aggregation only after `>=2` consecutive hourly runs with at least one recent endpoint `200`.
 - TODO (next 30-min dev cycle): implement `recent-endpoint-health-gate-v1` to emit `tmp/hourly-recent-endpoint-health.json` with `{status_ok,recent_ok_count,recent_total,source,kpi_confidence}` and force `kpi_confidence=low` when `recent_ok_count=0`.
+
+## [2026-03-18 03:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); live canonical probes returned `GET /api/status=401`, `GET /api/logs?page=1&limit=200=401`, `GET /api/logs/recent?hours=1=404`.
+- Last-hour gameplay signals: unavailable from canonical source this cycle (`events_last_hour=unknown` due auth-blocked logs path).
+- Progression / outcomes / resources: unresolved (no trusted last-hour log payload; avoid fallback-only inference for KPI decisions).
+- Anomaly: persistent auth block on both canonical status/log endpoints while recent endpoint remains `404`.
+- Development feedback: keep gameplay policy unchanged; prioritize auth-path parity validation (`.env` load -> Authorization header -> canonical endpoint`) before any strategy tuning.
+- Failure mode + retry recommendation: classify as `auth_blocked_401`; retry canonical probes with bounded backoff (`30s -> 60s -> 120s`, max 3) and resume KPI synthesis only after same-run `status=200 && logs=200`.
+- TODO (next 30-min dev cycle): add `tmp/hourly-auth-check.json` emitter in hourly task with `{status_code_status,status_code_logs,status_code_recent,auth_state,inference_allowed,retry_after_ms}` and hard-gate summary generation on `inference_allowed=true`.
