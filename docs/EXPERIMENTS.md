@@ -1448,3 +1448,10 @@ Track A/B and policy experiments.
 - Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit dns_state`, `false gameplay-inference outputs during DNS outage`.
 - Result: Baseline this cycle: canonical `/api/status` + `/api/logs` both `http=000` (`Could not resolve host: www.buju.quest`) while `activity:fetch` still reported probe `/api/status=200` and `*/recent=404`.
 - Decision: Run in next 30-min dev cycle; keep if false-confidence summaries remain zero for 3 consecutive outage windows.
+
+- Date: 2026-03-17 16:28 KST
+- Hypothesis: A single shared-client canonical preflight (`/api/status` + `/api/logs`) with explicit transport-state labeling will remove false-confidence fallback summaries when canonical reads fail but probe `/api/status` still reports `200`.
+- Change: Add `hourly-canonical-preflight-v3` that persists `tmp/hourly-preflight.json` `{dns_state,transport_state,status_code_status,status_code_logs,probe_status_code,inference_allowed,retry_after_ms}` and blocks hourly gameplay inference unless canonical `status=200 && logs=200` in the same run.
+- Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit transport_state`, `false gameplay-inference outputs during canonical transport failure`.
+- Result: Baseline this cycle (`16:28 KST`) canonical `status/logs` both failed at transport (`fetch failed`, no HTTP), while `activity:fetch` still reported probe `/api/status=200` and all `*/recent=404` with `source=fallback:local_replay`.
+- Decision: Run in next 30-min dev cycle; keep if false-confidence summaries remain zero for 3 consecutive outage windows.

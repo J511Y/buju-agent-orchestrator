@@ -1,5 +1,13 @@
 # Ops Log
 
+- [2026-03-17 16:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-1618.json`, `count=0`), so fallback local last-20 thinking posts were delta-scored (`tmp/cron-last20-delta-1618-local.json`, `count=20`) and showed concrete progression improvement (`exp +2036`, `gold +15`, `level +0`, `death/defeat mentions 3`), therefore CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=6749`, `gold=444`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; strict movement threshold guard remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement plan in `docs/DECISIONS.md` unchanged (early safe-gold/no spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated this cycle (`tmp/cron-npc-now-1618.json` => `npcCount=0`, no scroll+npc satisfiable path).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-1618.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=26`, `exp=6757`, `gold=434`, `code=200`), daemon lineage remained active (`tmp/live-runner-procs-1618.txt`), and telemetry posted (`tmp/thinking-post-response-1618.json` => `{"success":true}`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `rate/cooldown mentions<=14/20`, and progression `exp>=6840` or `gold>=449` with daemon continuity.
+
 - [2026-03-17 15:51 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20`; ordered last-20 delta (`tmp/cron-last20-delta-1551.json`) was non-improving on core progression (`level +0`, `exp +0`, `gold +0`) with pressure wording (`death/defeat mentions 18`, `rate/429/cooldown mentions 53`), so KEEP was rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_429_COOLDOWN_TICKS 34->36` to widen post-429 cool-off and reduce repeated throttle re-entry while preserving strict safety/movement/equipment invariants.
@@ -4768,3 +4776,12 @@
 - Failure mode + retry recommendation: classify as `dns_unreachable_with_parity_mismatch`; retry canonical `status+logs` probes with bounded backoff (`5m -> 15m -> 30m`, max 3) and only re-enable gameplay inference after same-run `status=200 && logs=200`.
 - TODO (next 30-min): implement `dns-parity-preflight-v2` to persist `tmp/hourly-preflight.json` `{dns_state,status_code_status,status_code_logs,probe_status_code,inference_allowed,retry_after_ms}` and hard-block hourly synthesis when canonical probes fail.
 2026-03-17 15:36:53 KST | watchdog restarted scripts/live-runner-daemon.sh
+
+## [2026-03-17 16:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw secret not printed); canonical probes `GET /api/status` and `GET /api/logs?page=1&limit=200` failed at transport (`fetch failed`, no HTTP code) against `https://www.buju.quest`.
+- Cross-check: `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`, `progress_delta={level:0,exp:0,gold:0}`, `outcomes={win:0,defeat:0,unknown:0}`, and endpoint status `/api/status=200` while all `*/recent` endpoints stayed `404`.
+- Last-hour gameplay signals (confidence: blocked): progression unknown/flat fallback only, wins/defeats unknown, resource trend unknown from canonical logs.
+- Anomaly: continued canonical transport failure with probe/canonical inconsistency (`status` reachable in probe path only).
+- Development feedback: hold gameplay-policy tuning this cycle; prioritize read-path health classification and parity gating before any KPI-driven strategy updates.
+- Failure mode + retry recommendation: classify as `transport_unreachable_with_parity_mismatch`; retry canonical `status+logs` with bounded backoff (`5m -> 15m -> 30m`, max 3) and require same-run `status=200 && logs=200` before inference.
+- TODO (next 30-min): implement `hourly-canonical-preflight-v3` artifact `tmp/hourly-preflight.json` with `{dns_state,transport_state,status_code_status,status_code_logs,probe_status_code,inference_allowed,retry_after_ms}` and hard-block synthesis when `inference_allowed=false`.
