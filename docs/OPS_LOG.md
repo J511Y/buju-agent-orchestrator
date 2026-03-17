@@ -4925,3 +4925,13 @@
 - Anomaly: sustained high surrender frequency relative to hunt throughput while still maintaining zero detected defeats; likely over-conservative HP/engage thresholds or potion-economy imbalance.
 - Development feedback: prioritize reducing surrender churn before aggression changes; tune engage/retreat gating and potion-buy policy together to preserve zero-death behavior while improving net economy.
 - TODO (next 30-min): implement `surrender-pressure-kpi-v1` to emit `{surrender_rate,buy_hunt_ratio,hp_potion_uses}` every 10 minutes and add a temporary rule: skip optional MP buy when `buy_hunt_ratio > 0.50` and `MP >= 95%`.
+2026-03-18 00:24:21 KST restarted scripts/live-runner-daemon.sh
+
+## [2026-03-18 00:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw secret never printed); live probes returned `GET /api/status=200`, `GET /api/logs?page=1..7&limit=100=200` (60m window), while `GET /api/logs/recent?hours=1=404`.
+- Last-hour gameplay signals (from 695 events): `hunt=365`, inferred wins `365`, inferred defeats `0`, `surrender=66`, `buy=190`, `rest=16`, `use_item=15`, `drop=29`, `sell=3`.
+- Progression/resources (vs 23:31 KST snapshot): `Lv27` (flat), `EXP 5207 -> 5923` (`+716`), `gold 429 -> 439` (`+10`), `HP 358/490 -> 432/490` (recovered), `MP 258/258` stable, area `talking_island_field`.
+- Anomaly: economy pressure remains high (`buy/hunt=0.52`) with persistent surrender churn (`66/695`, 9.5%) despite zero detected defeats; this indicates conservative survival behavior with avoidable cost drag.
+- Development feedback: keep safety policy unchanged (zero-defeat), but prioritize reducing surrender-triggered potion/buy loop before any aggression increase; tune retreat/engage thresholds and optional MP-buy gating together.
+- Failure mode + retry recommendation: canonical recent endpoint family still unavailable (`404` on `/api/logs/recent`); continue paged `/api/logs` fallback and retry recent endpoint each hourly cycle. Re-enable recent-endpoint-first aggregation only after `>=2` consecutive `200` recoveries.
+- TODO (next 30-min dev cycle): implement `surrender-pressure-guard-v2` that tags each cycle with `{surrender_rate,buy_hunt_ratio,inference_source}` and skips optional MP buy when `buy_hunt_ratio > 0.50` and `mp_ratio >= 0.95`.

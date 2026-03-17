@@ -1504,3 +1504,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio`, `surrender_rate`, `death_count`, `gold_delta_per_30m`.
 - Result (baseline): last hour `hunt=323`, `buy=175` (`buy/hunt=0.54`), `surrender=52`, inferred `deaths=0`, close snapshot `gold=429`.
 - Decision: Run immediately; keep only if `buy_hunt_ratio <= 0.45` and `death_count=0` for two consecutive 30-min windows.
+
+- Date: 2026-03-18 00:29 KST
+- Hypothesis: Adding a surrender-aware optional-MP-buy guard will reduce economy drag (`buy/hunt`) without increasing defeat risk during high-throughput skeleton farming.
+- Change: In the next 30-min cycle, emit `surrender_rate` + `buy_hunt_ratio` per cycle and skip optional MP buys when `buy_hunt_ratio > 0.50 && mp_ratio >= 0.95`; keep HP recovery and surrender safety guards unchanged.
+- Metric(s): `buy_hunt_ratio`, `surrender_rate`, `gold_delta_per_30m`, `defeat_count`.
+- Result (baseline): last 60m had `hunt=365`, `buy=190` (`buy/hunt=0.52`), `surrender=66` (`9.5%`), inferred `defeats=0`, `Δgold=+10`, `Δexp=+716`.
+- Decision: Run in next 30-min cycle; keep only if `buy_hunt_ratio <= 0.45` with `defeat_count=0` for two consecutive windows.
