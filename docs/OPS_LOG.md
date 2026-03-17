@@ -1,5 +1,22 @@
 # Ops Log
 
+- [2026-03-18 08:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0818.json`), and ordered delta was mixed/non-improving on risk/churn (`tmp/cron-last20-delta-0818.json`: `level +3`, `gold +30`, but `inventory +6`, `death/defeat mentions 31`, `rate/429/cooldown mentions 64`; `exp` unavailable in thinking context).
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BUY_COOLDOWN_TICKS 10->12` (README current-default note synced) to reduce buy-driven slot creep while preserving strict safety/movement/equipment invariants.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-0818.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-0818.json`) keep safest high-efficiency target as `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-0818.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-0818.json` with `npcs=[]`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=6/20 mentions`, and progression `exp>=4430` or `gold>=444` with daemon continuity.
+
+- [2026-03-18 07:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0748.json`), and ordered delta remained improving (`tmp/cron-last20-delta-0748.json`: `level +1`, `gold +10`, `inventory -2`; `exp` unavailable in thinking context), so CHANGE was not applied.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: authenticated probes succeeded (`tmp/cron-status-now-0748.json`, `tmp/cron-monsters-now-0748.json`) and keep safest high-efficiency target as `skeleton` in `talking_island_field`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-0748.json`), staged enhancement strategy remains explicit in `docs/DECISIONS.md`, and minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-0748.json` with `npcs=[]`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-0748-fix.txt`: `ok=1/1`, `lastAction=combat_start`, `level=28`, `exp=4001`, `gold=439`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-0748.txt`) with no stop/restart action.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-0748.json`, `tmp/thinking-post-response-0748.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=6/20 mentions`, and progression `exp>=4070` or `gold>=444` with daemon continuity.
+
 - [2026-03-18 07:31 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
   - Live API evidence: `GET /api/status => 200`; paged `GET /api/logs?page=n&limit=100` succeeded through page `7` before crossing window boundary (`tmp/hourly-feedback-2026-03-17-22-31.json`).
