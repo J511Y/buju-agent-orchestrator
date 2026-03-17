@@ -1547,3 +1547,10 @@ Track A/B and policy experiments.
 - Metric(s): split-signal cycle rate (`status_ok && canonical_transport_fail`), `% cycles with dual-200 canonical reads`, `low-confidence hourly summaries/day`.
 - Result: This cycle reproduced divergence (`activity:fetch` showed `/api/status=200` + recent endpoints `404`; direct canonical status/log probes both `fetch failed` in `tmp/hourly-live-signal-latest.json`).
 - Decision: Run in next 30-min cycle; keep only if split-signal rate drops for 3 consecutive hourly runs.
+
+- Date: 2026-03-18 06:29 KST
+- Hypothesis: Capping canonical logs pagination at `limit=100` (with explicit handling for `400 INVALID_INPUT`) will prevent false degraded-hour classifications and improve hourly signal availability.
+- Change: Add `logs-pagination-cap-v1` in hourly feedback flow: probe `/api/logs?page=1&limit=100` (not 200), classify `400` as input-shape failure (not transport/auth), and keep paginating until window boundary.
+- Metric(s): `% hourly cycles with parsable in-window events`, `false outage classifications/day`, `non-empty signal cycles/day`.
+- Result: Current cycle showed `/api/status=200`, `/api/logs?page=1..7&limit=100=200`, but `/api/logs?page=1&limit=200=400`; with `limit=100`, last-hour evidence recovered (`events=665`, `hunt=360`, `buy=195`, `surrender=54`, inferred defeats `0`).
+- Decision: Run in next 30-min dev cycle; keep if non-empty hourly signal rate stays high for 3 consecutive runs without new false outage tags.

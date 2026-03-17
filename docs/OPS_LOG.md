@@ -5044,3 +5044,12 @@
 - Development feedback: prioritize network/client-path parity before gameplay tuning; keep survival policy unchanged until canonical log reads recover.
 - Failure mode + retry recommendation: classify as `canonical_transport_fail_split_signal`; retry canonical `/api/status` + `/api/logs` with bounded backoff (`30s/60s/120s`) and continue hourly fallback labeling as low-confidence until same-run dual-200 is restored.
 - TODO (next 30-min dev cycle): add `shared-client-canonical-read-v1` to force hourly status/log probes through the same HTTP client/runtime path as `activity:fetch`, emitting `tmp/hourly-readpath-parity.json` `{status_http,logs_http,transport_state,inference_allowed}`.
+
+## [2026-03-18 06:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); live probes returned `GET /api/status=200` and paged `GET /api/logs?page=1..7&limit=100=200`.
+- Last-hour gameplay signals (from 665 events): `hunt=360`, inferred wins `360`, inferred defeats `0`, `surrender=54`, `buy=195`, `rest=19`, `use_item=12`, `drop=20`, `sell=5`.
+- Progression/resources snapshot: `Lv28`, `EXP=3035`, `gold=444`, `HP 304/505`, `MP 266/266`.
+- Resource trend: high consumable pressure persists (`buy/hunt=0.54`) with non-trivial surrender churn (`54/665`, `8.1%`) while defeat signal remains `0`.
+- Anomaly: canonical logs endpoint accepts `limit<=100` but returns `400` at `limit=200`; avoid `limit=200` in hourly collectors to prevent false outage classification.
+- Development feedback: keep zero-defeat safety policy, but prioritize economy stabilization (reduce optional purchases under high `buy/hunt`) before any aggression increase.
+- TODO (next 30-min dev cycle): implement `logs-pagination-cap-v1` (`limit=100` hard-cap + explicit 400-classification) and emit `kpi_confidence=high` only when `status=200` and at least one logs page is `200` in-window.
