@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 02:30 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked only as `gq_***80`, raw secret never printed).
+  - Live API evidence: `GET /api/status => 200` and paged `GET /api/logs?page=n&limit=100` succeeded on pages `1..7` (`tmp/hourly-feedback-run-now.json`).
+  - Last-hour gameplay signals (01:30~02:30 KST): progression `active` (level-up confirmed: now `Lv28 exp=117 gold=439`, area `talking_island_field`), outcomes `wins=369`, `defeats=0`, action mix `hunt=369 buy=197 surrender=64 rest=13 sell=3` (`events=684`).
+  - Resource trend: throughput remains high but potion/economy churn persists (`buy:hunt=0.53`, `surrender:hunt=0.17`) while gold is flat at `439`.
+  - Anomaly watch: no transport/auth failure this cycle (`status/logs all 200`), but high surrender+buy density remains the dominant inefficiency signal.
+  - Dev feedback: keep paged `/api/logs` as hourly source-of-truth; prioritize reducing buy+surrender pressure without sacrificing `defeats=0` safety.
+  - Next 30m TODO: add `scripts/hourly-pressure-kpi-v1.js` to emit `{buy_hunt_ratio,surrender_hunt_ratio,wins,defeats,events,pressure_state}` with `pressure_state=high` when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.15`.
+
 - [2026-03-18 01:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-0118.json`, `count=0`), so ordered local fallback deltas were recomputed (`tmp/cron-last20-delta-0118-local.json`) and remained improving (`level +2`, `gold +30`, `inventory +0`), so CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.

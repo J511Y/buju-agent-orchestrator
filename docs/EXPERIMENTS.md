@@ -11,6 +11,14 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+
+- Date: 2026-03-18 02:30 KST
+- Hypothesis: A pressure-classifier KPI (`buy_hunt_ratio`, `surrender_hunt_ratio`) with a hard `high` threshold will reduce economy churn while preserving no-defeat safety by steering the next 30-minute tuning cycle.
+- Change: Add `hourly-pressure-kpi-v1` that reads paged `/api/logs` last-60m window and emits `{buy_hunt_ratio,surrender_hunt_ratio,wins,defeats,events,pressure_state}` with `pressure_state=high` when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.15`.
+- Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta/hour`, `defeats/hour`.
+- Result: Current cycle baseline is high-pressure despite stable safety (`events=684`, `wins=369`, `defeats=0`, `buy=197`, `surrender=64`, `buy:hunt=0.53`, `surrender:hunt=0.17`, gold `439`).
+- Decision: Execute in next 30-min dev cycle; keep only if pressure ratios drop below threshold for 3 consecutive hourly windows without introducing defeats.
+
 - Date: 2026-03-17 21:31 KST
 - Hypothesis: Promoting hourly feedback to canonical paged `/api/logs` aggregation (instead of `*/recent` probes) will stabilize gameplay signals and reduce false zero-activity windows while `recent` endpoints stay `404`.
 - Change: Add `hourly-paged-logs-kpi-v1` to fetch `/api/logs?page=n&limit=100` until 60m cutoff, then emit `{wins,defeats,hunt,buy,surrender,rest,sell,events,confidence}` and treat this as primary hourly source.
