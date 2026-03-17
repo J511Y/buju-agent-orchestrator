@@ -1412,3 +1412,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit dns_state`, `time-to-first-successful-probe after outage`, `false gameplay inference count during DNS failures`.
 - Result: Current cycle failed both probes with host-resolution error (`nodename nor servname provided, or not known`); last-hour events were unavailable (`window_events=0`).
 - Decision: Run in next 30-min dev cycle; keep if 3 consecutive outage cycles are classified deterministically with zero gameplay-policy output.
+
+- Date: 2026-03-17 11:26 KST
+- Hypothesis: A dedicated DNS fail-fast preflight (`status+logs` on canonical host) with persisted retry budget will reduce false/empty hourly gameplay summaries during resolver outages.
+- Change: Add `hourly-dns-preflight-v1` artifact `tmp/hourly-preflight.json` with `{dns_state,status_probe,logs_probe,inference_allowed,retry_after_ms}` and block gameplay synthesis unless `dns_state=ok && status_probe=200 && logs_probe=200`.
+- Metric(s): `% blocked cycles with explicit dns_state`, `false gameplay-policy outputs during DNS failures`, `mean cycles-to-first-successful-probe`.
+- Result: Current cycle failed both canonical probes with host-resolution error (`nodename nor servname provided, or not known`); last-hour gameplay evidence unavailable.
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive outage cycles are classified deterministically with zero gameplay-policy output.

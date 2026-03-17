@@ -4694,3 +4694,12 @@
 - Development feedback: freeze gameplay-policy tuning; prioritize one-client DNS/readpath preflight and canonical endpoint health gating before any strategy changes.
 - Failure mode + retry recommendation: classify as `dns_unreachable_with_readpath_mismatch`; retry paired canonical probes (`/api/status`, `/api/logs?limit=1`) with jittered backoff (`10s`, `30s`, `60s`, max 3 attempts) and keep `inference_allowed=false` until both succeed in the same run.
 - TODO (next 30-min): implement `shared-client-preflight-v4` that writes `tmp/hourly-preflight.json` with `{dns_state, status_code_status, status_code_logs, readpath_state, inference_allowed, retry_after_ms}` and hard-blocks hourly KPI synthesis when `dns_state!=ok` or `readpath_state!=ok`.
+
+## [2026-03-17 11:26 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed), then queried live canonical endpoints `GET /api/status` and `GET /api/logs?page=1&limit=100`.
+- Probe outcome: both canonical calls failed at transport with host-resolution error (`nodename nor servname provided, or not known`) against configured base `https://www.buju.quest`.
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trends unknown (`events_last_hour=0` from failed read-path; no evidence-safe inference).
+- Anomaly: full DNS/read-path outage this cycle (status+logs both unreachable), so gameplay-policy feedback is intentionally suppressed.
+- Development feedback: keep strategy/policy unchanged; prioritize endpoint reachability recovery and deterministic preflight classification before gameplay tuning resumes.
+- Failure mode + retry recommendation: classify as `dns_unreachable`; retry paired canonical probes with bounded backoff (`10s`, `30s`, `60s`, max 3), then re-run hourly synthesis only when both endpoints return `200` in the same run.
+- TODO (next 30-min): add `scripts/hourly-dns-preflight.js` (or equivalent pre-step) to persist `tmp/hourly-preflight.json` `{dns_state,status_probe,logs_probe,inference_allowed,retry_after_ms}` and hard-block KPI synthesis when `dns_state!=ok`.
