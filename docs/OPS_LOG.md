@@ -4712,3 +4712,13 @@
 - Development feedback: keep gameplay policy unchanged this hour; prioritize canonical DNS/read-path parity recovery and explicit preflight gating before any KPI-driven tuning.
 - Failure mode + retry recommendation: classify as `dns_unreachable_with_probe_path_mismatch`; retry paired canonical probes with bounded backoff (`5m -> 15m -> 30m`, max 3) and require same-run `status=200 && logs=200` before enabling inference.
 - TODO (next 30-min): implement `canonical-dns-parity-gate-v1` to write `tmp/hourly-preflight.json` `{base_url,dns_state,status_code_status,status_code_logs,status_code_recent,probe_status_code,inference_allowed,retry_after_ms}` and hard-stop hourly synthesis when canonical probes fail or parity mismatches.
+2026-03-17 13:26:25 KST | watchdog: restarted scripts/live-runner-daemon.sh
+
+
+## [2026-03-17 13:26 KST] Hourly gameplay-feedback cycle
+- API auth source: `.env` loaded (`BUJU_API_KEY` present, masked).
+- Live probe result: `GET /api/status` + paged `GET /api/logs?page=1&limit=100` both failed at transport (`fetch failed`), so last-hour gameplay outcomes/resources are **unavailable** (`events=0`).
+- Failure mode: transport/DNS path failure before response (no HTTP status observed).
+- Evidence artifact: `tmp/hourly-feedback-summary.json`, `tmp/hourly-feedback-raw.json`.
+- Dev feedback: keep hourly synthesis blocked on transport failure; do not infer progression/win-defeat/resource from empty window.
+- Next 30-min TODO: run canonical DNS/readpath preflight (`/api/status` + `/api/logs?limit=1`) with 10s timeout and 30s retry backoff; classify `dns_unreachable|network_unreachable|timeout` before synthesis.

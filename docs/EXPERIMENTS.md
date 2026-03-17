@@ -1426,3 +1426,11 @@ Track A/B and policy experiments.
 - Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit dns_state`, `false gameplay-inference count during DNS failures`.
 - Result: Baseline this cycle: canonical `status/logs/recent` all failed with `ENOTFOUND www.buju.quest`, while `activity:fetch` still reported probe `/api/status=200` and `*/recent=404`.
 - Decision: Run in next 30-min dev cycle; keep only if false-confidence summaries drop to zero for 3 consecutive hourly cycles.
+
+
+- Date: 2026-03-17 13:26 KST
+- Hypothesis: A fail-fast shared-client preflight with explicit transport classification (`dns_unreachable|network_unreachable|timeout`) will reduce repeated zero-evidence hourly cycles during `fetch failed` windows.
+- Change: Before hourly gameplay synthesis, probe `/api/status` and `/api/logs?limit=1` with 10s timeout and persist `tmp/hourly-preflight.json`; block inference unless both probes return `200`.
+- Metric(s): `% blocked cycles with explicit failure class`, `false gameplay inference count during transport failures`, `time-to-retry-guidance generation`.
+- Result: Current cycle failed transport before any HTTP response (`statusCode=null`, `logsCode=null`, `events=0`).
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive failures are explicitly classified with zero gameplay-policy output.
