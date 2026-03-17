@@ -1497,3 +1497,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles classified as auth_blocked_401`, `false gameplay-inference outputs during 401 windows`, `time-to-first dual-200 after auth-path fix`.
 - Result: Baseline this cycle: canonical `GET /api/status=401`, `GET /api/logs?page=1&limit=100=401`, `events_last_hour=0` from blocked canonical window (`tmp/hourly-live-signal-latest.json`).
 - Decision: Run in next 30-min dev cycle; keep only if 3 consecutive blocked cycles are explicitly classified with zero gameplay-policy output.
+
+- Date: 2026-03-17 23:31 KST
+- Hypothesis: Reducing optional MP purchases during high-surrender windows will lower economy drag without increasing death risk.
+- Change: For next 30-min cycle, block optional MP buy when `buy_hunt_ratio > 0.50` and `current_mp/max_mp >= 0.95`; keep mandatory HP recovery unchanged.
+- Metric(s): `buy_hunt_ratio`, `surrender_rate`, `death_count`, `gold_delta_per_30m`.
+- Result (baseline): last hour `hunt=323`, `buy=175` (`buy/hunt=0.54`), `surrender=52`, inferred `deaths=0`, close snapshot `gold=429`.
+- Decision: Run immediately; keep only if `buy_hunt_ratio <= 0.45` and `death_count=0` for two consecutive 30-min windows.

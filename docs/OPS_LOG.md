@@ -4906,3 +4906,13 @@
 - Failure mode + retry recommendation: classify as `auth_blocked_401`; retry canonical probes with bounded backoff (`30s -> 60s -> 120s`, max 3) and only resume inference after same-run `status=200 && logs=200`.
 - TODO (next 30-min): implement/verify `hourly-auth-parity-preflight-v2` to persist `tmp/hourly-auth-preflight.json` `{status_code_status,status_code_logs,auth_state,inference_allowed,retry_after_ms}` and hard-stop hourly synthesis when `inference_allowed=false`.
 2026-03-17 22:32:52 KST | watchdog restarted live-runner-daemon
+
+## [2026-03-17 23:31 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret not printed); live probes succeeded on `GET /api/status=200` and paged `GET /api/logs?page=1..6&limit=100=200`.
+- Last-hour gameplay signals (from 600 recent log events): actions `hunt=323`, `buy=175`, `surrender=52`, `rest=13`, `use_item=9`, `drop=26`, `sell=3`.
+- Progression/resources snapshot: `Lv27`, `EXP=5207`, `gold=429`, `HP 358/490`, `MP 258/258`, area=`talking_island_field` at cycle close.
+- Wins/defeats (inferred): hunt result text included `처치` on `323/323` hunts with no defeat/death phrase detected in-window; explicit outcome fields are not normalized (`known_outcomes` probe remains fallback).
+- Resource trend: buy pressure stayed high (`buy/hunt≈0.54`), with frequent surrenders (`52`, ~8.7% of events) indicating survivability guardrails are active but expensive.
+- Anomaly: sustained high surrender frequency relative to hunt throughput while still maintaining zero detected defeats; likely over-conservative HP/engage thresholds or potion-economy imbalance.
+- Development feedback: prioritize reducing surrender churn before aggression changes; tune engage/retreat gating and potion-buy policy together to preserve zero-death behavior while improving net economy.
+- TODO (next 30-min): implement `surrender-pressure-kpi-v1` to emit `{surrender_rate,buy_hunt_ratio,hp_potion_uses}` every 10 minutes and add a temporary rule: skip optional MP buy when `buy_hunt_ratio > 0.50` and `MP >= 95%`.
