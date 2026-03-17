@@ -4703,3 +4703,12 @@
 - Development feedback: keep strategy/policy unchanged; prioritize endpoint reachability recovery and deterministic preflight classification before gameplay tuning resumes.
 - Failure mode + retry recommendation: classify as `dns_unreachable`; retry paired canonical probes with bounded backoff (`10s`, `30s`, `60s`, max 3), then re-run hourly synthesis only when both endpoints return `200` in the same run.
 - TODO (next 30-min): add `scripts/hourly-dns-preflight.js` (or equivalent pre-step) to persist `tmp/hourly-preflight.json` `{dns_state,status_probe,logs_probe,inference_allowed,retry_after_ms}` and hard-block KPI synthesis when `dns_state!=ok`.
+
+## [2026-03-17 12:28 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (`gq***80`, raw secret never printed); attempted live canonical probes `GET /api/status`, `GET /api/logs?page=1&limit=100`, `GET /api/logs/recent?hours=1` against configured base `https://www.buju.quest`.
+- Probe outcome: all three canonical calls failed at transport (`ENOTFOUND www.buju.quest`); in parallel, `npm run -s activity:fetch -- --hours 1` still returned probe-path `/api/status=200` with all `*/recent` endpoints `404` and `source=fallback:local_replay`.
+- Last-hour gameplay signals (confidence: blocked): progression `Δlevel=0, Δexp=0, Δgold=0`; wins/defeats `0/0`; resource trend unknown from canonical logs (`events_last_hour` unavailable due to DNS failure).
+- Anomaly: persistent read-path mismatch (`activity:fetch /api/status=200` while direct canonical `/api/status` fails DNS) plus no valid `recent` endpoint contract (`404` streak).
+- Development feedback: keep gameplay policy unchanged this hour; prioritize canonical DNS/read-path parity recovery and explicit preflight gating before any KPI-driven tuning.
+- Failure mode + retry recommendation: classify as `dns_unreachable_with_probe_path_mismatch`; retry paired canonical probes with bounded backoff (`5m -> 15m -> 30m`, max 3) and require same-run `status=200 && logs=200` before enabling inference.
+- TODO (next 30-min): implement `canonical-dns-parity-gate-v1` to write `tmp/hourly-preflight.json` `{base_url,dns_state,status_code_status,status_code_logs,status_code_recent,probe_status_code,inference_allowed,retry_after_ms}` and hard-stop hourly synthesis when canonical probes fail or parity mismatches.

@@ -1419,3 +1419,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit dns_state`, `false gameplay-policy outputs during DNS failures`, `mean cycles-to-first-successful-probe`.
 - Result: Current cycle failed both canonical probes with host-resolution error (`nodename nor servname provided, or not known`); last-hour gameplay evidence unavailable.
 - Decision: Run in next 30-min dev cycle; keep if 3 consecutive outage cycles are classified deterministically with zero gameplay-policy output.
+
+- Date: 2026-03-17 12:28 KST
+- Hypothesis: Enforcing a canonical DNS/parity gate before hourly KPI synthesis will eliminate false-confidence summaries produced when probe path is healthy (`/api/status=200`) but canonical host reads fail (`ENOTFOUND`).
+- Change: Add `canonical-dns-parity-gate-v1` that persists `tmp/hourly-preflight.json` with `{base_url,dns_state,status_code_status,status_code_logs,status_code_recent,probe_status_code,inference_allowed,retry_after_ms}`; block inference unless canonical `status=200 && logs=200` and parity check passes.
+- Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit dns_state`, `false gameplay-inference count during DNS failures`.
+- Result: Baseline this cycle: canonical `status/logs/recent` all failed with `ENOTFOUND www.buju.quest`, while `activity:fetch` still reported probe `/api/status=200` and `*/recent=404`.
+- Decision: Run in next 30-min dev cycle; keep only if false-confidence summaries drop to zero for 3 consecutive hourly cycles.
