@@ -4749,3 +4749,12 @@
 - Trend/anomaly: economy churn is still high (`buy/hunt=0.60`) while survivability is stable (`death=0`), suggesting over-buy pressure vs throughput.
 - Dev feedback: prioritize optional-buy suppression and verify whether cooldown/backoff settings reduce buy-heavy loops without reducing hunt count.
 - TODO (next 30m): add a lightweight hourly KPI emitter (`buy_hunt_ratio`, `net_trade`, `deaths`) and gate optional MP buys when `buy_hunt_ratio > 0.55` and `mp_ratio >= 0.95`.
+
+## [2026-03-17 15:27 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (raw key never printed) and queried live canonical endpoints `GET /api/status`, `GET /api/logs?page=1&limit=100`.
+- Probe outcome: both requests failed before HTTP response (`http=000`) with DNS resolution failure (`Could not resolve host: www.buju.quest`); corroborated by `npm run -s activity:fetch -- --hours 1` (`/api/status=200` via probe path, all `*/recent` endpoints `404`, source=`fallback:local_replay`).
+- Last-hour gameplay signals (confidence: blocked): progression unknown, wins/defeats unknown, resource trend unknown (`events_last_hour` unavailable from canonical logs).
+- Anomaly: canonical host DNS outage plus probe/canonical parity mismatch (`activity:fetch` status path reachable while canonical host resolution fails).
+- Development feedback: freeze gameplay-policy tuning for this cycle; prioritize canonical DNS/readpath parity gate and endpoint-health classification before KPI-driven changes.
+- Failure mode + retry recommendation: classify as `dns_unreachable_with_parity_mismatch`; retry canonical `status+logs` probes with bounded backoff (`5m -> 15m -> 30m`, max 3) and only re-enable gameplay inference after same-run `status=200 && logs=200`.
+- TODO (next 30-min): implement `dns-parity-preflight-v2` to persist `tmp/hourly-preflight.json` `{dns_state,status_code_status,status_code_logs,probe_status_code,inference_allowed,retry_after_ms}` and hard-block hourly synthesis when canonical probes fail.

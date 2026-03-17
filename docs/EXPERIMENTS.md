@@ -1441,3 +1441,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio/hour`, `net_trade/hour`, `hunt_count/hour`, `death_count/hour`.
 - Result: Baseline this cycle (`13:27~14:27 KST`) from live logs: `hunt=57`, `buy=34`, `sell=1`, `death=0` (`buy/hunt=0.60`) with status `Lv26`, `EXP=5451`, `gold=439`.
 - Decision: Run in next 30-min dev cycle; keep if `buy_hunt_ratio <= 0.45` for 3 consecutive windows with hunt drop <=10% and `death=0`.
+
+- Date: 2026-03-17 15:27 KST
+- Hypothesis: A resolver-aware canonical parity preflight (DNS classification + probe/canonical comparison) will reduce false-confidence hourly summaries during host-resolution outages.
+- Change: Add `dns-parity-preflight-v2` before hourly synthesis; write `tmp/hourly-preflight.json` with `{dns_state,status_code_status,status_code_logs,probe_status_code,inference_allowed,retry_after_ms}` and block KPI inference unless canonical `status=200 && logs=200` in the same run.
+- Metric(s): `parity_mismatch_cycles/day`, `% blocked cycles with explicit dns_state`, `false gameplay-inference outputs during DNS outage`.
+- Result: Baseline this cycle: canonical `/api/status` + `/api/logs` both `http=000` (`Could not resolve host: www.buju.quest`) while `activity:fetch` still reported probe `/api/status=200` and `*/recent=404`.
+- Decision: Run in next 30-min dev cycle; keep if false-confidence summaries remain zero for 3 consecutive outage windows.
