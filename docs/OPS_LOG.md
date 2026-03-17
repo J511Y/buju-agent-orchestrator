@@ -1,5 +1,15 @@
 # Ops Log
 
+- [2026-03-17 11:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory adaptive loop): ordered last-20 thinking logs were read from `GET /api/agent/thinking/j211y?limit=20` (`tmp/cron-thinking-now-1118.json`, `count=20`) and delta-scored (`tmp/cron-last20-delta-1118.json`): partial gain (`level +1`, `gold +10`) but high risk/churn pressure (`death/defeat mentions 20`, `rate/429/cooldown mentions 19`) plus live daemon repeated `hunt code=400`, so KEEP was rejected.
+  - Minimal reversible parameter change committed: `config/strategy.env` restored `BUJU_USE_COMBAT_START 0->1` to avoid invalid direct-hunt loop and re-enter safer combat-start flow.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if inventory slots `>=10`, selling still prioritizes unequipped gear worse than equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`level=26`, `exp=3321`, `gold=464`, `area=talking_island_field`) and `GET /api/areas/talking_island_field/monsters => 200` (`rabbit`,`skeleton`), so safest high-efficiency target remains `skeleton`; movement threshold guard remains strict (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active (`short_sword`; `tmp/cron-inventory-now-1118.json`), staged enhancement plan remains explicit in `docs/DECISIONS.md`, and minimal safe enhancement path stayed prerequisite-gated this cycle (`GET /api/npc/list => 200`, `npcs=[]`, no satisfiable scroll+npc path).
+  - Live runner continuity preserved: lock-owner daemon remained active (`tmp/live-runner-procs-1118.txt`); smoke before change reproduced stall (`tmp/cron-smoke-1118.txt`: `ok=0/1`, `hunt`, `code=400`), smoke after change recovered (`tmp/cron-smoke-1118-after.txt`: `ok=1/1`, `wait_combat_start_rate_limit`, `exp=3323`, `gold=469`, `code=200`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1118.json`, `tmp/thinking-post-response-1118.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `hunt code=400 mentions<=2/20`, `rate/cooldown mentions<=10/20`, and progression `exp>=3345` or `gold>=474` with daemon continuity.
+
 - [2026-03-17 09:27 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked only, raw secret never printed).
   - Live activity/status evidence: `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`, `/api/status=200`, and all `*/recent` probes `404` (failure streak `4`); artifact `tmp/hourly-activity-20260317-0927.json`.
