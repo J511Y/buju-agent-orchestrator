@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 16:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE (mandatory adaptive loop): remote probes failed DNS (`tmp/cron-thinking-now-1650.json` and status/monsters/npc/inventory artifacts), so fallback local last-20 was recomputed from valid `thinking-post-####.json` files (`tmp/cron-last20-delta-now.json`, `count=20`) and was non-improving on safety/throughput (`level +0`, `gold +20`, `inventory +5`, `death/defeat mentions 12`, `rate/429/cooldown mentions 11`); KEEP rejected.
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_429_COOLDOWN_TICKS 36->38` (README current-default note synced) to widen post-429 cool-off and reduce repeated throttle re-entry while preserving strict safety/movement/equipment invariants.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: smoke after change succeeded (`tmp/cron-smoke-1650.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=27`, `exp=357`, `gold=434`, `code=200`); safest high-efficiency target policy remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active, staged enhancement policy remains explicit in `docs/DECISIONS.md`, and minimal safe enhancement path stayed prerequisite-gated this cycle (DNS prevented fresh `scroll+npc` satisfiability probe).
+  - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-1650.txt`), and no stop/restart action was issued.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `rate/cooldown mentions<=10/20`, and progression `exp>=430` or `gold>=444` with daemon continuity.
+
 - [2026-03-17 16:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-1618.json`, `count=0`), so fallback local last-20 thinking posts were delta-scored (`tmp/cron-last20-delta-1618-local.json`, `count=20`) and showed concrete progression improvement (`exp +2036`, `gold +15`, `level +0`, `death/defeat mentions 3`), therefore CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, liquidation remains unequipped-worse-than-equipped first.
