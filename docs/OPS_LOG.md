@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-17 09:27 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked only, raw secret never printed).
+  - Live activity/status evidence: `npm run -s activity:fetch -- --hours 1` returned `source=fallback:local_replay`, `/api/status=200`, and all `*/recent` probes `404` (failure streak `4`); artifact `tmp/hourly-activity-20260317-0927.json`.
+  - Direct canonical probes in same run both failed transport: `GET /api/status` and `GET /api/logs?page=1&limit=100` => `fetch failed`; artifact `tmp/hourly-live-signal-20260317-0927.json`.
+  - Last-hour gameplay signals: progression `unresolved` (`Δlevel/Δexp/Δgold = 0/0/0` from fallback only), wins/defeats `unresolved` (`0/0`), resource trend `unresolved` (logs unavailable), anomaly=`collector/direct read-path divergence`.
+  - Dev feedback: treat this hour as telemetry-integrity failure, not gameplay-policy signal; block tuning/architecture changes until one canonical run returns both status+logs on the same client path.
+  - Failure mode + retry recommendation: run shared-client preflight retry with backoff `10s -> 30s -> 60s`; if any probe remains transport-failed, classify `readpath_transport_blocked` and skip gameplay inference.
+  - Next 30m TODO: implement `scripts/hourly-shared-client-preflight-v3.js` to emit `{dns_state, transport_state, status_http, logs_http, inference_allowed, retry_after_ms}` and hard-gate summary generation on `inference_allowed=true`.
+
 - [2026-03-17 09:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory loop): remote thinking endpoint DNS failed (`www.buju.quest`), so local last-20 fallback was used (`tmp/last20-thinking-now.json` -> `tmp/cron-last20-delta-0918.json`) and remained improving (`level +1`, `exp +0`, `gold +5`, `inventory -1`, `death/defeat mentions 20`, `rate/429/cooldown mentions 20`).
   - CHANGE applied (mandatory adaptive requirement): `config/strategy.env` restored `BUJU_USE_COMBAT_START 0->1`, and `scripts/live-strategy-runner.js` added in-combat hunt-mode escape (`surrender_stuck_hunt_mode` / `wait_combat_resolution_hunt_mode`) to stop repeated invalid `hunt code=400` loops.

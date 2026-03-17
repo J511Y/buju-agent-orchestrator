@@ -11,6 +11,13 @@ Track A/B and policy experiments.
 - Decision:
 
 ## Entries
+- Date: 2026-03-17 09:27 KST
+- Hypothesis: A single-runtime shared-client preflight (collector + direct probes through the same fetch stack) will eliminate transport split-signals and prevent zero-evidence gameplay summaries.
+- Change: Add `hourly-shared-client-preflight-v3` that checks `/api/status` + `/api/logs?page=1&limit=100`, emits `{dns_state, transport_state, status_http, logs_http, inference_allowed, retry_after_ms}`, and blocks synthesis unless `inference_allowed=true`.
+- Metric(s): `split_readpath_cycles/day`, `% blocked cycles with deterministic failure class`, false gameplay-summary count during transport failures.
+- Result: Current cycle reproduced divergence (`activity:fetch` saw `/api/status=200` with recent endpoints `404`, while direct status/log probes both failed `fetch failed`), leaving last-hour outcomes/resources unresolved.
+- Decision: Run in next 30-min dev cycle; keep if 4 consecutive transport-divergence cycles are blocked with zero gameplay-policy output.
+
 - Date: 2026-03-17 07:26 KST
 - Hypothesis: A same-runtime shared-client preflight with bounded retry metadata will reduce split-signal hourly cycles where collector `/api/status` is reachable but direct canonical reads fail at transport (`fetch failed`).
 - Change: Add `hourly-preflight-shared-client-v2` before synthesis (`/api/status` + `/api/logs?page=1&limit=100`), emit `{dns_state, readpath_state, inference_allowed, retry_after_ms}`, and block gameplay inference unless `inference_allowed=true`.
