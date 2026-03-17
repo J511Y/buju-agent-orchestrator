@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 04:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0418.json`), and ordered delta was non-improving (`tmp/cron-last20-delta-0418.json`: `level +0`, `exp +0`, `gold +0`, `inventory +0`, `death/defeat mentions 19`, `rate/429/cooldown mentions 20`), so KEEP was rejected.
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BACKOFF_BASE_MS 2000->2100` (README default note synced) to lower immediate retry re-entry under sustained throttle wording while preserving strict safety/movement/equipment invariants.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-0418.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-0418.json`) keep safest high-efficiency target as `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-0418.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-0418.json`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-0418.txt`: `ok=1/1`, `lastAction=combat_start`, `level=28`, `exp=1467`, `gold=444`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-0418.txt`) with no stop/restart action.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=10/20 mentions`, and progression `exp>=1540` or `gold>=449` with daemon continuity.
+
 - [2026-03-18 03:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned `count=20` (`tmp/cron-thinking-now-0350.json`), and ordered delta was non-improving (`tmp/cron-last20-delta-0350.json`: `level +2`, `exp +0`, `gold -5`, `inventory +5`, `death/defeat mentions 25`, `rate/429/cooldown mentions 53`), so KEEP was rejected.
   - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BACKOFF_BASE_MS 1900->2000` (README default note synced) to reduce immediate retry re-entry under sustained throttle wording while preserving strict safety/movement/equipment invariants.
