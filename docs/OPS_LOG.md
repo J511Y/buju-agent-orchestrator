@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 05:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): remote `GET /api/agent/thinking/j211y?limit=20` and live status/monster/inventory probes failed DNS (`tmp/cron-thinking-now-0550.json`, `tmp/cron-status-now-0550.json`, `tmp/cron-monsters-now-0550.json`), so ordered local fallback deltas were recomputed (`tmp/cron-last20-delta-0550-local.json`) and were non-improving on risk/churn (`level +1`, `gold +10`, `inventory +5`, `death/defeat mentions 20`, `rate/429/cooldown mentions 20`; `exp` unavailable in thinking context).
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_STALL_429_COOLDOWN_TICKS 46->48` (README current-default note synced) to widen post-429 cooling under unresolved read-path instability while preserving strict safety/movement/equipment invariants.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: authoritative live probes were DNS-blocked this cycle, so safest high-efficiency policy remains pinned to validated baseline target `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active; staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (DNS blocked fresh `scroll+npc+resource` satisfiability probe).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-0550.txt`: `ok=1/1`, `lastAction=combat_start`, `level=28`, `exp=2551`, `gold=444`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-0550.txt`) with no stop/restart action.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=8/20 mentions`, and progression `exp>=2620` or `gold>=449` with daemon continuity.
+
 - [2026-03-18 05:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0518.json`), and ordered delta was non-improving/mixed (`tmp/cron-last20-delta-0518.json`: `level +1`, `gold -10`, `inventory +7`, `death/defeat mentions 26`, `rate/429/cooldown mentions 51`; `exp` unavailable in thinking context).
   - 30m live-status delta check confirms soft progression but unstable quality (`tmp/cron-status-now-0450.json -> tmp/cron-status-now-0518.json`: `level +0`, `exp +352`, `gold +10`), so KEEP was still rejected under the mandatory adaptive rule due worsening risk/churn wording and slot pressure.
