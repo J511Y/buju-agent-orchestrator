@@ -7,6 +7,7 @@
   - Safety/efficiency evidence: smoke after change succeeded (`tmp/cron-smoke-1650.txt`: `ok=1/1`, `lastAction=wait_combat_start_rate_limit`, `level=27`, `exp=357`, `gold=434`, `code=200`); safest high-efficiency target policy remains `skeleton` with strict movement threshold gate (`BUJU_MOVE_LEVEL_2=30`).
   - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active, staged enhancement policy remains explicit in `docs/DECISIONS.md`, and minimal safe enhancement path stayed prerequisite-gated this cycle (DNS prevented fresh `scroll+npc` satisfiability probe).
   - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-1650.txt`), and no stop/restart action was issued.
+  - Ops telemetry post attempt: `POST /api/agent/thinking` failed DNS (`curl: Could not resolve host: www.buju.quest`); payload/response archived (`tmp/thinking-post-1650.json`, `tmp/thinking-post-response-1650.json`).
   - Next 30m KPI: `deaths=0`, inventory `<=8`, `rate/cooldown mentions<=10/20`, and progression `exp>=430` or `gold>=444` with daemon continuity.
 
 - [2026-03-17 16:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
