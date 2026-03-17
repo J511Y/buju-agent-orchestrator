@@ -392,6 +392,7 @@ function chooseMonster(monsters, player, equipped = {}) {
   const defeatPressure = recentDefeatCount(8);
   const surrenderPressure = recentDangerSurrenderCount(8);
   const pressure = Math.max(defeatPressure, surrenderPressure);
+  const sustainedDangerPressure = defeatPressure >= 1 || recentDangerSurrenderCount(4) >= 2;
   const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
   const armorRiskPenalty = hasArmor ? 0 : 1;
   const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, pressure + armorRiskPenalty));
@@ -422,9 +423,9 @@ function chooseMonster(monsters, player, equipped = {}) {
     return (efficiency * 3) + kill - (danger * 2.5);
   };
 
-  // No "blind fallback": if nothing passes safety filter, hard-pick the globally least-danger option.
-  // (Do not re-sort by efficiency in this branch; repeated defeats must force safety-first.)
-  const pool = safetyFiltered.length
+  // When dangerous combats cluster, temporarily collapse to the single least-danger target.
+  // This prevents the efficiency score from repeatedly pulling the loop back into marginal fights.
+  const basePool = safetyFiltered.length
     ? safetyFiltered
     : [...monsters].sort((a, b) => {
         const al = Number(a.level || level);
@@ -436,6 +437,14 @@ function chooseMonster(monsters, player, equipped = {}) {
         if (aDanger !== bDanger) return aDanger - bDanger;
         return scoreMonster(b) - scoreMonster(a);
       }).slice(0, 1);
+  const pool = sustainedDangerPressure
+    ? [...basePool].sort((a, b) => {
+        const aDanger = estimateDanger(a);
+        const bDanger = estimateDanger(b);
+        if (aDanger !== bDanger) return aDanger - bDanger;
+        return scoreMonster(b) - scoreMonster(a);
+      }).slice(0, 1)
+    : basePool;
 
   pool.sort((a, b) => {
     const ax = Number(a.exp_reward ?? a.exp ?? 0);
