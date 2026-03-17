@@ -1,0 +1,12 @@
+5854 bash scripts/live-runner-daemon.sh
+57084 node scripts/live-strategy-runner.js
+57087 node scripts/live-strategy-runner.js
+57097 node scripts/live-strategy-runner.js
+57134 /bin/zsh -c cd /Users/jhyou/.openclaw/workspace/buju-agent-orchestrator
+STAMP=1949
+./scripts/live-action-tick.js >/dev/null 2>&1 || true
+npm run -s verify:cycle > tmp/cron-smoke-$STAMP.txt 2>&1 || true
+pgrep -fal "live-runner-daemon.sh|live-strategy-runner.js" > tmp/live-runner-procs-$STAMP.txt || true
+cat tmp/cron-smoke-$STAMP.txt | tail -n 5
+72490 bash ./scripts/live-runner-daemon.sh
+74490 bash ./scripts/live-runner-daemon.sh

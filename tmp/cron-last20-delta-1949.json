@@ -1,0 +1,57 @@
+{
+  "stamp": "1949",
+  "count": 20,
+  "window": {
+    "from": "2026-03-17 17:52:28",
+    "to": "2026-03-17 19:21:05"
+  },
+  "delta": {
+    "level": 0,
+    "exp": 0,
+    "gold": -5,
+    "inventory": 1,
+    "death_mentions": 13,
+    "rate_limit_mentions": 11
+  },
+  "first_context": {
+    "hp_pct": 0.576,
+    "mp_pct": 1,
+    "level": 27,
+    "area": "talking_island_field",
+    "gold": 444,
+    "inventory_count": 2,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "use_item",
+      "move",
+      "rest",
+      "buy",
+      "sell",
+      "skill_buy",
+      "skill_learn",
+      "enhance",
+      "teleport",
+      "surrender"
+    ]
+  },
+  "last_context": {
+    "hp_pct": 0.6387755102040816,
+    "mp_pct": 1,
+    "level": 27,
+    "area": "talking_island_field",
+    "gold": 439,
+    "inventory_count": 3,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "use_item",
+      "move",
+      "rest",
+      "buy",
+      "sell",
+      "enhance",
+      "surrender"
+    ]
+  }
+}

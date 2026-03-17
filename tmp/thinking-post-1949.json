@@ -1,0 +1,30 @@
+{
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.6571428571428571,
+    "mp_pct": 1,
+    "level": 27,
+    "area": "talking_island_field",
+    "gold": 434,
+    "inventory_count": 3,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "use_item",
+      "move",
+      "rest",
+      "buy",
+      "sell",
+      "enhance",
+      "surrender"
+    ]
+  },
+  "reasoning": "CHANGE with evidence: last-20 ordered delta regressed (level +0, exp +0, gold -5, inventory +1) with defeat/throttle wording (13/20, 11/20), so KEEP is rejected. Apply minimal reversible control-plane change (combat strategy refresh 44->48) while preserving hard inventory invariants (10/8/10 worse-first), safest skeleton targeting, strict lv30 movement gate, and prerequisite-gated safe enhancement only.",
+  "action_detail": "change:combat_strategy_refresh=48;safest=skeleton;moveGate=lv30;inv=10/8/10(worse-first>=10);enhance=prereq-gated",
+  "result": {
+    "success": true,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, wait_combat_start(rate+cooldown)<=8/20 mentions, progression exp>=2570 or gold>=444; daemon continuous."
+  },
+  "character_name": "j211y",
+  "tick_number": 1773744724457
+}
