@@ -81,7 +81,7 @@ npm run dev
   - 루틴 포션 바닥 보충(`hp_potion_s`, `mp_potion_s`)은 `BUJU_MIN_GOLD_RESERVE`를 침범하지 않는 범위에서만 수행
   - mutation 방어 부적(`mutation_shield_charm`) 확보는 일반 예비금과 분리된 하한(`min(BUJU_MIN_GOLD_RESERVE, BUJU_MUTATION_MIN_GOLD_RESERVE)`)으로 판단해 이동 중 연속 사망 리스크를 우선 차단
   - 중반 레벨 이상에서는 블랙스미스 NPC + 주문서 보유 + 골드 예비금 조건을 동시에 만족할 때만 안전 강화(`enhance`)를 수행
-  - 전투 진입 경로는 `BUJU_USE_COMBAT_START` 토글로 운영한다(현재 기본값: `0`). 기본값에서는 `POST /hunt`(`monster_id`,`skill_id`)를 사용하고, 토글 활성화 시에만 `POST /combat/start`(`monster_id`,`area`) + `POST /combat/strategy` 조건부 갱신(payload 변경 또는 `BUJU_COMBAT_STRATEGY_REFRESH_TICKS` 경과)을 적용한다
+  - 전투 진입 경로는 `BUJU_USE_COMBAT_START` 토글로 운영한다(현재 기본값: `1`). 기본값에서는 `POST /combat/start`(`monster_id`,`area`) + `POST /combat/strategy` 조건부 갱신(payload 변경 또는 `BUJU_COMBAT_STRATEGY_REFRESH_TICKS` 경과)을 적용하고, 토글 비활성화 시 `POST /hunt`(`monster_id`,`skill_id`) 경로로 동작한다
   - `hunt` 예산이 0이면 `/combat/strategy` 갱신 호출까지 생략하고 `wait_hunt_rate_limit`로 대기(제어 호출 churn 최소화)
   - `POST /combat/start`가 404 또는 `API_DEPRECATED` 응답이면 `POST /hunt`(`monster_id`,`skill_id`)로 자동 폴백
   - v1.14 제약 반영: 전투 중 상점 구매를 스킵하고 헌팅 루프를 유지
