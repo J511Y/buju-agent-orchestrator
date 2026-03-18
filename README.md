@@ -95,7 +95,7 @@ npm run dev
   - 지역 이동 임계(`BUJU_MOVE_LEVEL_*`/`BUJU_AREA_LV*`)와 안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)은 연속 패배/과위험 전투를 줄이기 위한 보수적 기본값으로 유지(현재 기본값 예: `BUJU_MOVE_LEVEL_2=30`)
   - 몬스터 선택 안전 필터는 레벨 격차 + 공격력 가드 + hard danger cap(압박/무장 상태 반영) 3중 게이트를 함께 사용하며, 최근 8틱 기준 위험 압박(패배 1회 이상 또는 위험 항복 2회 이상)에서는 danger cap을 강화(레벨 격차 +1, 공격력 배수 1.45)하고, 안전 필터가 비면 최저 위험 몬스터 우선으로 폴백
   - 위험 전투 압박(최근 패배 1회 이상 또는 최근 4틱 위험 항복 2회 이상) 구간에서는 효율 점수보다 안전성을 우선해 단일 최저 위험 몬스터로 타깃을 수축
-  - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=54`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=52`, `BUJU_BACKOFF_BASE_MS=2600`)
+  - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=54`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=52`, `BUJU_BACKOFF_BASE_MS=2800`)
   - 구매/회복 정책은 골드 예비금 하한(`BUJU_MIN_GOLD_RESERVE=430`, `BUJU_MUTATION_MIN_GOLD_RESERVE=260`)을 기준으로 유지해 전투 유동성과 mutation 리스크 방어를 함께 보전
   - `combat/start` 429가 연속되면 연속 횟수(최대 +6 tick)를 더한 적응형 쿨다운을 추가 적용해 즉시 재시도 폭주를 억제
   - 429 재발 구간에서는 강제 hunt 폴백 윈도우를 빠르게 여는 파라미터(`BUJU_COMBAT_START_429_FALLBACK_THRESHOLD=1`, `BUJU_COMBAT_START_429_FALLBACK_TICKS=12`)를 기본값으로 유지해 순수 wait churn을 줄인다
