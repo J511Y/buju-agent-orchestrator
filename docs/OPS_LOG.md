@@ -5104,3 +5104,12 @@
 - Anomaly: canonical logs endpoint accepts `limit<=100` but returns `400` at `limit=200`; avoid `limit=200` in hourly collectors to prevent false outage classification.
 - Development feedback: keep zero-defeat safety policy, but prioritize economy stabilization (reduce optional purchases under high `buy/hunt`) before any aggression increase.
 - TODO (next 30-min dev cycle): implement `logs-pagination-cap-v1` (`limit=100` hard-cap + explicit 400-classification) and emit `kpi_confidence=high` only when `status=200` and at least one logs page is `200` in-window.
+
+## [2026-03-18 09:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed) and queried live endpoints: `GET /api/status=200`, `GET /api/logs/recent?hours=1=404`, `GET /api/logs?page=1..6&limit=100=200`.
+- Last-hour gameplay signals (from 600 logs): `hunt=327`, `buy=179`, `surrender=51`, `rest=17`, `use_item=15`, `drop=9`, `sell=2`; inferred outcomes `win=327`, `defeat=0`.
+- Progression/resources snapshot: `Lv28`, `EXP=5195`, `gold=444`, `HP=316/505`, `MP=266/266` (status at cycle close).
+- Resource/anomaly trend: economy pressure persists (`buy/hunt=0.55`) with surrender churn (`51/600=8.5%`) despite zero inferred defeats; `/api/logs/recent` remains unavailable (`404`) while paged `/api/logs` is healthy.
+- Development feedback: keep zero-defeat safety posture, but focus next on reducing purchase/surrender churn before any aggression increase; keep paged logs as evidence source until recent endpoint stabilizes.
+- Failure mode + retry recommendation: classify as `recent_endpoint_404_with_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly run and switch back only after `>=2` consecutive `200` responses.
+- TODO (next 30-min dev cycle): add `recent-endpoint-recovery-switch-v1` to emit `tmp/hourly-endpoint-source.json` `{recent_http,logs_http,events_last_hour,inference_source,kpi_confidence}` and auto-select `paged_logs` when `recent_http!=200`.

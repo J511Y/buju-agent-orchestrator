@@ -1568,3 +1568,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `defeat_count`, and `% windows with gold rebound while guard_state=on`.
 - Result: Current live window (`06:31~07:31 KST`) showed sustained churn with safety intact (`events=670`, `hunt=362`, `buy=199`, `surrender=54`, `defeats=0`, status gold `439`).
 - Decision: Run in next 30-min dev cycle; keep only if churn ratios trend downward for 2 consecutive windows while `defeats` remains `0`.
+
+- Date: 2026-03-18 09:30 KST
+- Hypothesis: A deterministic source-switch guard (recent endpoint health -> paged logs fallback) will cut low-confidence hourly feedback cycles without harming safety outcomes.
+- Change: Implement `recent-endpoint-recovery-switch-v1` to persist `tmp/hourly-endpoint-source.json` with `{recent_http,logs_http,events_last_hour,inference_source,kpi_confidence}` and require `recent_http==200` for recent-endpoint-first inference.
+- Metric(s): `% low-confidence hourly summaries`, `% cycles with non-empty evidence window`, `defeat_count`.
+- Result: Baseline this cycle showed `/api/logs/recent?hours=1=404` while paged `/api/logs?page=1..6&limit=100=200` produced 600 in-window events (`hunt=327`, `buy=179`, `surrender=51`, `defeat=0`).
+- Decision: Run in next 30-min dev cycle; keep only if low-confidence summaries decrease for 3 consecutive hourly runs with `defeat_count=0`.
