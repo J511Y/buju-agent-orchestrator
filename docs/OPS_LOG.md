@@ -5158,3 +5158,12 @@
 - Resource/anomaly trend: high economy churn persists (`buy/hunt=0.55`, `surrender/event=7.6%`) while `/api/logs/recent` remains `404`.
 - Development feedback: keep zero-defeat safety posture; prioritize reducing buy/surrender churn before any aggression change.
 - TODO (next 30-min dev cycle): add `hourly-outcome-normalizer-v1` to map paged-log combat result fields into deterministic `{win,defeat,unknown}` and emit `tmp/hourly-outcome-confidence.json`.
+
+## [2026-03-18 12:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); live probes returned `GET /api/status=200`, `GET /api/logs/recent?hours=1=404`, `GET /api/logs?page=1..7&limit=100=200`.
+- Last-hour gameplay signals (canonical paged logs, 669 events): `hunt=357`, `buy=197`, `surrender=55`, `rest=15`, `use_item=8`, `drop=33`, `sell=4`; inferred outcomes `win=357`, `defeat=0`.
+- Progression/resources snapshot (status at cycle close): `Lv28`, `EXP=7337`, `gold=439`, `HP=329/505`, `MP=266/266`, area=`talking_island_field`; vs prior 11:31 KST snapshot (`EXP=6637`) => `ΔEXP=+700`.
+- Resource/anomaly trend: churn remains elevated (`buy/hunt=0.55`, `surrender/hunt=0.15`) with zero inferred defeats; recent endpoint family still unavailable (`404`) while paged logs remain healthy.
+- Development feedback: keep zero-defeat safety posture; focus next on economy-churn controls (purchase gating + surrender trigger tuning) before any aggression change.
+- Failure mode + retry recommendation: classify as `recent_endpoint_404_with_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly cycle and keep paged logs as primary evidence source until `>=2` consecutive `200` recoveries.
+- TODO (next 30-min dev cycle): implement `hourly-churn-budget-guard-v2` to emit `tmp/hourly-churn-budget.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_mp_buy_blocked}` and auto-block optional MP buys when `buy_hunt_ratio >= 0.52 && mp_ratio >= 0.95`.

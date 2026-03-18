@@ -1589,3 +1589,10 @@ Track A/B and policy experiments.
 - Metric(s): `unknown_outcome_ratio`, `defeat_false_positive_count`, `% hourly windows with parse_coverage>=0.95`.
 - Result: Baseline this cycle had strong canonical evidence (`/api/status=200`, paged logs pages `1..5=200`, `events=655`) but outcomes remained unresolved in parser output (`unknown=355`, explicit win/defeat fields absent in current mapping).
 - Decision: Run in next 30-min cycle; keep only if `unknown_outcome_ratio` decreases for 2 consecutive windows while `defeat_false_positive_count=0`.
+
+- Date: 2026-03-18 12:30 KST
+- Hypothesis: Tightening optional-MP-buy gating when both `buy:hunt` and `surrender:hunt` are high will reduce economy churn without increasing defeats.
+- Change: Run `hourly-churn-budget-guard-v2` for the next 30-min cycle; block optional MP buys when `buy_hunt_ratio >= 0.52 && mp_ratio >= 0.95`, and log `optional_mp_buy_blocked` with churn ratios.
+- Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta_per_30m`, `defeat_count`.
+- Result (baseline): current hour (`12:30 KST`) from canonical paged logs: `events=669`, `hunt=357`, `buy=197` (`0.55`), `surrender=55` (`0.15`), inferred `defeats=0`, status `EXP=7337`, `gold=439`.
+- Decision: Run in next 30-min dev cycle; keep only if `buy_hunt_ratio <= 0.50` for two consecutive windows while `defeat_count=0`.
