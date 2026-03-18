@@ -1617,3 +1617,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta_h`, `defeat_count`.
 - Result (baseline): this hour (`14:31~15:31 KST`) showed `events=661`, `hunt=355`, `buy=197` (`0.55`), `surrender=51` (`0.14`), `gold_delta_h≈-3560`, `defeats=0`, status `gold=434`.
 - Decision: Execute in next 30-min dev cycle; keep only if `buy_hunt_ratio<=0.50` and `gold_delta_h` improves for 2 consecutive windows while `defeat_count=0`.
+
+## 2026-03-18 16:30 KST — Hypothesis: Dual-path parity heartbeat artifact will reduce repeated low-confidence hourly cycles under transport split + recent-404 conditions.
+- Hypothesis: Persisting one compact parity artifact per cycle (`direct canonical` + `collector`) will make outage class deterministic and shorten recovery-to-high-confidence time.
+- Change: Add `hourly-readpath-parity-heartbeat-v1` output `tmp/hourly-readpath-parity-latest.json` with `{direct_status_http,direct_logs_http,collector_status_http,recent_ok_count,transport_state,kpi_confidence}`; force `kpi_confidence=low` unless `transport_state=ok && direct_status_http=200 && direct_logs_http=200 && recent_ok_count>0`.
+- Metric(s): `split_readpath_cycles/day`, `% cycles with deterministic failure class`, `time-to-first high-confidence cycle after outage`.
+- Result: Current cycle reproduced split (`direct probe: fetch failed`, collector `/api/status=200`, all `recent=404`; refs: `tmp/hourly-live-signal-latest.json`, `tmp/hourly-feedback-2026-03-18-16-30.json`).
+- Decision: Execute in next 30-min dev cycle; keep if 4 consecutive split cycles are classified without false gameplay-policy inference.

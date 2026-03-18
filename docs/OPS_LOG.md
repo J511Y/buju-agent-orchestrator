@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 16:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): canonical `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-1620.json`, `count=0`), so ordered local fallback deltas were recomputed from latest 20 thinking posts (`tmp/cron-last20-delta-1620-local.json`) and remained improving (`level 28->30`, `gold 429->439`, `inventory 6->8`), therefore CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-1620.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-1620.json`, scored in `tmp/cron-monster-score-1620.json`) keep safest high-efficiency target as `skeleton` (`score 115`) over `rabbit` (`score 102`); strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-1620.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-1620.json` with `npcs=[]`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-1620.txt`: `ok=1/1`, `lastAction=buy_mp`, `level=29`, `exp=2231`, `gold=444`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-1620.txt`) with no intentional stop/restart action.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1620.json`, `tmp/thinking-post-response-1620.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, and progression `exp>=2400` or `gold>=449` with daemon continuity.
+
 - [2026-03-18 15:48 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): canonical `GET /api/agent/thinking/j211y?limit=20` probe DNS-failed on `www.buju.quest` (`tmp/cron-probe-status-1548.txt`: `dns_fail=1`), so ordered local fallback deltas were recomputed from latest 20 thinking posts (`tmp/cron-last20-delta-1548-local.json`) and stayed non-improving for KEEP (`level +1`, `gold +0`, `inventory +0`, `death/defeat mentions 16`, `rate/429/cooldown mentions 15`).
   - Minimal reversible CHANGE committed: `config/strategy.env` tuned `BUJU_BACKOFF_BASE_MS 2600->2800` (README current-default note synced) to lower immediate retry re-entry pressure under persistent cooldown/rate wording.
@@ -5229,3 +5238,12 @@
 - Development feedback: keep zero-defeat safety posture; prioritize economy-churn reduction (optional MP buy suppression + surrender trigger tuning) before any aggression/area expansion.
 - Failure mode + retry recommendation: classify endpoint health as `recent_family_404_with_paged_logs_healthy`; continue hourly retry of recent endpoints and require `>=2` consecutive `200` before re-promoting recent endpoints as primary evidence.
 - TODO (next 30-min dev cycle): implement `hourly-economy-churn-guard-v3` to emit `tmp/hourly-economy-churn.json` `{buy_hunt_ratio,surrender_hunt_ratio,gold_delta_h,optional_buy_blocked}` and auto-block optional MP buys when `buy_hunt_ratio>=0.53 && mp_ratio>=0.95`.
+
+## [2026-03-18 16:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); direct canonical probe artifact `tmp/hourly-live-signal-latest.json` failed transport (`fetch failed`) before HTTP status for both `/api/status` and `/api/logs?page=1&limit=100`.
+- Parallel collector evidence: `npm run -s activity:fetch -- --hours 1` (`tmp/hourly-feedback-2026-03-18-16-30.json`) observed `/api/status=200` while all `*/recent` endpoints remained `404`, source `fallback:local_replay`.
+- Last-hour gameplay signals: unresolved/high-uncertainty (`progress Δ=0`, `win=0`, `defeat=0`, `resource trend=unknown`) because canonical logs were unreachable in-window.
+- Anomaly: read-path split persisted in same cycle (`direct transport fail` vs `collector status=200 + recent=404`), so do **not** infer true inactivity.
+- Development feedback: hold gameplay policy changes; prioritize transport/read-path parity and confidence gating before tuning hunt/economy behavior.
+- Failure mode + retry recommendation: classify as `canonical_transport_fail_with_recent_404`; retry canonical `/api/status` + `/api/logs` with bounded backoff (`30s -> 60s -> 120s`, max 3) and keep KPI confidence `low` until same-run canonical dual-200 is restored.
+- TODO (next 30-min dev cycle): implement `hourly-readpath-parity-heartbeat-v1` to emit `tmp/hourly-readpath-parity-latest.json` `{direct_status_http,direct_logs_http,collector_status_http,recent_ok_count,transport_state,kpi_confidence}` and hard-tag summary as `kpi_confidence=low` when `transport_state!=ok` or `recent_ok_count=0`.
