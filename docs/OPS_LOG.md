@@ -5175,3 +5175,12 @@
 - Development feedback: keep zero-defeat safety posture; focus next on economy-churn controls (purchase gating + surrender trigger tuning) before any aggression change.
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly cycle and keep paged logs as primary evidence source until `>=2` consecutive `200` recoveries.
 - TODO (next 30-min dev cycle): implement `hourly-churn-budget-guard-v2` to emit `tmp/hourly-churn-budget.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_mp_buy_blocked}` and auto-block optional MP buys when `buy_hunt_ratio >= 0.52 && mp_ratio >= 0.95`.
+
+## [2026-03-18 13:29 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); `npm run -s activity:fetch` returned `/api/status=200` and all recent endpoints `404` (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`) with source `fallback:local_replay`.
+- Last-hour gameplay signals (low-confidence fallback): `Δlevel=0`, `Δexp=0`, `Δgold=0`; outcomes `win=0`, `defeat=0`; action-status counts `success=0/failed=0/skipped=0`.
+- Resource/anomaly trend: canonical recent-event data is still unavailable (`failure_streak=4` per recent endpoint family), so this window is **not** treated as true inactivity.
+- Additional failure mode observed: direct canonical read artifact (`tmp/hourly-live-signal-latest.json`) hit transport error (`fetch failed`) while fallback probe still reported `/api/status=200`.
+- Development feedback: keep gameplay/safety policy unchanged this hour; prioritize read-path reliability and confidence labeling before strategy tuning.
+- Failure mode + retry recommendation: classify as `recent_endpoints_404 + canonical_transport_split`; retry canonical probes with bounded backoff (`30s/60s/120s`, max 3) and keep `kpi_confidence=low` until same-run canonical status+logs evidence is restored.
+- TODO (next 30-min dev cycle): implement `hourly-canonical-read-parity-v2` to emit `tmp/hourly-read-parity.json` `{status_http,logs_http,recent_ok_count,transport_state,source,kpi_confidence}` and hard-tag summaries `kpi_confidence=low` when `recent_ok_count=0` or transport fails.

@@ -1596,3 +1596,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta_per_30m`, `defeat_count`.
 - Result (baseline): current hour (`12:30 KST`) from canonical paged logs: `events=669`, `hunt=357`, `buy=197` (`0.55`), `surrender=55` (`0.15`), inferred `defeats=0`, status `EXP=7337`, `gold=439`.
 - Decision: Run in next 30-min dev cycle; keep only if `buy_hunt_ratio <= 0.50` for two consecutive windows while `defeat_count=0`.
+
+- Date: 2026-03-18 13:29 KST
+- Hypothesis: Forcing hourly fallback probes and canonical status/log probes through one shared client path will reduce split-signal cycles (`status=200` vs direct `fetch failed`) and prevent false flat-activity summaries.
+- Change: Implement `hourly-canonical-read-parity-v2` to emit `tmp/hourly-read-parity.json` `{status_http,logs_http,recent_ok_count,transport_state,source,kpi_confidence}` and set `kpi_confidence=low` when `recent_ok_count=0` or any canonical transport failure occurs.
+- Metric(s): split-signal cycle rate, `% hourly cycles with dual canonical 200`, `% low-confidence summaries correctly tagged`.
+- Result: Baseline this cycle showed `/api/status=200` via `activity:fetch`, all recent endpoints `404`, and direct canonical artifact reporting `fetch failed`.
+- Decision: Run in next 30-min cycle; keep only if split-signal rate decreases across 3 consecutive hourly runs.
