@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 15:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-1520.json`) and ordered deltas were non-improving (`tmp/cron-last20-delta-1520.json`: `level +1`, `gold +0`, `inventory +1`, `death/defeat mentions 20`, `rate/429/cooldown mentions 20`), so KEEP was rejected.
+  - Minimal reversible CHANGE committed: `config/strategy.env` set `BUJU_COMBAT_START_429_FALLBACK_THRESHOLD=1` and `BUJU_COMBAT_START_429_FALLBACK_TICKS=12` (README current-default note synced) so repeated `combat_start` 429 windows pivot to safe `hunt` fallback sooner.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-1520.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-1520.json`, scored in `tmp/cron-monster-score-1520.json`) keep safest high-efficiency target as `skeleton` (`score 115`) over `rabbit` (`score 102`); strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-1520.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-1520.json` with `npcs=[]`).
+  - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-1520.txt`) with no intentional stop/restart action.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, and progression `exp>=1580` or `gold>=444` with daemon continuity.
+
 - [2026-03-18 14:30 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
   - Live API evidence: canonical `GET /api/status => 401` (`tmp/hourly-feedback-2026-03-18-14-30.json`); `/api/logs` paging was not attempted after failed auth precondition.

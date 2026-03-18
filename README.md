@@ -98,6 +98,7 @@ npm run dev
   - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=54`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=52`, `BUJU_BACKOFF_BASE_MS=2600`)
   - 구매/회복 정책은 골드 예비금 하한(`BUJU_MIN_GOLD_RESERVE=430`, `BUJU_MUTATION_MIN_GOLD_RESERVE=260`)을 기준으로 유지해 전투 유동성과 mutation 리스크 방어를 함께 보전
   - `combat/start` 429가 연속되면 연속 횟수(최대 +6 tick)를 더한 적응형 쿨다운을 추가 적용해 즉시 재시도 폭주를 억제
+  - 429 재발 구간에서는 강제 hunt 폴백 윈도우를 빠르게 여는 파라미터(`BUJU_COMBAT_START_429_FALLBACK_THRESHOLD=1`, `BUJU_COMBAT_START_429_FALLBACK_TICKS=12`)를 기본값으로 유지해 순수 wait churn을 줄인다
 
 ## Activity KPI Fetcher
 - 실행: `npm run activity:fetch`
