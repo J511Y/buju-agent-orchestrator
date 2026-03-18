@@ -1,5 +1,30 @@
 # Ops Log
 
+- [2026-03-18 18:33 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; secret masked, never printed).
+  - Live API evidence: `GET /api/status => 200` (`tmp/hourly-feedback-metrics-2026-03-18T09-32-46-826Z.json`), while `GET /api/logs/recent?hours=1` and related `*/recent` endpoints remained `404`; canonical paged logs stayed healthy (`GET /api/logs?page=n&limit=100` => `200`, 7 pages scanned for 60m window).
+  - Last-hour gameplay signals (17:31~18:31 KST from paged logs): `events=644`, `kills=352`, `defeats=0`, `surrenders=48`, `buy=192`, `sell=3`, `drop=28`, `rest=12`; combat quality remained stable (`avg_turns≈7.49`, `avg_dmg≈48.1`, `avg_taken≈6.49`, `max_turns=11`).
+  - Progress/resource trend: status moved from earlier validated snapshot `exp=3271,gold=444` at 17:50 KST (`tmp/cron-status-now-1750.json`) to `exp=3761,gold=439` now (≈`+490 EXP`, `-5 gold` over ~42m). Gold in purchase traces stayed bounded (`min=424`, `max=524`, first/last=`434/434`, `delta=0`) but with high spend churn (`buy:hunt≈0.55`).
+  - Anomalies: high surrender pressure (`48/352 ≈ 13.6%`) and persistent `recent` endpoint unavailability (`404`) despite healthy canonical paging; no defeat spike detected this hour.
+  - Next 30m TODO: implement `scripts/hourly-feedback-kpi-v2.js` to emit `surrender_hunt_ratio`, `buy_hunt_ratio`, and a `churn_state` flag (`high` when `buy:hunt>=0.50 || surrender:hunt>=0.14`) for direct tuning input.
+
+- [2026-03-18 18:25 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): read `GET /api/agent/thinking/j211y?limit=20` and recomputed ordered delta by timestamp (`tmp/cron-thinking-now-1825.json` -> `tmp/cron-last20-delta-1825.json`), improving (`level +1`, `gold +10`, `inventory -1`), so CHANGE was not triggered.
+  - Hard constraints preserved: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency policy kept: safest high-efficiency target only, with movement gate `BUJU_MOVE_LEVEL_2=30` to avoid repeated defeats.
+  - Equipment progression kept: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; enhancement remains minimal/safe and prereq-gated (`scroll+npc+resource`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1825.json`, `tmp/thinking-post-response-1825.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=4/20`, progression `exp>=3925` or `gold>=449`, daemon continuous.
+
+- [2026-03-18 17:50 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): canonical `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-1750.json`, `count=0`), so ordered local fallback deltas were recomputed from latest 20 thinking posts (`tmp/cron-last20-delta-1750-local.json`) and remained improving (`level 28->29`, `gold 439->439`, `inventory 8->5`), therefore CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-1750.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-1750.json`, scored in `tmp/cron-monster-score-1750.json`) keep safest high-efficiency target as `skeleton` (`score 115`) over `rabbit` (`score 102`); strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-1750.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-1750.json` with `npcs=[]`).
+  - Live continuity preserved: smoke succeeded (`tmp/cron-smoke-1750.txt`: `ok=1/1`, `lastAction=surrender_dangerous_combat`, `level=29`, `exp=3289`, `gold=429`, `code=200`) and daemon lineage remained active (`tmp/live-runner-procs-1750.txt`) with no intentional stop/restart action.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1750.json`, `tmp/thinking-post-response-1750.json`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, and progression `exp>=3360` or `gold>=434` with daemon continuity.
+
 - [2026-03-18 16:20 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): canonical `GET /api/agent/thinking/j211y?limit=20` returned empty (`tmp/cron-thinking-now-1620.json`, `count=0`), so ordered local fallback deltas were recomputed from latest 20 thinking posts (`tmp/cron-last20-delta-1620-local.json`) and remained improving (`level 28->30`, `gold 429->439`, `inventory 6->8`), therefore CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
@@ -5256,3 +5281,4 @@
 - Development feedback: keep zero-defeat safety posture; continue economy controls first (optional-buy suppression + surrender trigger tuning) before any aggression/area changes.
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_paged_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly cycle and only re-promote recent endpoint after `>=2` consecutive `200` responses.
 - TODO (next 30-min dev cycle): implement `hourly-consumable-budget-cap-v1` to emit `tmp/hourly-consumable-budget.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,gold_floor_guard}` and auto-block optional consumable buys when `buy_hunt_ratio>=0.55 && mp_ratio>=0.95`.
+- [2026-03-18 18:05:58 KST] Watchdog restarted scripts/live-runner-daemon.sh

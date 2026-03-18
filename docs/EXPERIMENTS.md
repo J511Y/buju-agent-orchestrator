@@ -1,5 +1,12 @@
 # Experiments Log
 
+- Date: 2026-03-18 18:33 KST
+- Hypothesis: A churn classifier tied to paged `/api/logs` (`buy:hunt`, `surrender:hunt`) will reduce potion/buy overhead without increasing defeats.
+- Change: Add `hourly-feedback-kpi-v2` artifact with `{events,hunt,buy,surrender,defeats,buy_hunt_ratio,surrender_hunt_ratio,churn_state}`; set `churn_state=high` when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.14`.
+- Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta/hour`, `defeats/hour`.
+- Result: Current baseline is high-churn but safe (`events=644`, `kills=352`, `defeats=0`, `buy=192`, `surrender=48`, `buy:hunt≈0.55`, `surrender:hunt≈0.136`, `gold first/last=434/434`; `tmp/hourly-feedback-metrics-2026-03-18T09-32-46-826Z.json`).
+- Decision: Execute in next 30-min dev cycle; keep only if `buy_hunt_ratio<0.50` for 3 consecutive hourly windows while `defeats=0` holds.
+
 - Date: 2026-03-18 14:30 KST
 - Hypothesis: Forcing a strict auth-parity preflight (`/api/status` + `/api/logs`) before hourly synthesis will eliminate unresolved gameplay summaries during 401 windows.
 - Change: Add `hourly-auth-parity-preflight-v8` output `{status_http,logs_http,auth_state,inference_allowed,retry_after_s}` and block gameplay inference unless `inference_allowed=true`.
