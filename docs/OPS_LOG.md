@@ -1,5 +1,24 @@
 # Ops Log
 
+- [2026-03-18 19:29 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; secret masked, never printed).
+  - Live API evidence: canonical reads failed auth (`GET /api/status => 401`, `GET /api/logs?page=1&limit=100 => 401`; artifact `tmp/hourly-feedback-2026-03-18-10-29.json`).
+  - Last-hour gameplay signals: **unresolved** (progression, wins/defeats, and resource trends blocked by auth failure before trustworthy log collection).
+  - Failure mode + retry recommendation: classify as `canonical_auth_failure`; verify runtime key parity and issuer scope, then retry canonical reads with staged backoff (`10s -> 30s -> 60s`) and only synthesize gameplay feedback after dual-200 (`/api/status` + `/api/logs`).
+  - Next 30m TODO: implement `hourly-auth-parity-preflight-v9` to emit `{status_http,logs_http,auth_state,inference_allowed,retry_plan}` and hard-block inference when `auth_state!=ok`.
+
+- [2026-03-18 18:32 KST] 30-min STRATEGY DIRECTOR run completed (repository-backed adaptive artifact run).
+  - KEEP evidence (mandatory adaptive loop): `npm run strategy:director` recomputed the trailing 20 local thinking posts into `tmp/strategy-director-latest.json`; delta stayed positive on core evidence (`level +1`, `inventory -4`) even though `gold -5`, so adaptive CHANGE was not triggered.
+  - Signal summary from the same artifact: `death/defeat mentions=46`, `rate/429/cooldown mentions=87`; safety posture stays strict because churn wording remains elevated despite progress evidence.
+  - Runtime constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; if slots `>=10`, the runner still liquidates unequipped worse-than-equipped gear first.
+  - Code changes completed this cycle:
+    - `scripts/live-strategy-runner.js`: BiS equip now upgrades only on strictly better score, safe enhancement skips under low-HP/inventory-pressure/fresh-danger conditions, and the runner writes `tmp/live-strategy-runner-latest.json` without clobbering it on 0-action dry-runs.
+    - `scripts/build-strategy-director-artifact.js`: new repository script that computes last-20 deltas, emits `tmp/strategy-director-latest.json`, and refreshes `tmp/thinking-post.json` with delta-based reasoning/KPI.
+  - Validation: `node --check scripts/live-strategy-runner.js`; `node --check scripts/build-strategy-director-artifact.js`; `BUJU_MAX_ACTIONS_PER_CYCLE=0 node scripts/live-strategy-runner.js`; `npm run strategy:director`; `npm run verify:cycle`; `npm run verify:replay`.
+  - Live daemon continuity preserved: `logs/live-runner-daemon.lock` remained present, `logs/live-runner-daemon.log` kept advancing, and the dry-run validation path avoided live API actions.
+  - Commit blocked by sandbox restriction: `git add` / `git commit` failed with `fatal: Unable to create '.git/index.lock': Operation not permitted`; next action is to re-run the commit in an environment that allows `.git` writes.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, and progression `exp>=3871` or `gold>=454` while daemon stays continuous.
+
 - [2026-03-18 18:33 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; secret masked, never printed).
   - Live API evidence: `GET /api/status => 200` (`tmp/hourly-feedback-metrics-2026-03-18T09-32-46-826Z.json`), while `GET /api/logs/recent?hours=1` and related `*/recent` endpoints remained `404`; canonical paged logs stayed healthy (`GET /api/logs?page=n&limit=100` => `200`, 7 pages scanned for 60m window).

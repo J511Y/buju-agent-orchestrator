@@ -1,5 +1,12 @@
 # Experiments Log
 
+- Date: 2026-03-18 19:29 KST
+- Hypothesis: A strict auth-parity gate that requires dual-200 on canonical reads (`/api/status` + `/api/logs`) will prevent zero-evidence hourly gameplay synthesis during token/scope drift.
+- Change: Add `hourly-auth-parity-preflight-v9` output `{status_http,logs_http,auth_state,inference_allowed,retry_plan}` and short-circuit summary generation unless `inference_allowed=true`.
+- Metric(s): `auth_failure_cycles/day`, `% blocked cycles with explicit auth_state`, `false gameplay-policy summaries during 401 windows`.
+- Result: Current cycle produced canonical `401/401` (`tmp/hourly-feedback-2026-03-18-10-29.json`), so last-hour progression/outcome/resource inference remained blocked.
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive auth-failure cycles are correctly classified with zero gameplay-policy synthesis.
+
 - Date: 2026-03-18 18:33 KST
 - Hypothesis: A churn classifier tied to paged `/api/logs` (`buy:hunt`, `surrender:hunt`) will reduce potion/buy overhead without increasing defeats.
 - Change: Add `hourly-feedback-kpi-v2` artifact with `{events,hunt,buy,surrender,defeats,buy_hunt_ratio,surrender_hunt_ratio,churn_state}`; set `churn_state=high` when `buy_hunt_ratio>=0.50 || surrender_hunt_ratio>=0.14`.
