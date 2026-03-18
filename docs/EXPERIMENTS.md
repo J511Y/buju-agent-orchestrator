@@ -1624,3 +1624,10 @@ Track A/B and policy experiments.
 - Metric(s): `split_readpath_cycles/day`, `% cycles with deterministic failure class`, `time-to-first high-confidence cycle after outage`.
 - Result: Current cycle reproduced split (`direct probe: fetch failed`, collector `/api/status=200`, all `recent=404`; refs: `tmp/hourly-live-signal-latest.json`, `tmp/hourly-feedback-2026-03-18-16-30.json`).
 - Decision: Execute in next 30-min dev cycle; keep if 4 consecutive split cycles are classified without false gameplay-policy inference.
+
+- Date: 2026-03-18 17:30 KST
+- Hypothesis: A stricter optional-consumable budget cap at high `buy/hunt` will reduce gold-drain churn while preserving zero-defeat stability.
+- Change: Run `hourly-consumable-budget-cap-v1` next 30-min cycle; block optional buys when `buy_hunt_ratio>=0.55 && mp_ratio>=0.95`, and emit `tmp/hourly-consumable-budget.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,gold_floor_guard}`.
+- Metric(s): `buy_hunt_ratio`, `gold_delta_h`, `surrender_hunt_ratio`, `defeat_count`.
+- Result (baseline): current hour showed healthy canonical evidence (`status=200`, paged logs `1..8=200`) with persistent churn (`events=651`, `hunt=351`, `buy=195` => `0.56`, `surrender=39` => `0.11`, `defeat=0`, status `gold=439`).
+- Decision: Execute in next 30-min dev cycle; keep only if `buy_hunt_ratio<=0.52` and `gold_delta_h` improves for 2 consecutive windows while `defeat_count=0`.

@@ -5247,3 +5247,12 @@
 - Development feedback: hold gameplay policy changes; prioritize transport/read-path parity and confidence gating before tuning hunt/economy behavior.
 - Failure mode + retry recommendation: classify as `canonical_transport_fail_with_recent_404`; retry canonical `/api/status` + `/api/logs` with bounded backoff (`30s -> 60s -> 120s`, max 3) and keep KPI confidence `low` until same-run canonical dual-200 is restored.
 - TODO (next 30-min dev cycle): implement `hourly-readpath-parity-heartbeat-v1` to emit `tmp/hourly-readpath-parity-latest.json` `{direct_status_http,direct_logs_http,collector_status_http,recent_ok_count,transport_state,kpi_confidence}` and hard-tag summary as `kpi_confidence=low` when `transport_state!=ok` or `recent_ok_count=0`.
+
+## [2026-03-18 17:30 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); live probes returned `GET /api/status=200`, `GET /api/logs/recent?hours=1=404`, and paged `GET /api/logs?page=1..8&limit=100=200` (artifact: `tmp/hourly-feedback-2026-03-18-08-30.json`).
+- Last-hour gameplay signals (651 sampled events): `hunt=351`, `buy=195`, `surrender=39`, `rest=13`, `use_item=8`, `drop=40`, `sell=5`; inferred outcomes `win=351`, `defeat=0`.
+- Progression/resources snapshot (cycle close): `Lv29`, `EXP=3033`, `gold=439`, `HP=393/520`, `MP=274/274`.
+- Resource/anomaly trend: economy churn remains high (`buy/hunt=0.56`) while surrender pressure eased vs prior high bands (`surrender/hunt=0.11`); recent endpoint family still degraded (`404`) despite healthy paged logs.
+- Development feedback: keep zero-defeat safety posture; continue economy controls first (optional-buy suppression + surrender trigger tuning) before any aggression/area changes.
+- Failure mode + retry recommendation: classify as `recent_endpoint_404_with_paged_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly cycle and only re-promote recent endpoint after `>=2` consecutive `200` responses.
+- TODO (next 30-min dev cycle): implement `hourly-consumable-budget-cap-v1` to emit `tmp/hourly-consumable-budget.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,gold_floor_guard}` and auto-block optional consumable buys when `buy_hunt_ratio>=0.55 && mp_ratio>=0.95`.
