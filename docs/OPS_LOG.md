@@ -1,5 +1,12 @@
 # Ops Log
 
+- [2026-03-18 14:30 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
+  - Live API evidence: canonical `GET /api/status => 401` (`tmp/hourly-feedback-2026-03-18-14-30.json`); `/api/logs` paging was not attempted after failed auth precondition.
+  - Last-hour gameplay signals: **unresolved** (progression, wins/defeats, resource trends unavailable under auth failure).
+  - Failure mode + retry recommendation: classify as `canonical_auth_failure`; refresh/validate runtime key source parity, then retry canonical reads with staged backoff (`10s/30s/60s`) and only infer gameplay policy after dual-200 (`/api/status` + `/api/logs`).
+  - Next 30m TODO: add `hourly-auth-parity-preflight-v8` guard in the feedback path to emit `{status_http, logs_http, auth_state, inference_allowed}` and hard-block synthesis when `auth_state!=ok`.
+
 - [2026-03-18 14:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-1418.json`) and ordered deltas were non-improving on churn pressure (`tmp/cron-last20-delta-1418.json`: `level +1`, `gold +0`, `inventory +2`, `death/defeat mentions 27`, `rate/429/cooldown mentions 29`), so KEEP was rejected.
   - Minimal reversible CHANGE committed: `scripts/live-strategy-runner.js` adds a forced hunt fallback window after repeated `combat_start` 429 streaks (`BUJU_COMBAT_START_429_FALLBACK_THRESHOLD=2`, `BUJU_COMBAT_START_429_FALLBACK_TICKS=10`) to reduce wait/cooldown churn while keeping safe target scoring and movement gates unchanged.

@@ -1,5 +1,12 @@
 # Experiments Log
 
+- Date: 2026-03-18 14:30 KST
+- Hypothesis: Forcing a strict auth-parity preflight (`/api/status` + `/api/logs`) before hourly synthesis will eliminate unresolved gameplay summaries during 401 windows.
+- Change: Add `hourly-auth-parity-preflight-v8` output `{status_http,logs_http,auth_state,inference_allowed,retry_after_s}` and block gameplay inference unless `inference_allowed=true`.
+- Metric(s): `auth_failure_cycles/day`, `% blocked cycles with explicit auth_state`, `false gameplay-policy outputs during auth failures`.
+- Result: Current cycle returned canonical `GET /api/status=401` (`tmp/hourly-feedback-2026-03-18-14-30.json`), so last-hour progression/outcomes/resources remained unresolved.
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive auth-failure cycles are classified with zero gameplay-policy synthesis.
+
 - Date: 2026-03-18 10:29 KST
 - Hypothesis: A canonical dual-read gate (`/api/status` + `/api/logs`) with DNS classification will eliminate split-signal hourly summaries when collector fallback reports `status=200` but canonical read-path is down.
 - Change: Add `hourly-canonical-preflight-v1` that emits `{dns_state,status_http,logs_http,inference_allowed,retry_after_s}` and blocks gameplay-signal synthesis unless both canonical endpoints return `200`.
