@@ -1,5 +1,12 @@
 # Ops Log
 
+- [2026-03-18 10:29 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
+  - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
+  - Live API evidence: canonical probes failed at transport (`GET /api/status`, `GET /api/logs?page=1&limit=100` => `fetch failed`, `getaddrinfo ENOTFOUND www.buju.quest` in scripted probe), while collector fallback still showed split signal (`npm run -s activity:fetch`: `/api/status=200`, all `*/recent` endpoints `404`, source=`fallback:local_replay`).
+  - Last-hour gameplay signals: **unresolved** (progression/wins-defeats/resource trend unavailable from canonical logs during this cycle).
+  - Failure mode + retry recommendation: classify as `canonical_transport_failure` with `split_signal`; retry with staged backoff `10s/30s/60s` and require canonical dual-200 (`/api/status` + `/api/logs`) before inferring gameplay policy (`tmp/hourly-feedback-2026-03-18-10-29.json`).
+  - Next 30m TODO: add `scripts/hourly-canonical-preflight.js` to emit `{dns_state, status_http, logs_http, inference_allowed}` and hard-block hourly synthesis unless `inference_allowed=true`.
+
 - [2026-03-18 10:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-1018.json`), and ordered delta was mixed/non-improving for KEEP (`tmp/cron-last20-delta-1018.json`: `level +1`, `gold -5`, `inventory -1`, `death/defeat mentions 29`, `rate/429/cooldown mentions 30`; `exp` unavailable in thinking context).
   - Minimal reversible CHANGE applied: tightened danger clamp logic in `scripts/live-strategy-runner.js` (under repeated danger pressure, surrender thresholds become stricter and safety retreat triggers earlier at surrender-pressure `>=2`) to suppress repeated dangerous engagements without widening movement risk.
@@ -5123,3 +5130,4 @@
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly run and switch back only after `>=2` consecutive `200` responses.
 - TODO (next 30-min dev cycle): add `recent-endpoint-recovery-switch-v1` to emit `tmp/hourly-endpoint-source.json` `{recent_http,logs_http,events_last_hour,inference_source,kpi_confidence}` and auto-select `paged_logs` when `recent_http!=200`.
 2026-03-18 10:07:25 KST | watchdog restarted scripts/live-runner-daemon.sh
+2026-03-18 10:27:22 KST | watchdog restarted live-runner-daemon.sh

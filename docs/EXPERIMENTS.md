@@ -1,5 +1,12 @@
 # Experiments Log
 
+- Date: 2026-03-18 10:29 KST
+- Hypothesis: A canonical dual-read gate (`/api/status` + `/api/logs`) with DNS classification will eliminate split-signal hourly summaries when collector fallback reports `status=200` but canonical read-path is down.
+- Change: Add `hourly-canonical-preflight-v1` that emits `{dns_state,status_http,logs_http,inference_allowed,retry_after_s}` and blocks gameplay-signal synthesis unless both canonical endpoints return `200`.
+- Metric(s): `split_signal_cycles/day`, `% blocked cycles with explicit dns_state`, `false gameplay-policy outputs during canonical transport failures`.
+- Result: Current cycle reproduced split-signal (`canonical ENOTFOUND` vs collector `/api/status=200` + `recent=404`; `tmp/hourly-feedback-2026-03-18-10-29.json`).
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive failure cycles are correctly blocked with zero gameplay-policy inference.
+
 - Date: 2026-03-18 08:30 KST
 - Hypothesis: Introducing an MP-efficiency classifier (`mp_potion_buys_per_100_hunts`) alongside existing churn ratios will cut potion spend pressure without harming no-defeat safety.
 - Change: Add `hourly-mp-efficiency-kpi-v1` from paged `/api/logs` last-60m window and emit `{mp_potion_buys_per_100_hunts,buy_hunt_ratio,surrender_hunt_ratio,defeats,efficiency_state}` with `efficiency_state=degraded` when `mp_potion_buys_per_100_hunts>=50 || surrender_hunt_ratio>=0.14`.

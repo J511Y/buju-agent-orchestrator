@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-03-18T01:29:00Z",
+  "cycle": "buju-hourly-activity-feedback",
+  "api_key_source": ".env",
+  "api_key_loaded": true,
+  "api_key_masked": true,
+  "canonical_probe": {
+    "status_endpoint": "/api/status",
+    "logs_endpoint": "/api/logs?page=1&limit=100",
+    "status": "failed",
+    "error_class": "transport_dns_enotfound",
+    "error": "fetch failed (getaddrinfo ENOTFOUND www.buju.quest)"
+  },
+  "collector_probe": {
+    "command": "npm run -s activity:fetch",
+    "source": "fallback:local_replay",
+    "endpoint_statuses": [
+      {"endpoint": "/api/activity/recent?hours=1", "ok": false, "http_status": 404},
+      {"endpoint": "/api/activity/recent?window=1h", "ok": false, "http_status": 404},
+      {"endpoint": "/api/logs/recent?hours=1", "ok": false, "http_status": 404},
+      {"endpoint": "/api/logs/recent?window=1h", "ok": false, "http_status": 404},
+      {"endpoint": "/api/battle/logs/recent?hours=1", "ok": false, "http_status": 404},
+      {"endpoint": "/api/battle/logs/recent?window=1h", "ok": false, "http_status": 404},
+      {"endpoint": "/api/status", "ok": true, "http_status": 200}
+    ],
+    "summary": {
+      "progress_delta": {"level": 0, "exp": 0, "gold": 0},
+      "known_outcomes": {"win": 0, "defeat": 0, "unknown": 0},
+      "action_status_counts": {"success": 0, "failed": 0, "skipped": 0}
+    }
+  },
+  "analysis": {
+    "last_hour_progression": "unresolved",
+    "wins_defeats": "unresolved",
+    "resource_trend": "unresolved",
+    "anomalies": ["canonical_transport_failure", "recent_endpoints_404", "split_signal_status200_vs_canonical_fail"]
+  },
+  "retry_recommendation": {
+    "strategy": "staged_backoff",
+    "attempts": [10, 30, 60],
+    "next_checks": ["dns_resolution", "tls_reachability", "canonical /api/status and /api/logs"]
+  }
+}
