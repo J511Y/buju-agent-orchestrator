@@ -1582,3 +1582,10 @@ Track A/B and policy experiments.
 - Metric(s): `% low-confidence hourly summaries`, `% cycles with non-empty evidence window`, `defeat_count`.
 - Result: Baseline this cycle showed `/api/logs/recent?hours=1=404` while paged `/api/logs?page=1..6&limit=100=200` produced 600 in-window events (`hunt=327`, `buy=179`, `surrender=51`, `defeat=0`).
 - Decision: Run in next 30-min dev cycle; keep only if low-confidence summaries decrease for 3 consecutive hourly runs with `defeat_count=0`.
+
+- Date: 2026-03-18 11:31 KST
+- Hypothesis: A deterministic paged-log outcome normalizer will reduce `unknown` outcome counts in hourly summaries without increasing false defeat reports.
+- Change: Implement `hourly-outcome-normalizer-v1` to parse canonical `/api/logs?page=*&limit=100` combat/result fields and emit `tmp/hourly-outcome-confidence.json` `{wins,defeats,unknown,parse_coverage}`.
+- Metric(s): `unknown_outcome_ratio`, `defeat_false_positive_count`, `% hourly windows with parse_coverage>=0.95`.
+- Result: Baseline this cycle had strong canonical evidence (`/api/status=200`, paged logs pages `1..5=200`, `events=655`) but outcomes remained unresolved in parser output (`unknown=355`, explicit win/defeat fields absent in current mapping).
+- Decision: Run in next 30-min cycle; keep only if `unknown_outcome_ratio` decreases for 2 consecutive windows while `defeat_false_positive_count=0`.

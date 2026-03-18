@@ -5149,3 +5149,12 @@
 - TODO (next 30-min dev cycle): add `recent-endpoint-recovery-switch-v1` to emit `tmp/hourly-endpoint-source.json` `{recent_http,logs_http,events_last_hour,inference_source,kpi_confidence}` and auto-select `paged_logs` when `recent_http!=200`.
 2026-03-18 10:07:25 KST | watchdog restarted scripts/live-runner-daemon.sh
 2026-03-18 10:27:22 KST | watchdog restarted live-runner-daemon.sh
+
+## [2026-03-18 11:31 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); live probes returned `GET /api/status=200`, `GET /api/logs/recent?hours=1=404`, and paged `GET /api/logs?page=1..5&limit=100=200`.
+- Last-hour gameplay signals (canonical paged logs, 655 events): `hunt=355`, `buy=194`, `surrender=50`, `rest=12`, `use_item=9`, `drop=31`, `sell=4`.
+- Progression/resources snapshot: `Lv28`, `EXP=6637`, `gold=439`, `HP=315/505`, `MP=266/266`.
+- Outcomes: direct win/defeat fields were not explicit in sampled log schema; inferred safety remains stable (`defeat signal=0`, confidence high from non-empty canonical window).
+- Resource/anomaly trend: high economy churn persists (`buy/hunt=0.55`, `surrender/event=7.6%`) while `/api/logs/recent` remains `404`.
+- Development feedback: keep zero-defeat safety posture; prioritize reducing buy/surrender churn before any aggression change.
+- TODO (next 30-min dev cycle): add `hourly-outcome-normalizer-v1` to map paged-log combat result fields into deterministic `{win,defeat,unknown}` and emit `tmp/hourly-outcome-confidence.json`.
