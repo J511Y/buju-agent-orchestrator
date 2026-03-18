@@ -5210,3 +5210,12 @@
 - Development feedback: keep gameplay/safety policy unchanged this hour; prioritize read-path reliability and confidence labeling before strategy tuning.
 - Failure mode + retry recommendation: classify as `recent_endpoints_404 + canonical_transport_split`; retry canonical probes with bounded backoff (`30s/60s/120s`, max 3) and keep `kpi_confidence=low` until same-run canonical status+logs evidence is restored.
 - TODO (next 30-min dev cycle): implement `hourly-canonical-read-parity-v2` to emit `tmp/hourly-read-parity.json` `{status_http,logs_http,recent_ok_count,transport_state,source,kpi_confidence}` and hard-tag summaries `kpi_confidence=low` when `recent_ok_count=0` or transport fails.
+
+## [2026-03-18 15:31 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed); live probes `GET /api/status=200`, `GET /api/logs?page=1..7&limit=100=200`, while `activity:fetch` recent-family endpoints remained `404` (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*`).
+- Last-hour gameplay signals (canonical paged logs, 661 events): `hunt=355`, `buy=197`, `surrender=51`, `rest=13`, `use_item=8`, `drop=33`, `sell=4`; inferred outcomes `win=355`, `defeat=0`.
+- Progression/resources snapshot (cycle close): `Lv29`, `EXP=1619/8410`, `gold=434`, `HP=340/520`, `MP=274/274`.
+- Resource/anomaly trend: economy pressure still high (`buy/hunt=0.55`, `surrender/hunt=0.14`); parsed gold flow remains net negative (`Σgold_delta≈-3560G/h`) despite zero defeats.
+- Development feedback: keep zero-defeat safety posture; prioritize economy-churn reduction (optional MP buy suppression + surrender trigger tuning) before any aggression/area expansion.
+- Failure mode + retry recommendation: classify endpoint health as `recent_family_404_with_paged_logs_healthy`; continue hourly retry of recent endpoints and require `>=2` consecutive `200` before re-promoting recent endpoints as primary evidence.
+- TODO (next 30-min dev cycle): implement `hourly-economy-churn-guard-v3` to emit `tmp/hourly-economy-churn.json` `{buy_hunt_ratio,surrender_hunt_ratio,gold_delta_h,optional_buy_blocked}` and auto-block optional MP buys when `buy_hunt_ratio>=0.53 && mp_ratio>=0.95`.

@@ -1610,3 +1610,10 @@ Track A/B and policy experiments.
 - Metric(s): split-signal cycle rate, `% hourly cycles with dual canonical 200`, `% low-confidence summaries correctly tagged`.
 - Result: Baseline this cycle showed `/api/status=200` via `activity:fetch`, all recent endpoints `404`, and direct canonical artifact reporting `fetch failed`.
 - Decision: Run in next 30-min cycle; keep only if split-signal rate decreases across 3 consecutive hourly runs.
+
+- Date: 2026-03-18 15:31 KST
+- Hypothesis: Tightening optional-buy gating with an hourly gold-flow guard will reduce `buy/hunt` churn and negative gold drift without increasing defeats.
+- Change: Run `hourly-economy-churn-guard-v3` for next 30-min cycle; emit `tmp/hourly-economy-churn.json` `{buy_hunt_ratio,surrender_hunt_ratio,gold_delta_h,optional_buy_blocked}` and block optional MP buys when `buy_hunt_ratio>=0.53 && mp_ratio>=0.95`.
+- Metric(s): `buy_hunt_ratio`, `surrender_hunt_ratio`, `gold_delta_h`, `defeat_count`.
+- Result (baseline): this hour (`14:31~15:31 KST`) showed `events=661`, `hunt=355`, `buy=197` (`0.55`), `surrender=51` (`0.14`), `gold_delta_h≈-3560`, `defeats=0`, status `gold=434`.
+- Decision: Execute in next 30-min dev cycle; keep only if `buy_hunt_ratio<=0.50` and `gold_delta_h` improves for 2 consecutive windows while `defeat_count=0`.
