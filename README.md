@@ -75,7 +75,7 @@ npm run dev
   - 방어구 미착용 상태에서 현재 지역이 `BUJU_AREA_LV1`이 아니면 `move_no_armor_retreat`로 `BUJU_AREA_LV1` 강제 복귀(장비 복구 전 이동 리스크 차단)
   - 현재 전투 몬스터 위험도(레벨/공격력/체력) 초과 시 `POST /combat/surrender`로 즉시 이탈해 연속 사망을 방지
   - 전투 중 저체력 항복 임계는 고정값이 아닌 `max(0.4, BUJU_LOW_HP_RATIO + 0.05)` 적응형 게이트로 유지해 과도한 항복/재진입 반복을 줄임
-  - 최근 8틱 기준 패배 또는 위험 항복 누적이 3회 이상이면 `BUJU_AREA_LV1`로 안전 후퇴(`move_safety_retreat`) 후 정상 지역 진행으로 복귀
+  - 최근 8틱 기준 패배 3회 이상 또는 위험 항복 누적 2회 이상이면 `BUJU_AREA_LV1`로 안전 후퇴(`move_safety_retreat`) 후 정상 지역 진행으로 복귀
   - `level < BUJU_MOVE_LEVEL_2` 구간에서 현재 지역이 `BUJU_AREA_LV1`이 아니면 임계 기반 지역 폴백(`move_threshold_fallback`)으로 저레벨 과위험 이동을 차단
   - 저체력 운영은 rest-first 경제 모드(임계 이하에서 즉시 `rest`), 극저체력 구간에서만 potion 보조 사용 (`rest` 400은 soft-fail로 처리해 루프 정체 방지, 현재 기본값: `BUJU_POTION_USE_MAX_QUANTITY=3`)
   - 루틴 포션 바닥 보충(`hp_potion_s`, `mp_potion_s`)은 `BUJU_MIN_GOLD_RESERVE`를 침범하지 않는 범위에서만 수행
@@ -93,7 +93,7 @@ npm run dev
   - `BUJU_MAX_ACTIONS_PER_CYCLE`는 rate-limit 구간에서 사이클당 burst를 줄이기 위한 1차 쿼터 제어값으로 운영 (현재 기본값: `1`)
   - `BUJU_BUY_COOLDOWN_TICKS`는 소모품 자동 보충 빈도를 제한해 저효율 반복 구매를 줄이는 쿨다운 가드로 운영 (현재 기본값: `12`)
   - 지역 이동 임계(`BUJU_MOVE_LEVEL_*`/`BUJU_AREA_LV*`)와 안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)은 연속 패배/과위험 전투를 줄이기 위한 보수적 기본값으로 유지(현재 기본값 예: `BUJU_MOVE_LEVEL_2=30`)
-  - 몬스터 선택 안전 필터는 레벨 격차 + 공격력 가드 + hard danger cap(압박/무장 상태 반영) 3중 게이트를 함께 사용하며, 안전 필터가 비면 최저 위험 몬스터 우선으로 폴백
+  - 몬스터 선택 안전 필터는 레벨 격차 + 공격력 가드 + hard danger cap(압박/무장 상태 반영) 3중 게이트를 함께 사용하며, 최근 8틱 기준 위험 압박(패배 1회 이상 또는 위험 항복 2회 이상)에서는 danger cap을 강화(레벨 격차 +1, 공격력 배수 1.45)하고, 안전 필터가 비면 최저 위험 몬스터 우선으로 폴백
   - 위험 전투 압박(최근 패배 1회 이상 또는 최근 4틱 위험 항복 2회 이상) 구간에서는 효율 점수보다 안전성을 우선해 단일 최저 위험 몬스터로 타깃을 수축
   - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=54`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=52`, `BUJU_BACKOFF_BASE_MS=2600`)
   - 구매/회복 정책은 골드 예비금 하한(`BUJU_MIN_GOLD_RESERVE=430`, `BUJU_MUTATION_MIN_GOLD_RESERVE=260`)을 기준으로 유지해 전투 유동성과 mutation 리스크 방어를 함께 보전
