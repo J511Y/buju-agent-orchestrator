@@ -635,8 +635,13 @@ async function step() {
       if (curMon) {
         const mLevel = Number(curMon.level || c.level || 1);
         const mAtk = Number(curMon.atk || 0);
-        const tooHighLevel = mLevel > (Number(c.level || 1) + 2);
-        const tooHighDamage = mAtk > Number(c.def || 1) * 1.6;
+        const defeatPressure = recentDefeatCount(8);
+        const surrenderPressure = recentDangerSurrenderCount(8);
+        const riskClampActive = surrenderPressure >= 2 || defeatPressure >= 1;
+        const levelGapCap = riskClampActive ? 1 : 2;
+        const damageFactorCap = riskClampActive ? 1.45 : 1.6;
+        const tooHighLevel = mLevel > (Number(c.level || 1) + levelGapCap);
+        const tooHighDamage = mAtk > Number(c.def || 1) * damageFactorCap;
         const combatSurrenderHpRatio = Math.max(0.4, CFG.lowHpRatio + 0.05);
         if (hpRatio < combatSurrenderHpRatio || tooHighLevel || tooHighDamage) {
           const sr = await req('/combat/surrender', { method: 'POST', body: '{}' });
@@ -734,7 +739,7 @@ async function step() {
   const targetArea = pickArea(c.level || 1);
   const defeatPressure = recentDefeatCount(8);
   const surrenderPressure = recentDangerSurrenderCount(8);
-  const safetyRetreatArea = (defeatPressure >= 3 || surrenderPressure >= 3) ? CFG.area1 : null;
+  const safetyRetreatArea = (defeatPressure >= 3 || surrenderPressure >= 2) ? CFG.area1 : null;
   // No-armor safety gate: even if level threshold is met, keep/return to area1 until armor is secured.
   const noArmorAreaOverride = (!hasArmor && c.current_area !== CFG.area1) ? CFG.area1 : null;
   // Strict level-threshold movement gate: below moveLv2, stay/return to area1.
