@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-18 09:18 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): `GET /api/agent/thinking/j211y?limit=20` returned ordered `count=20` (`tmp/cron-thinking-now-0918.json`), and ordered delta stayed non-improving for KEEP (`tmp/cron-last20-delta-0918.json`: `level +1`, `gold +0`, `inventory +0`, `death/defeat mentions 31`, `rate/429/cooldown mentions 62`; `exp` unavailable in thinking context).
+  - Minimal reversible tuning applied: `config/strategy.env` set `BUJU_BACKOFF_BASE_MS 2200->2300` (README current-default note synced) to reduce immediate 429/retry re-entry while preserving strict safety/movement/equipment invariants.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence: `GET /api/status => 200` (`tmp/cron-status-now-0918.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-0918.json`) keep safest high-efficiency target as `skeleton`; strict movement threshold gate remains (`BUJU_MOVE_LEVEL_2=30`).
+  - Equipment progression revalidated: BiS auto-equip (`equipSlot + score(maxDamage+defBonus)`) remains active (`tmp/cron-inventory-now-0918.json`); staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-0918.json` with `npcs=[]`).
+  - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-0918.txt`) with no stop/restart action.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `surrender_dangerous_combat<=1/20`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=5/20 mentions`, and progression `exp>=5140` or `gold>=444` with daemon continuity.
+
 - [2026-03-18 08:30 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; masked, raw secret never printed).
   - Live API evidence: `GET /api/status => 200`; paged `GET /api/logs?page=n&limit=100` succeeded through page `7` before crossing the 60m window (`tmp/hourly-feedback-2026-03-17-23-30.json`).
