@@ -57,7 +57,9 @@ const CFG = {
   enhanceMidLevel: Number(process.env.BUJU_ENHANCE_MID_LEVEL || 10),
   enhanceGoldReserve: Number(process.env.BUJU_ENHANCE_GOLD_RESERVE || 600),
   enhanceCooldownTicks: Number(process.env.BUJU_ENHANCE_COOLDOWN_TICKS || 12),
-  combatStrategyRefreshTicks: Number(process.env.BUJU_COMBAT_STRATEGY_REFRESH_TICKS || 12)
+  combatStrategyRefreshTicks: Number(process.env.BUJU_COMBAT_STRATEGY_REFRESH_TICKS || 12),
+  combatStart429FallbackThreshold: Number(process.env.BUJU_COMBAT_START_429_FALLBACK_THRESHOLD || 2),
+  combatStart429FallbackTicks: Number(process.env.BUJU_COMBAT_START_429_FALLBACK_TICKS || 10)
 };
 
 const stallState = new Map();
@@ -364,6 +366,7 @@ const recentDangerSurrenders = [];
 let lastCombatStrategySignature = '';
 let lastCombatStrategyTick = 0;
 let combatStart429Streak = 0;
+let forceHuntUntilTick = 0;
 
 function pushCombatOutcome(outcome) {
   if (!outcome) return;
@@ -780,6 +783,23 @@ async function step() {
   const monsterId = chooseMonster(monsters, c, equipped);
 
   if (CFG.useCombatStart) {
+    if (tickCounter <= forceHuntUntilTick) {
+      const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
+      recordActionResult('hunt', huntFallback.status);
+      pushCombatOutcome(huntFallback.json?.result?.outcome || huntFallback.json?.result || null);
+      return {
+        ok: huntFallback.status === 200,
+        action: huntFallback.status === 200 ? 'hunt_on_forced_429_fallback' : 'wait_forced_429_fallback',
+        monster_id: monsterId,
+        skill_id: skillId,
+        result: huntFallback.json?.result,
+        level: c.level,
+        exp: c.exp,
+        gold: c.gold,
+        code: huntFallback.status
+      };
+    }
+
     if (shouldSkipAction('combat_start')) {
       // Adaptive fallback: if combat_start is cooling down (typically after repeated 429/400),
       // use direct hunt once to keep progression signal instead of pure waiting.
@@ -837,6 +857,10 @@ async function step() {
       const prev = stallState.get('combat_start') || { fails400: 0, untilTick: 0 };
       stallState.set('combat_start', { fails400: prev.fails400 || 0, untilTick: Math.max(prev.untilTick || 0, tickCounter + adaptiveCooldownTicks) });
 
+      if (combatStart429Streak >= CFG.combatStart429FallbackThreshold) {
+        forceHuntUntilTick = Math.max(forceHuntUntilTick, tickCounter + CFG.combatStart429FallbackTicks);
+      }
+
       // Adaptive throughput fallback: if combat_start is rate-limited, try one direct hunt to preserve progression signal.
       // Keep safety invariant by reusing the already selected safest monster + skill for this tick.
       const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
@@ -866,7 +890,10 @@ async function step() {
       return { ok: huntFallback.status === 200, action: 'hunt_fallback', monster_id: monsterId, skill_id: skillId, result: huntFallback.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: huntFallback.status };
     }
 
-    if (combat.status !== 429) combatStart429Streak = 0;
+    if (combat.status !== 429) {
+      combatStart429Streak = 0;
+      if (combat.status === 200) forceHuntUntilTick = 0;
+    }
 
     const rewards = combat.json?.rewards || {};
     pushCombatOutcome(combat.json?.result?.outcome || combat.json?.result || null);
