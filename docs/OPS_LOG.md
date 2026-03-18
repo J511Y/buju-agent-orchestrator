@@ -5301,3 +5301,23 @@
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_paged_logs_healthy`; retry `/api/logs/recent?hours=1` each hourly cycle and only re-promote recent endpoint after `>=2` consecutive `200` responses.
 - TODO (next 30-min dev cycle): implement `hourly-consumable-budget-cap-v1` to emit `tmp/hourly-consumable-budget.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,gold_floor_guard}` and auto-block optional consumable buys when `buy_hunt_ratio>=0.55 && mp_ratio>=0.95`.
 - [2026-03-18 18:05:58 KST] Watchdog restarted scripts/live-runner-daemon.sh
+
+## [2026-03-18 20:21 KST] 30m STRATEGY DIRECTOR run (adaptive mode)
+- Pulled canonical last-20 thinking (`GET /api/agent/thinking/j211y?limit=20`, artifact: `tmp/cron-probe-2021-agent_thinking_j211y_limit_20.json`) and computed deltas over the window `08:51 -> 19:51`: `Δlevel=+1`, `Δgold=+5`, `Δinventory=+1`, `Δexp=n/a` (field absent in payload); text-signal pressure remained high (`death/defeat mentions=47`, `rate/429/cooldown mentions=84`).
+- Adaptive verdict: **KEEP** (improvement evidence present, so no param/logic mutation this cycle).
+- Safety/efficiency check: probed available monsters in current field (`tmp/cron-probe-2021-areas_talking_island_field_monsters.json`), candidates `rabbit/skeleton`; retained safest high-efficiency target = `skeleton` with strict move-level gate (`BUJU_MOVE_LEVEL_2=30`) to avoid defeat loops.
+- Hard inventory constraints re-validated in policy/runtime: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`, with explicit precedence `slots>=10 => sell unequipped worse-than-equipped first`.
+- Equipment progression policy remains staged in `docs/DECISIONS.md` and unchanged this cycle: early safe-gold, mid weapon-first enhancement on prerequisites, late armor/accessory expansion under failure-risk controls.
+- Enhancement action path status: minimal safe path remains `/npc/list -> /npc/{npc_id}/enhance` and is prerequisite-gated.
+- Buju thinking post: built payload `tmp/thinking-post-2021-manual.json` with concrete deltas + next KPI, but direct POST from this shell returned `UNAUTHORIZED` (missing API key in cron shell env); no secret exposure occurred.
+- Next 30m KPI target carried forward: `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, progression `exp>=4809` or `gold>=449`, daemon continuity maintained.
+2026-03-18 20:23:10 KST | Restarted live-runner-daemon.sh via cron watchdog
+
+## [2026-03-18 20:31 KST] Hourly gameplay-feedback cycle
+- Evidence (masked): loaded `BUJU_API_KEY` from `.env` in-process (secret never printed). Live probes: `GET /api/status=200`, `GET /api/logs?page=1&limit=100=200`; recent-family endpoints remained unavailable (`/api/logs/recent*`, `/api/activity/recent*`, `/api/battle/logs/recent*` all `404`). Artifact: `tmp/hourly-feedback-2026-03-18T11-31-19-526Z.json`.
+- Last-hour gameplay signals (100 newest log events): `hunt=53`, `buy=29`, `surrender=10`, `rest=5`, `drop=2`, `sell=1`; inferred outcomes: `wins≈53` (hunt successes proxy), `defeats=0` (no defeat marker observed).
+- Progression/resources snapshot (cycle close): `Lv29`, `EXP=5169/8410`, `gold=469`, `HP=438/520`, `MP=274/274`.
+- Resource/anomaly trend: buy pressure still high (`buy/hunt=0.55`) and surrender pressure elevated (`surrender/hunt=0.19`), despite zero detected defeats.
+- Development feedback: keep zero-defeat safety envelope; prioritize economy/combat churn controls (optional buy suppression + surrender gate tuning) before any risk-up movement/engagement changes.
+- Failure mode + retry recommendation: classify as `recent_endpoint_404_with_paged_logs_healthy`; keep hourly retries on recent endpoints and continue paged-log fallback until `recent` endpoint returns `200` for `>=2` consecutive cycles.
+- TODO (next 30-min dev cycle): implement `hourly-surrender-churn-guard-v1` to emit `tmp/hourly-surrender-churn.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,surrender_guard_applied}` and auto-tighten surrender trigger when `surrender_hunt_ratio>=0.15` while preserving `defeat_count=0`.

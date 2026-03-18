@@ -1645,3 +1645,10 @@ Track A/B and policy experiments.
 - Metric(s): `buy_hunt_ratio`, `gold_delta_h`, `surrender_hunt_ratio`, `defeat_count`.
 - Result (baseline): current hour showed healthy canonical evidence (`status=200`, paged logs `1..8=200`) with persistent churn (`events=651`, `hunt=351`, `buy=195` => `0.56`, `surrender=39` => `0.11`, `defeat=0`, status `gold=439`).
 - Decision: Execute in next 30-min dev cycle; keep only if `buy_hunt_ratio<=0.52` and `gold_delta_h` improves for 2 consecutive windows while `defeat_count=0`.
+
+- Date: 2026-03-18 20:31 KST
+- Hypothesis: A surrender-churn guard that only activates in high `surrender/hunt` windows can reduce wasted cycles and buy pressure without increasing defeats.
+- Change: Run `hourly-surrender-churn-guard-v1` in the next 30-min cycle; emit `tmp/hourly-surrender-churn.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,surrender_guard_applied}` and apply stricter surrender gating when `surrender_hunt_ratio>=0.15`.
+- Metric(s): `surrender_hunt_ratio`, `buy_hunt_ratio`, `defeat_count`, `gold_delta_h`.
+- Result (baseline): current hour sample (`n=100`) showed `hunt=53`, `buy=29` (`0.55`), `surrender=10` (`0.19`), `defeat=0`, status `Lv29 / gold=469`.
+- Decision: Execute in next 30-min dev cycle; keep only if `surrender_hunt_ratio<=0.12` and `buy_hunt_ratio<=0.52` for 2 consecutive windows with `defeat_count=0`.
