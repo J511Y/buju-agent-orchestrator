@@ -1,6 +1,17 @@
 # Engineering Decisions
 
 ## 2026-03-20
+- 30-min STRATEGY DIRECTOR (23:04 KST, adaptive + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and remained CHANGE-qualified with concrete deltas (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible safety parameter and committed it.
+- CHANGE committed in runtime monster selector: sustained danger pressure now uses a tighter top-efficiency safety band (`efficiencyBandRatio 1.00 -> 0.99`) before danger tie-break, preserving high-efficiency hunting while reducing repeat-defeat exposure.
+- Hard constraints remain pinned as code invariants: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear is liquidated first.
+- Equipment progression plan (staged) explicitly maintained:
+  - Early game: prioritize gold accumulation and avoid risky enhancement spam.
+  - Mid game: enhance main weapon first after reserve threshold + prereq checks.
+  - Late game: broaden enhancement to armor/accessory with failure-risk controls.
+  - Minimal safe enhancement action path remains prerequisite-gated (`scroll + blacksmith npc + resource/gold`) and executes only when all gates pass.
+- Buju thinking payload was regenerated with delta-based reasoning and next KPI target (`tmp/thinking-post.json`, `tmp/strategy-director-latest.json`).
+- Next 30m KPI target: `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434`; live runner daemon continuity preserved (no stop/restart in this tick).
+
 - 30-min STRATEGY DIRECTOR (22:34 KST, adaptive mode + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and remained CHANGE-qualified (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible safety selector and committed it.
 - CHANGE committed in runtime logic: under sustained danger pressure, safest-high-efficiency selection now uses the strict top-efficiency anchor (`efficiency band ratio 0.99 -> 1.00` in `chooseMonsterPlan`) before danger tie-break, reducing repeated defeat exposure while preserving safe-target gating.
 - Hard constraints remain pinned as invariants in code path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear is still sold first.
