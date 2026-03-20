@@ -1700,3 +1700,10 @@ Track A/B and policy experiments.
 - Metric(s): `defeats_h`, `surrenders_h`, `move_share`, `wins_h`, `gold_delta_h`.
 - Result (baseline): current cycle (`tmp/hourly-feedback-2026-03-20T13-46-21-195Z.json`) shows severe thrash (`events>=4000`, `move=3497` => `move_share≈0.87`, `defeats=103`, `surrenders=90`, `wins=128`, `gold=434` flat).
 - Decision: Execute in next 30-min dev cycle; keep only if `defeats_h` and `surrenders_h` each drop by >=30% for 2 consecutive windows while `wins_h` remains within -20% of baseline.
+
+- Date: 2026-03-21 02:10 KST
+- Hypothesis: An explicit auth/base-url preflight artifact in the hourly cycle will eliminate false zero-activity gameplay summaries during mixed `404` + auth/DNS failure windows.
+- Change: Add `hourly-auth-preflight-v11` output `tmp/hourly-auth-preflight.json` with `{base_url,status_http,logs_http,auth_state,dns_state,inference_allowed}`; hard-block gameplay KPI inference unless `status_http=200`, `logs_http=200`, and sampled logs are non-empty.
+- Metric(s): `% blocked cycles with explicit failure class`, `false zero-activity summaries`, `time-to-auth-drift detection`.
+- Result (baseline): current cycle had `recent*` endpoints all `404`, collector summary fallback with zero signals, and direct status probes failing (`401` on bujuagent.com, DNS ENOTFOUND on www.buju.quest).
+- Decision: Execute in next 30-min dev cycle; keep only if 3 consecutive degraded cycles are classified with zero gameplay-policy output.
