@@ -1679,3 +1679,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles with non-zero evidence despite recent* outage`, `false inference count`, `time-to-trend visibility after outage`.
 - Result (baseline): current cycle had `/api/status=200` while all `recent*` probes stayed `404` and fallback produced zero-delta summary (`source=fallback:local_replay`).
 - Decision: Execute in next 30-min dev cycle; keep if evidence-coverage improves for 3 consecutive outage cycles without triggering gameplay-policy changes on low-confidence windows.
+
+- Date: 2026-03-20 20:46 KST
+- Hypothesis: A deterministic paged-log window extractor (`/api/logs?page=1&limit=100`) can restore usable hourly win/defeat and resource-trend signals during `recent*` endpoint outages without introducing false certainty.
+- Change: Add `hourly-paged-log-window-v1` that emits `tmp/hourly-paged-window.json` with `{window_events,wins,defeats,buy_hunt_ratio,gold_delta_proxy,confidence}` and sets `confidence=low` whenever only status snapshot is available.
+- Metric(s): `% hourly cycles with non-empty evidence`, `false zero-activity summaries`, `confidence mismatch incidents`.
+- Result (baseline): this cycle had `/api/status=200` with all `recent*` probes `404`, leaving last-hour event sample empty (`sampleSize=0`).
+- Decision: Run in next 30-min dev cycle; keep if it produces non-empty hourly evidence in 3 consecutive outage cycles without raising false high-confidence outputs.

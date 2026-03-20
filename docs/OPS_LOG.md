@@ -1,5 +1,22 @@
 # Ops Log
 
+- [2026-03-20 20:39 KST] 30-min STRATEGY DIRECTOR rerun completed after delta-model fix (adaptive mode + equipment progression).
+  - CHANGE evidence (mandatory adaptive loop): `npm run strategy:director` now computes last-20 deltas for `level/exp/gold/death/rate-limit` explicitly, and the current window is mixed rather than KEEP-safe: `level +1`, `exp n/a`, `gold -20`, `inventory +6`, `death/defeat 21->34 (delta +13)`, `rate/429/cooldown 38->52 (delta +14)`.
+  - CHANGE applied in runner logic for this tick: inventory cleanup surrender now triggers as soon as `slots>=10` and a worse-than-equipped sell candidate exists during combat; safest monster selection now chooses the lowest-danger target inside the top efficiency band (`92%` of max efficiency) to reduce repeat-danger drift without moving earlier than the level gate.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement strategy stays documented in `docs/DECISIONS.md`; minimal safe enhancement path remains `/npc/list -> /npc/{npc_id}/enhance` with `scroll + npc + resource + non-combat + reserve + no-recent-defeat` gates.
+  - Ops telemetry artifact refreshed locally: `tmp/strategy-director-latest.json` + `tmp/thinking-post.json` were rebuilt with concrete delta reasoning and new KPI text. No daemon stop/restart was performed.
+  - Next 30m KPI: `deaths=0, inventory<=8, wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20, progression exp>=168 or gold>=434`, daemon continuous.
+
+- [2026-03-20 20:05 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): `npm run strategy:director` refreshed `tmp/strategy-director-latest.json`; last-20 deltas remained improvement-qualified for KEEP (`level +2`) despite mixed economy pressure (`gold -15`, `inventory +1`, `death/defeat mentions 54`, `rate/429/cooldown mentions 88`), so adaptive CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence kept strict: currently available monsters keep safest high-efficiency target as `skeleton`; movement gate remains strict at `BUJU_MOVE_LEVEL_2=30` to avoid repeated-defeat expansion.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement strategy remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle.
+  - Ops telemetry post attempted with refreshed payload (`tmp/thinking-post-2005.json`) and returned auth failure (`POST /api/agent/thinking => 401`; `tmp/thinking-post-status-2005.txt`, `tmp/thinking-post-response-2005.json` archived for replay).
+  - Live continuity preserved: smoke verify passed (`tmp/cron-smoke-2005.txt`: `verify:cycle passed`) and daemon lineage remained active without restart (`tmp/live-runner-procs-2005.txt`).
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, progression `exp>=168` or `gold>=434`, daemon continuous.
+
 - [2026-03-20 17:00 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): `npm run strategy:director` refreshed `tmp/strategy-director-latest.json`; last-20 deltas stayed improvement-qualified for KEEP (`level +2`) despite mixed economy (`gold -5`) with pressure tracked (`inventory +2`, `death/defeat mentions 50`, `rate/429/cooldown mentions 83`), so adaptive CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
@@ -5368,3 +5385,13 @@
 - Development feedback: hold gameplay-policy changes this cycle; prioritize telemetry reliability so hourly feedback can derive real wins/defeats/resource flow instead of fallback zeros.
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_status_ok`; retry hourly with staged probe order (`recent -> paged logs fallback -> status snapshot`) and promote confidence only when at least one recent/log source returns `200` for `>=2` consecutive cycles.
 - TODO (next 30-min dev cycle): implement `status-delta-buffer-v1` to persist 5-minute `/api/status` snapshots (`tmp/status-delta-buffer.jsonl`) and compute short-window `Δexp/Δgold/hp-risk` when `recent` endpoints are unavailable.
+2026-03-20 20:14:19 KST | watchdog restarted scripts/live-runner-daemon.sh
+
+## [2026-03-20 20:46 KST] Hourly gameplay-feedback cycle
+- Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked, never printed); live probes saved to `tmp/hourly-feedback-latest.json` and `tmp/hourly-activity-fetch-now.json`.
+- Live activity/status read: canonical base resolved to `https://bujuagent.com/api`; `GET /api/status=200`; recent-log family remained unavailable (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*` all `404`).
+- Last-hour gameplay signals: progression from status snapshot shows `Lv30`, `EXP=53/9000`, `gold=434`, `area=gludio_field`; wins/defeats/resource-flow for the last hour are **low-confidence** due to missing recent logs (`sampleSize=0`, `wins=0`, `defeats=0` interpreted as no evidence, not zero activity).
+- Anomaly: telemetry gap persists (`status` healthy + `recent` endpoints unavailable), blocking evidence-grade win/defeat and trend inference.
+- Development feedback: keep gameplay policy stable this cycle; prioritize observability path that converts paged logs into 60-minute KPIs when `recent*` endpoints are 404.
+- Failure mode + retry recommendation: classify as `recent_endpoint_404_with_status_ok`; retry in next cycle with probe order `recent* -> /api/logs?page=1&limit=100 fallback -> status`, and mark KPI confidence `high` only after a `200` log source is observed in `>=2` consecutive cycles.
+- TODO (next 30-min dev cycle): implement `hourly-paged-log-window-v1` to parse `/api/logs?page=1&limit=100` into `{wins,defeats,buy_hunt_ratio,gold_delta_proxy}` with explicit `confidence` flag.
