@@ -1665,3 +1665,10 @@ Track A/B and policy experiments.
 - Metric(s): `moves/hour`, `deaths/hour`, `surrenders/hour`, `wins/hour`, `move_share_60m`.
 - Result: Baseline this cycle is thrash-heavy (`events=1875`, `moves=1611`, `wins=82`, `deaths=44`, `surrenders=38`; `move_share≈0.86`) from canonical paged logs (`tmp/hourly-analysis-2026-03-20-1737.json`).
 - Decision: Execute in next 30-min dev cycle; keep only if `deaths/hour` drops by >=25% for 3 consecutive hourly windows while `wins/hour` stays within -10% of baseline.
+
+- Date: 2026-03-20 18:37 KST
+- Hypothesis: A mandatory connectivity preflight (`/api/status` + `/api/logs?page=1&limit=100`) with explicit transport classification will reduce false/empty hourly gameplay summaries during API reachability failures.
+- Change: Add `hourly-connectivity-preflight-v1` artifact `{status_http,logs_http,dns_state,transport_state,inference_allowed,retry_after_ms}` and block gameplay inference unless both probes are `200`.
+- Metric(s): `% blocked cycles with explicit failure class`, `false gameplay-summary count during transport failures`, `time-to-root-cause classification`.
+- Result: Current cycle canonical probes both transport-failed (`statusHttp=0`, `logsHttp=0`), leaving last-hour evidence unavailable (`events=0`; `tmp/hourly-feedback-summary.json`).
+- Decision: Execute in next 30-min dev cycle; keep if 3 consecutive failure cycles are classified with zero gameplay-policy output.

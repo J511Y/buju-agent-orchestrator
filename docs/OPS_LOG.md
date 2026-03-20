@@ -5351,3 +5351,11 @@
   - Anomaly: severe area oscillation (`1611` moves in 60m, `~86%` of all events) with concurrent defeat pressure (`44 deaths`, `38 surrenders`) indicates move-thrash dominating cycle efficiency.
   - Failure mode + retry recommendation: classify default host as `dns_unreachable`; keep canonical host pinned to `https://bujuagent.com/api` for next run and retry DNS probe with staged backoff (`10s/30s/60s`) before attempting any `www.buju.quest` read-path inference.
   - TODO (next 30m dev cycle): add a move-oscillation circuit breaker (`A↔B flip count` threshold) that temporarily freezes move actions and forces safest-hunt/recovery mode for 5 ticks; verify with replay that deaths/hour drops without reducing hunt wins below baseline.
+
+## [2026-03-20 18:37 KST] Hourly gameplay-feedback cycle
+- Evidence: Loaded `BUJU_API_KEY` from local `.env` (masked); attempted canonical live probes to `${BUJU_API_BASE_URL:-https://www.buju.quest}`.
+- Probe result: `GET /api/status` transport-failed (`statusHttp=0`), `GET /api/logs?page=1&limit=100` transport-failed (`logsHttp=0`), so last-hour gameplay signals are unresolved (`events=0`, `wins=0`, `defeats=0`, `hunt=0`, `buy=0`, `surrender=0`).
+- Failure mode: Canonical API read-path unreachable at transport layer (no HTTP response), preventing progression/resource/outcome inference.
+- Retry recommendation: Re-run in 10 minutes with DNS/connectivity preflight first; if still transport-fail, validate `BUJU_API_BASE_URL` reachability and TLS/network path before attempting policy changes.
+- Dev feedback: Keep runner strategy unchanged this cycle (no evidence-grade gameplay deltas); prioritize observability/read-path recovery over behavior tuning.
+- Next 30m TODO: Add `hourly-connectivity-preflight` (status+logs probe with explicit `{dns_state,transport_state,retry_after_ms}` artifact) and gate KPI synthesis when either probe is non-200.
