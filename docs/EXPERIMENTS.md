@@ -1652,3 +1652,10 @@ Track A/B and policy experiments.
 - Metric(s): `surrender_hunt_ratio`, `buy_hunt_ratio`, `defeat_count`, `gold_delta_h`.
 - Result (baseline): current hour sample (`n=100`) showed `hunt=53`, `buy=29` (`0.55`), `surrender=10` (`0.19`), `defeat=0`, status `Lv29 / gold=469`.
 - Decision: Execute in next 30-min dev cycle; keep only if `surrender_hunt_ratio<=0.12` and `buy_hunt_ratio<=0.52` for 2 consecutive windows with `defeat_count=0`.
+
+- Date: 2026-03-20 16:37 KST
+- Hypothesis: A strict dual-200 canonical preflight (/api/status + /api/logs?page=1&limit=100) will prevent zero-evidence hourly gameplay summaries during auth drift.
+- Change: Emit hourly-auth-preflight-v10 with {status_http,logs_http,auth_state,inference_allowed,retry_plan} and hard-block KPI inference unless inference_allowed=true.
+- Metric(s): auth_blocked_cycles/day, % blocked cycles with explicit auth_state, false gameplay summaries during 401 windows.
+- Result: Current cycle is auth-blocked (statusHttp=401, logsSampleCount=0, lastHour.events=0; tmp/hourly-feedback-summary.json).
+- Decision: Run in next 30-min dev cycle; keep if 3 consecutive blocked cycles are classified with zero gameplay-policy output.

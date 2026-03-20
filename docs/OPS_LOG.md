@@ -5330,3 +5330,9 @@
 - Development feedback: keep zero-defeat safety envelope; prioritize economy/combat churn controls (optional buy suppression + surrender gate tuning) before any risk-up movement/engagement changes.
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_paged_logs_healthy`; keep hourly retries on recent endpoints and continue paged-log fallback until `recent` endpoint returns `200` for `>=2` consecutive cycles.
 - TODO (next 30-min dev cycle): implement `hourly-surrender-churn-guard-v1` to emit `tmp/hourly-surrender-churn.json` `{buy_hunt_ratio,surrender_hunt_ratio,optional_buy_blocked,surrender_guard_applied}` and auto-tighten surrender trigger when `surrender_hunt_ratio>=0.15` while preserving `defeat_count=0`.
+
+## [2026-03-20 16:37 KST] Hourly gameplay-feedback cycle
+- Evidence: tmp/hourly-feedback-summary.json (statusHttp=401, logsSampleCount=0, lastHour.events=0).
+- Live API read failed with auth-like response on canonical endpoints (/api/status, /api/logs?page=1&limit=100), so progression/win-defeat/resource trends are unresolved for the last hour.
+- Retry recommendation: verify BUJU_API_KEY source parity (.env vs runtime), then rerun paired probe (/api/status + /api/logs?page=1&limit=100) after key refresh.
+- Next 30m TODO: implement/validate a single preflight gate that blocks feedback synthesis unless both canonical probes return 200, and emit explicit auth_state + retry hint.
