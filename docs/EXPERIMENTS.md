@@ -1659,3 +1659,9 @@ Track A/B and policy experiments.
 - Metric(s): auth_blocked_cycles/day, % blocked cycles with explicit auth_state, false gameplay summaries during 401 windows.
 - Result: Current cycle is auth-blocked (statusHttp=401, logsSampleCount=0, lastHour.events=0; tmp/hourly-feedback-summary.json).
 - Decision: Run in next 30-min dev cycle; keep if 3 consecutive blocked cycles are classified with zero gameplay-policy output.
+- Date: 2026-03-20 17:41 KST
+- Hypothesis: A move-oscillation circuit breaker (detect rapid `talking_island_field↔gludio_field` flips and clamp movement briefly) will reduce deaths/surrenders without materially harming hunt throughput.
+- Change: Add `hourly-move-thrash-guard-v1` metric + guard with `{flip_count_5m, move_share_60m, breaker_state}`; trigger when `flip_count_5m>=20` or `move_share_60m>=0.80`, then pause `move` for 5 ticks and force safest-hunt/rest path.
+- Metric(s): `moves/hour`, `deaths/hour`, `surrenders/hour`, `wins/hour`, `move_share_60m`.
+- Result: Baseline this cycle is thrash-heavy (`events=1875`, `moves=1611`, `wins=82`, `deaths=44`, `surrenders=38`; `move_share≈0.86`) from canonical paged logs (`tmp/hourly-analysis-2026-03-20-1737.json`).
+- Decision: Execute in next 30-min dev cycle; keep only if `deaths/hour` drops by >=25% for 3 consecutive hourly windows while `wins/hour` stays within -10% of baseline.

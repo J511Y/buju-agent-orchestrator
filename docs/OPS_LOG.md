@@ -1,5 +1,13 @@
 # Ops Log
 
+- [2026-03-20 17:00 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): `npm run strategy:director` refreshed `tmp/strategy-director-latest.json`; last-20 deltas stayed improvement-qualified for KEEP (`level +2`) despite mixed economy (`gold -5`) with pressure tracked (`inventory +2`, `death/defeat mentions 50`, `rate/429/cooldown mentions 83`), so adaptive CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence refreshed: `GET /api/status => 200` (`tmp/cron-status-now-1700.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-1700.json`) keep safest high-efficiency target as `skeleton`; movement gate remains strict at `BUJU_MOVE_LEVEL_2=30`.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active (`tmp/cron-inventory-now-1700.json` keeps `short_sword` equipped); staged enhancement plan remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path remained prereq-gated (`tmp/cron-npc-now-1700.json` has `npcs=[]`).
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post.json`, `tmp/thinking-post-response-1700.json`) with concrete delta-based reasoning and next KPI target.
+  - Live runner continuity preserved without restart (`tmp/live-runner-procs-1700.txt`).
+
 - [2026-03-20 16:28 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
   - KEEP evidence (mandatory adaptive loop): `npm run strategy:director` regenerated `tmp/strategy-director-latest.json` and kept positive progression evidence (`level +1`, `gold +5`) with pressure still monitored (`inventory +3`, `death/defeat mentions 49`, `rate/429/cooldown mentions 82`), so adaptive CHANGE was not triggered.
   - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
@@ -5336,3 +5344,10 @@
 - Live API read failed with auth-like response on canonical endpoints (/api/status, /api/logs?page=1&limit=100), so progression/win-defeat/resource trends are unresolved for the last hour.
 - Retry recommendation: verify BUJU_API_KEY source parity (.env vs runtime), then rerun paired probe (/api/status + /api/logs?page=1&limit=100) after key refresh.
 - Next 30m TODO: implement/validate a single preflight gate that blocks feedback synthesis unless both canonical probes return 200, and emit explicit auth_state + retry hint.
+- 2026-03-20 17:41 KST — Hourly gameplay-feedback cycle (`cron:d3496aa3`) executed with masked `.env` key load (`gq***80`), canonical live probes, and paged last-60m log aggregation.
+  - Live probe path: initial default-host calls failed transport (`Could not resolve host: www.buju.quest`); canonical fallback to `https://bujuagent.com/api` succeeded (`GET /status=200`, paged `GET /logs?page=n&limit=100=200`).
+  - Last-hour gameplay signals (window 16:37–17:37 KST, `tmp/hourly-analysis-2026-03-20-1737.json`): `events=1875`, `hunts=82`, `wins=82`, `deaths=44`, `surrenders=38`, `rests=43`, `buys=46`, `moves=1611`.
+  - Progression/resource snapshot now: `level=30`, `exp=73/9000`, `gold=439`, `area=gludio_field`, `HP 374/535`; movement rate-limit exhausted (`move remaining=0/30`) while hunt/buy limits remain full.
+  - Anomaly: severe area oscillation (`1611` moves in 60m, `~86%` of all events) with concurrent defeat pressure (`44 deaths`, `38 surrenders`) indicates move-thrash dominating cycle efficiency.
+  - Failure mode + retry recommendation: classify default host as `dns_unreachable`; keep canonical host pinned to `https://bujuagent.com/api` for next run and retry DNS probe with staged backoff (`10s/30s/60s`) before attempting any `www.buju.quest` read-path inference.
+  - TODO (next 30m dev cycle): add a move-oscillation circuit breaker (`A↔B flip count` threshold) that temporarily freezes move actions and forces safest-hunt/recovery mode for 5 ticks; verify with replay that deaths/hour drops without reducing hunt wins below baseline.
