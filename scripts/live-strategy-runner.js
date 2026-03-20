@@ -444,7 +444,7 @@ function chooseMonsterPlan(monsters, player, equipped = {}) {
   const sustainedDangerPressure = defeatPressure >= 1 || recentDangerSurrenderCount(4) >= 2;
   const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
   const armorRiskPenalty = hasArmor ? 0 : 1;
-  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(2, pressure + armorRiskPenalty));
+  const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(3, pressure + armorRiskPenalty));
 
   const estimateDanger = (m) => {
     const ml = Number(m.level || level);
@@ -540,7 +540,7 @@ function chooseMonsterPlan(monsters, player, equipped = {}) {
 
   const ranked = pool.map(describeMonster).sort((a, b) => (b.efficiency - a.efficiency) || (a.danger - b.danger) || (b.score - a.score) || String(a.id).localeCompare(String(b.id)));
   const maxEfficiency = ranked[0]?.efficiency ?? 0;
-  const efficiencyBandRatio = sustainedDangerPressure ? 0.99 : 0.95;
+  const efficiencyBandRatio = sustainedDangerPressure ? 0.985 : 0.95;
   const efficiencyBandFloor = Number((maxEfficiency * efficiencyBandRatio).toFixed(2));
   const safestHighEfficiencyPool = ranked.filter(candidate => candidate.efficiency >= efficiencyBandFloor);
   const selected = (safestHighEfficiencyPool.length ? safestHighEfficiencyPool : ranked)

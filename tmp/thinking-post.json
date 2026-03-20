@@ -1,0 +1,45 @@
+{
+  "decision_type": "status_check",
+  "context": {
+    "hp_pct": 0.663,
+    "mp_pct": 1,
+    "level": 30,
+    "exp": 48,
+    "area": "talking_island_field",
+    "gold": 424,
+    "inventory_count": 9,
+    "inventory_max": 30,
+    "available_actions": [
+      "hunt",
+      "use_item",
+      "move",
+      "rest",
+      "buy",
+      "sell",
+      "enhance"
+    ],
+    "adaptive_delta_last20": {
+      "level": 1,
+      "exp": null,
+      "gold": -15,
+      "inventory": 2,
+      "death_mentions_total": 57,
+      "rate_limit_mentions_total": 90,
+      "death_mentions_first_half": 22,
+      "death_mentions_second_half": 35,
+      "death_signal_delta": 13,
+      "rate_limit_mentions_first_half": 36,
+      "rate_limit_mentions_second_half": 54,
+      "rate_limit_signal_delta": 18
+    },
+    "safest_efficiency_monster": "skeleton"
+  },
+  "reasoning": "CHANGE required by evidence: last-20 thinking deltas were mixed and not KEEP-safe (level +1, exp n/a, gold -15, death/defeat 22->35, rate/429/cooldown 36->54). Preserve hard safety constraints while changing one reversible logic path this cycle: surrender early for worse-than-equipped cleanup at slots>=10 and pick the safest monster inside the top efficiency band.",
+  "action_detail": "change:cleanupSurrenderAt10ForWorseGear=1;safestHighEfficiencyBand=0.95(base)/0.99(pressure);inv=10/8/10(worse-first>=10);safest=skeleton;moveGate=lv30;BiS(slot+maxDamage+defBonus);enhance=weapon-fir",
+  "result": {
+    "success": false,
+    "message": "Next 30m KPI: deaths=0, inventory<=8, wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20, progression exp>=168 or gold>=434; daemon continuous."
+  },
+  "character_name": "j211y",
+  "tick_number": 1774025515066
+}

@@ -1,5 +1,21 @@
 # Engineering Decisions
 
+## 2026-03-21
+- 30-min STRATEGY DIRECTOR (01:52 KST, adaptive mode + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and stayed CHANGE-qualified with concrete deltas (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible risk-gap logic path.
+- CHANGE committed in runtime monster safety gate: under danger pressure, `dynamicGap` now clamps one step tighter (`maxSafeMonsterLevelGap - min(2, pressure+armorPenalty)` -> `- min(3, pressure+armorPenalty)` in `chooseMonsterPlan`), lowering repeated-defeat exposure while still selecting within the high-efficiency pool.
+- Hard constraints remain pinned as invariants in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear liquidation remains first-priority.
+- Equipment progression requirements remain active and explicit: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan (early safe gold/no risky spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource`).
+- Buju thinking payload was regenerated with concrete delta-based reasoning and next 30-minute KPI target (`tmp/strategy-director-latest.json`, `tmp/thinking-post.json`).
+- Live runner daemon continuity verified without restart (`pgrep` shows active `live-runner-daemon.sh` and `live-strategy-runner.js`).
+- KPI target (next 30m): `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434`.
+
+- 30-min STRATEGY DIRECTOR (01:35 KST, adaptive mode + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and remained CHANGE-qualified with concrete deltas (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible safety selector and committed it.
+- CHANGE committed in runtime monster selector: under sustained danger pressure, the top-efficiency safety band is now tighter (`efficiencyBandRatio 0.99 -> 0.985` in `chooseMonsterPlan`) so selection stays in near-max efficiency while preferring lower danger to reduce repeated defeat pressure.
+- Hard constraints remain pinned as invariants in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear liquidation remains first-priority.
+- Equipment progression requirements remain active and explicit: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan (early safe gold/no risky spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains prerequisite-gated (`scroll + npc + resource`).
+- Buju thinking payload was regenerated with concrete delta reasoning and next 30-minute KPI target (`tmp/strategy-director-latest.json`, `tmp/thinking-post.json`); live runner daemon continuity preserved with no restart action in this tick.
+- KPI target (next 30m): `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434`.
+
 ## 2026-03-20
 - 30-min STRATEGY DIRECTOR (23:04 KST, adaptive + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and remained CHANGE-qualified with concrete deltas (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible safety parameter and committed it.
 - CHANGE committed in runtime monster selector: sustained danger pressure now uses a tighter top-efficiency safety band (`efficiencyBandRatio 1.00 -> 0.99`) before danger tie-break, preserving high-efficiency hunting while reducing repeat-defeat exposure.
