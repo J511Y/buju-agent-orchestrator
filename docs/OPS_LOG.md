@@ -5404,3 +5404,11 @@
 - Development feedback: keep gameplay policy stable this cycle; prioritize observability path that converts paged logs into 60-minute KPIs when `recent*` endpoints are 404.
 - Failure mode + retry recommendation: classify as `recent_endpoint_404_with_status_ok`; retry in next cycle with probe order `recent* -> /api/logs?page=1&limit=100 fallback -> status`, and mark KPI confidence `high` only after a `200` log source is observed in `>=2` consecutive cycles.
 - TODO (next 30-min dev cycle): implement `hourly-paged-log-window-v1` to parse `/api/logs?page=1&limit=100` into `{wins,defeats,buy_hunt_ratio,gold_delta_proxy}` with explicit `confidence` flag.
+
+## [2026-03-20 21:46 KST] Hourly gameplay-feedback cycle
+- Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked `gq***80`, raw key never printed); canonical probes against `https://bujuagent.com/api` succeeded (`GET /api/status=200`, paged `GET /api/logs?page=1..19&limit=100=200`). Artifact: `tmp/hourly-feedback-2026-03-20T12-46-09-936Z.json`.
+- Last-hour gameplay signals: `events=1811`, `hunt=56`, `wins=56` (hunt proxy), `defeats=52`, `buy=31`, `surrender=47`, `rest=50`, `moves=1567`.
+- Progression/resource snapshot (cycle close): `Lv30`, `EXP=48/9000`, `gold=434`, `area=talking_island_field`, `HP=374/535`, `MP=282/282`.
+- Anomalies: movement thrash dominates (`move_share=0.87`) with extreme surrender pressure (`surrender/hunt=0.84`) and high defeat load (`52/h`), indicating recovery loop instability rather than productive combat farming.
+- Development feedback: pause any aggression/expansion tuning; prioritize loop-stability controls (move dampening + surrender/death breaker) before economy optimization.
+- Next 30m TODO: implement `hourly-death-surrender-breaker-v1` to emit `tmp/hourly-death-surrender-breaker.json` `{deaths_h,surrenders_h,move_share,breaker_state,recovery_ticks}` and force 5-tick recovery mode (`rest/use_item + no move`) when `deaths_h>=20 || surrenders_h>=20` while preserving `hunt` safety path.

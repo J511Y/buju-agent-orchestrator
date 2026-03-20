@@ -1686,3 +1686,10 @@ Track A/B and policy experiments.
 - Metric(s): `% hourly cycles with non-empty evidence`, `false zero-activity summaries`, `confidence mismatch incidents`.
 - Result (baseline): this cycle had `/api/status=200` with all `recent*` probes `404`, leaving last-hour event sample empty (`sampleSize=0`).
 - Decision: Run in next 30-min dev cycle; keep if it produces non-empty hourly evidence in 3 consecutive outage cycles without raising false high-confidence outputs.
+
+- Date: 2026-03-20 21:46 KST
+- Hypothesis: A hard death+surrender circuit breaker that temporarily disables movement and enforces recovery actions will reduce defeat/surrender spikes during move-thrash windows without collapsing hunt throughput.
+- Change: Add `hourly-death-surrender-breaker-v1` using last-60m paged-log KPIs; trigger breaker when `deaths_h>=20 || surrenders_h>=20 || move_share>=0.85`, then apply 5-tick `no-move + rest/use_item + safest-hunt-only` mode and emit `tmp/hourly-death-surrender-breaker.json`.
+- Metric(s): `deaths_h`, `surrenders_h`, `move_share`, `wins_h`, `breaker_trigger_count`.
+- Result (baseline): current cycle (`tmp/hourly-feedback-2026-03-20T12-46-09-936Z.json`) shows severe instability (`events=1811`, `moves=1567` => `move_share=0.87`, `wins=56`, `defeats=52`, `surrenders=47`, `buy/hunt=0.55`).
+- Decision: Execute in next 30-min dev cycle; keep only if `deaths_h` and `surrenders_h` each drop by >=30% for 2 consecutive hourly windows while `wins_h` remains within -15% of baseline.
