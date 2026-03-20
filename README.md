@@ -70,6 +70,7 @@ npm run dev
 - 하드 인벤토리 안전 불변식(환경변수로 오버라이드하지 않음): 판매 트리거/목표 슬롯은 10→8, 정리 반복 상한은 tick당 10회로 고정
 - 현재 우선순위 정책:
   - 인벤토리 위험 선차단(기본 10→8 슬롯 정리 모드): 현재 장착 대비 열위 장비 전량 우선 매각, 이후 필요 시 저티어 장비 batch 판매
+  - 전투 중에도 슬롯 사용량이 10 이상이고 `장착 대비 열위 장비` 매각 대상이 있으면 `POST /combat/surrender`로 즉시 정리 경로를 열어 10→8 하드 불변식을 지킨다
   - 매각 시 장착본 보전 규칙 적용: 장착 중인 item_id와 겹치는 스택은 장착 수량만큼 예약해 오매각 방지
   - 인벤토리 사용 슬롯은 `inventory.slots.used`를 우선 사용하고, 미제공 시 `inventory_count`/목록 길이로 안전 폴백
   - 전투 중 슬롯 압박 + 판매 필요 시 `POST /combat/surrender`로 전투 종료 후 인벤토리 정리를 재시도
@@ -96,6 +97,7 @@ npm run dev
   - `BUJU_BUY_COOLDOWN_TICKS`는 소모품 자동 보충 빈도를 제한해 저효율 반복 구매를 줄이는 쿨다운 가드로 운영 (현재 기본값: `12`)
   - 지역 이동 임계(`BUJU_MOVE_LEVEL_*`/`BUJU_AREA_LV*`)와 안전 사냥 간격(`BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`)은 연속 패배/과위험 전투를 줄이기 위한 보수적 기본값으로 유지(현재 기본값 예: `BUJU_MOVE_LEVEL_2=30`)
   - 몬스터 선택 안전 필터는 레벨 격차 + 공격력 가드 + hard danger cap(압박/무장 상태 반영) 3중 게이트를 함께 사용하며, 최근 8틱 기준 위험 압박(패배 1회 이상 또는 위험 항복 2회 이상)에서는 danger cap을 강화(레벨 격차 +1, 공격력 배수 1.45)하고, 안전 필터가 비면 최저 위험 몬스터 우선으로 폴백
+  - 안전 필터를 통과한 후보는 `상위 효율 밴드`(기본: 최고 효율의 95% 이상, 위험 압박 구간: 98% 이상) 안에서 가장 낮은 danger를 먼저 고르는 방식으로 정렬해 "가장 안전한 고효율 몬스터"를 우선 사냥한다
   - 위험 전투 압박(최근 패배 1회 이상 또는 최근 4틱 위험 항복 2회 이상) 구간에서는 효율 점수보다 안전성을 우선해 단일 최저 위험 몬스터로 타깃을 수축
   - `BUJU_STALL_429_COOLDOWN_TICKS`/`BUJU_RETRY_MAX_ATTEMPTS`/`BUJU_BACKOFF_*` 조합으로 429 루프를 냉각하며, 반복 구간에서는 액션 빈도를 낮춰 재진입(현재 기본값 예: `BUJU_STALL_429_COOLDOWN_TICKS=54`, `BUJU_COMBAT_STRATEGY_REFRESH_TICKS=52`, `BUJU_BACKOFF_BASE_MS=2800`)
   - 구매/회복 정책은 골드 예비금 하한(`BUJU_MIN_GOLD_RESERVE=430`, `BUJU_MUTATION_MIN_GOLD_RESERVE=260`)을 기준으로 유지해 전투 유동성과 mutation 리스크 방어를 함께 보전
