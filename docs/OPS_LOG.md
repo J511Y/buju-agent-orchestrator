@@ -5412,3 +5412,14 @@
 - Anomalies: movement thrash dominates (`move_share=0.87`) with extreme surrender pressure (`surrender/hunt=0.84`) and high defeat load (`52/h`), indicating recovery loop instability rather than productive combat farming.
 - Development feedback: pause any aggression/expansion tuning; prioritize loop-stability controls (move dampening + surrender/death breaker) before economy optimization.
 - Next 30m TODO: implement `hourly-death-surrender-breaker-v1` to emit `tmp/hourly-death-surrender-breaker.json` `{deaths_h,surrenders_h,move_share,breaker_state,recovery_ticks}` and force 5-tick recovery mode (`rest/use_item + no move`) when `deaths_h>=20 || surrenders_h>=20` while preserving `hunt` safety path.
+2026-03-20 22:24:08 KST | watchdog restarted live-runner-daemon
+
+## [2026-03-20 22:46 KST] Hourly gameplay-feedback cycle
+- Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked `gq***80`, raw key never printed); wrote artifact `tmp/hourly-feedback-2026-03-20T13-46-21-195Z.json`.
+- Live API/status path: canonical primary `https://www.buju.quest` transport-failed (`fetch failed`), fallback `https://bujuagent.com/api` succeeded (`GET /status=200`, paged `GET /logs?page=1..40&limit=100=200`).
+- Last-hour gameplay signals (paged-log window, lower-bound sample): `events>=4000`, `hunt=128`, `wins≈128` (hunt proxy), `defeats=103`, `buy=67`, `surrender=90`, `rest=101`, `move=3497`, `sell=1`, `drop=10`.
+- Progression/resources snapshot (cycle close): `Lv30`, `EXP=86/9000` (`+38` vs prior 21:46 snapshot), `gold=434` (`±0`), `HP=312/535` (`-62`), `MP=282/282`, `area=gludio_field`, `combat.in_progress=false`.
+- Anomaly: extreme movement thrash persists (`move_share≈0.87`) with very high defeat/surrender pressure (`defeats=103`, `surrenders=90`) and flat gold; current loop is survivability-recovery heavy rather than farm-efficient.
+- Development feedback: keep safety-first stance; prioritize move suppression + defeat/surrender breaker tuning before any farming/aggression/economy policy expansion.
+- Failure mode + retry recommendation: classify as `primary_dns_unreachable_with_fallback_healthy`; keep `bujuagent.com/api` as active read-path, re-test primary DNS each cycle with staged backoff (`10s/30s/60s`), and only switch primary back after 2 consecutive successful status+logs probes.
+- TODO (next 30-min dev cycle): implement `hourly-thrash-cap-v2` that hard-caps movement when `move_share>=0.80` and `defeats_h>=60`, emitting `tmp/hourly-thrash-cap.json` `{move_share,deaths_or_defeats_h,surrenders_h,move_block_ticks,wins_h}`.

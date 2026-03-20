@@ -1693,3 +1693,10 @@ Track A/B and policy experiments.
 - Metric(s): `deaths_h`, `surrenders_h`, `move_share`, `wins_h`, `breaker_trigger_count`.
 - Result (baseline): current cycle (`tmp/hourly-feedback-2026-03-20T12-46-09-936Z.json`) shows severe instability (`events=1811`, `moves=1567` => `move_share=0.87`, `wins=56`, `defeats=52`, `surrenders=47`, `buy/hunt=0.55`).
 - Decision: Execute in next 30-min dev cycle; keep only if `deaths_h` and `surrenders_h` each drop by >=30% for 2 consecutive hourly windows while `wins_h` remains within -15% of baseline.
+
+- Date: 2026-03-20 22:46 KST
+- Hypothesis: A stricter composite thrash guard (`move_share` + `defeat/surrender` co-trigger) will reduce defeat-heavy oscillation faster than movement-only breaker logic.
+- Change: Add `hourly-thrash-cap-v2` trigger `move_share>=0.80 && (defeats_h>=60 || surrenders_h>=60)`; apply 8-tick `no-move + rest/use_item + safest-hunt-only` mode and emit `tmp/hourly-thrash-cap.json` `{move_share,defeats_h,surrenders_h,move_block_ticks,wins_h}`.
+- Metric(s): `defeats_h`, `surrenders_h`, `move_share`, `wins_h`, `gold_delta_h`.
+- Result (baseline): current cycle (`tmp/hourly-feedback-2026-03-20T13-46-21-195Z.json`) shows severe thrash (`events>=4000`, `move=3497` => `move_share≈0.87`, `defeats=103`, `surrenders=90`, `wins=128`, `gold=434` flat).
+- Decision: Execute in next 30-min dev cycle; keep only if `defeats_h` and `surrenders_h` each drop by >=30% for 2 consecutive windows while `wins_h` remains within -20% of baseline.
