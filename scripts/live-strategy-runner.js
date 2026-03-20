@@ -540,7 +540,7 @@ function chooseMonsterPlan(monsters, player, equipped = {}) {
 
   const ranked = pool.map(describeMonster).sort((a, b) => (b.efficiency - a.efficiency) || (a.danger - b.danger) || (b.score - a.score) || String(a.id).localeCompare(String(b.id)));
   const maxEfficiency = ranked[0]?.efficiency ?? 0;
-  const efficiencyBandRatio = sustainedDangerPressure ? 0.99 : 0.95;
+  const efficiencyBandRatio = sustainedDangerPressure ? 1.0 : 0.95;
   const efficiencyBandFloor = Number((maxEfficiency * efficiencyBandRatio).toFixed(2));
   const safestHighEfficiencyPool = ranked.filter(candidate => candidate.efficiency >= efficiencyBandFloor);
   const selected = (safestHighEfficiencyPool.length ? safestHighEfficiencyPool : ranked)
