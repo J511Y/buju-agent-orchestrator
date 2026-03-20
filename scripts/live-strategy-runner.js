@@ -21,6 +21,7 @@ loadEnvFile('config/strategy.env');
 const API_BASE = 'https://bujuagent.com/api';
 const API_KEY = process.env.BUJU_API_KEY;
 if (!API_KEY) throw new Error('missing BUJU_API_KEY');
+const RUNNER_ARTIFACT_PATH = path.resolve(ROOT, 'tmp/live-strategy-runner-latest.json');
 
 const CFG = {
   delayMs: Number(process.env.BUJU_BASE_DELAY_MS || 1000),
@@ -155,10 +156,15 @@ function usedSlots(inventory, invResJson) {
   return inventory.length;
 }
 
+function equippedItemId(entry) {
+  if (!entry) return null;
+  return (typeof entry === 'object') ? (entry.item_id || null) : entry;
+}
+
 function getEquippedItemReserveMap(equipped) {
   const m = new Map();
   for (const v of Object.values(equipped || {})) {
-    const id = (v && typeof v === 'object') ? v.item_id : null;
+    const id = equippedItemId(v);
     if (!id) continue;
     m.set(id, (m.get(id) || 0) + 1);
   }
@@ -223,11 +229,12 @@ function equipmentScore(meta) {
 async function chooseWorseThanEquippedCandidate(inventory, equipped) {
   const equippedBySlot = new Map();
   for (const v of Object.values(equipped || {})) {
-    if (v && typeof v === 'object' && v.item_id) {
-      const m = await getItemMeta(v.item_id);
+    const itemId = equippedItemId(v);
+    if (itemId) {
+      const m = await getItemMeta(itemId);
       const slot = m?.equipSlot;
       if (!slot) continue;
-      equippedBySlot.set(slot, { itemId: v.item_id, score: equipmentScore(m) });
+      equippedBySlot.set(slot, { itemId, score: equipmentScore(m) });
     }
   }
 
@@ -248,6 +255,26 @@ async function chooseWorseThanEquippedCandidate(inventory, equipped) {
 
   candidates.sort((a, b) => (a.score - b.score) || (a.eqScore - b.eqScore) || a.itemId.localeCompare(b.itemId));
   return candidates[0] || null;
+}
+
+async function getInventoryCleanupCandidates(inventory, equipped) {
+  const worse = await chooseWorseThanEquippedCandidate(inventory, equipped);
+  return {
+    worse,
+    generic: worse ? null : chooseSellCandidate(inventory, equipped)
+  };
+}
+
+async function getEquippedScoreBySlot(equipped) {
+  const bySlot = new Map();
+  for (const [slotKey, entry] of Object.entries(equipped || {})) {
+    const itemId = equippedItemId(entry);
+    if (!itemId) continue;
+    const meta = await getItemMeta(itemId);
+    const slot = meta?.equipSlot || slotKey;
+    bySlot.set(slot, { itemId, score: equipmentScore(meta) });
+  }
+  return bySlot;
 }
 
 async function liquidateInventoryRisk(inventory, equipped, initialSlots, character) {
@@ -329,23 +356,35 @@ async function liquidateInventoryRisk(inventory, equipped, initialSlots, charact
 async function chooseBestEquip(inventory, equipped) {
   const eqItems = inventory.filter(i => i.type === 'equipment');
   const bySlot = new Map();
+  const equippedBySlot = await getEquippedScoreBySlot(equipped);
   for (const item of eqItems) {
-    const d = await req(`/game-data/items/${item.item_id}`);
-    if (d.status !== 200 || !d.json?.data?.equipSlot) continue;
-    const data = d.json.data;
+    const data = await getItemMeta(item.item_id);
+    if (!data?.equipSlot) continue;
     const slot = data.equipSlot;
-    const score = (data.maxDamage || 0) + (data.defBonus || 0);
+    const score = equipmentScore(data);
     const cur = bySlot.get(slot);
-    if (!cur || score > cur.score) bySlot.set(slot, { itemId: item.item_id, score });
-  }
-
-  for (const [slot, best] of bySlot.entries()) {
-    const curEquippedId = equipped?.[slot]?.item_id || null;
-    if (curEquippedId !== best.itemId) {
-      return { action: 'equip', itemId: best.itemId };
+    if (!cur || score > cur.score || (score === cur.score && String(item.item_id).localeCompare(String(cur.itemId)) < 0)) {
+      bySlot.set(slot, { itemId: item.item_id, score, equipSlot: slot });
     }
   }
-  return null;
+
+  const upgrades = [...bySlot.values()]
+    .map(best => {
+      const current = equippedBySlot.get(best.equipSlot) || null;
+      return {
+        ...best,
+        currentItemId: current?.itemId || null,
+        currentScore: current?.score ?? null,
+        upgradeScore: best.score - (current?.score ?? -1)
+      };
+    })
+    .filter(best => !best.currentItemId || best.score > (best.currentScore ?? -1))
+    .sort((a, b) => (b.upgradeScore - a.upgradeScore) || String(a.equipSlot).localeCompare(String(b.equipSlot)) || String(a.itemId).localeCompare(String(b.itemId)));
+
+  const bestUpgrade = upgrades[0] || null;
+  return bestUpgrade
+    ? { action: 'equip', itemId: bestUpgrade.itemId, equipSlot: bestUpgrade.equipSlot, score: bestUpgrade.score, currentItemId: bestUpgrade.currentItemId, currentScore: bestUpgrade.currentScore }
+    : null;
 }
 
 function chooseBestSkill(skills, currentMp) {
@@ -387,8 +426,15 @@ function recentDangerSurrenderCount(windowSize = 8) {
   return recentDangerSurrenders.slice(-windowSize).length;
 }
 
-function chooseMonster(monsters, player, equipped = {}) {
-  if (!monsters.length) return 'rabbit';
+function chooseMonsterPlan(monsters, player, equipped = {}) {
+  if (!monsters.length) {
+    return {
+      monsterId: 'rabbit',
+      selected: { id: 'rabbit', score: 0, danger: 0, efficiency: 0 },
+      candidates: [],
+      safety: { fallbackMode: 'empty_monster_list', safetyFilteredCount: 0, dynamicGap: CFG.maxSafeMonsterLevelGap, efficiencyBandFloor: 0 }
+    };
+  }
   const level = Number(player?.level || 1);
   const pAtk = Number(player?.atk || 1);
   const pDef = Number(player?.def || 1);
@@ -424,6 +470,27 @@ function chooseMonster(monsters, player, equipped = {}) {
     const danger = (Math.max(0, mAtk - pDef) * 1.4) + (Math.max(0, ml - level) * 5);
     const efficiency = mx / Math.max(1, 1 + danger);
     return (efficiency * 3) + kill - (danger * 2.5);
+  };
+
+  const describeMonster = (m) => {
+    const mx = Number(m.exp_reward ?? m.exp ?? 0);
+    const ml = Number(m.level || level);
+    const mAtk = Number(m.atk || 0);
+    const mDef = Number(m.def || 0);
+    const kill = Math.max(1, pAtk - mDef);
+    const danger = (Math.max(0, mAtk - pDef) * 1.4) + (Math.max(0, ml - level) * 5);
+    const efficiency = mx / Math.max(1, 1 + danger);
+    const score = (efficiency * 3) + kill - (danger * 2.5);
+    return {
+      id: m.id,
+      level: ml,
+      atk: mAtk,
+      def: mDef,
+      exp_reward: mx,
+      danger: Number(danger.toFixed(2)),
+      efficiency: Number(efficiency.toFixed(2)),
+      score: Number(score.toFixed(2))
+    };
   };
 
   // When dangerous combats cluster, temporarily collapse to the single least-danger target.
@@ -471,14 +538,44 @@ function chooseMonster(monsters, player, equipped = {}) {
     return bScore - aScore;
   });
 
-  return pool[0]?.id || 'rabbit';
+  const ranked = pool.map(describeMonster).sort((a, b) => (b.efficiency - a.efficiency) || (a.danger - b.danger) || (b.score - a.score) || String(a.id).localeCompare(String(b.id)));
+  const maxEfficiency = ranked[0]?.efficiency ?? 0;
+  const efficiencyBandFloor = Number((maxEfficiency * 0.95).toFixed(2));
+  const safestHighEfficiencyPool = ranked.filter(candidate => candidate.efficiency >= efficiencyBandFloor);
+  const selected = (safestHighEfficiencyPool.length ? safestHighEfficiencyPool : ranked)
+    .sort((a, b) => (a.danger - b.danger) || (b.efficiency - a.efficiency) || (b.score - a.score) || String(a.id).localeCompare(String(b.id)))[0]
+    || describeMonster(monsters[0]);
+  return {
+    monsterId: selected.id || 'rabbit',
+    selected,
+    candidates: ranked,
+    safety: {
+      defeatPressure,
+      surrenderPressure,
+      dynamicGap,
+      hardDangerCap,
+      atkGuard: Number(atkGuard.toFixed(2)),
+      safetyFilteredCount: safetyFiltered.length,
+      efficiencyBandFloor,
+      fallbackMode: sustainedDangerPressure
+        ? 'pressure_clamp'
+        : (safetyFiltered.length ? 'safety_filtered' : 'lowest_danger_fallback')
+    }
+  };
 }
 
-async function ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimits) {
+function chooseMonster(monsters, player, equipped = {}) {
+  return chooseMonsterPlan(monsters, player, equipped).monsterId;
+}
+
+async function ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimits, slotUsed, hpRatio) {
   if (inCombat) return null;
   if ((c.level || 1) < CFG.enhanceMidLevel) return null;
   if (!hasRateBudget(rateLimits, 'enhance')) return null;
   if ((c.gold || 0) < CFG.enhanceGoldReserve) return null;
+  if (slotUsed >= CFG.invSellTriggerSlots) return null;
+  if (hpRatio < Math.max(0.7, CFG.lowHpRatio + 0.15)) return null;
+  if (recentDefeatCount(8) > 0 || recentDangerSurrenderCount(8) > 0) return null;
 
   const npcs = await req('/npc/list');
   if (npcs.status !== 200) return null;
@@ -520,7 +617,8 @@ async function ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimit
     if (e.status !== 200) continue;
 
     stallState.set(target.actionKey, { fails400: 0, untilTick: tickCounter + CFG.enhanceCooldownTicks });
-    return { ok: true, action: target.actionName, item_id: target.itemId, scroll_item_id: scrollId, npc_id: smith.npc_id, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+    const enhancementStage = target.actionKey === 'enhance_weapon' ? 'mid_weapon_first' : 'late_broadened_slots';
+    return { ok: true, action: target.actionName, item_id: target.itemId, scroll_item_id: scrollId, npc_id: smith.npc_id, enhancement_stage: enhancementStage, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
   }
 
   return null;
@@ -574,6 +672,42 @@ function chooseHpPotionPlan(inventory, hpCurrent, hpMax) {
 
 let tickCounter = 0;
 
+function writeRunnerArtifact(summary, lastResult) {
+  const previous = fs.existsSync(RUNNER_ARTIFACT_PATH)
+    ? JSON.parse(fs.readFileSync(RUNNER_ARTIFACT_PATH, 'utf8'))
+    : null;
+  const hasFreshResult = !!(lastResult && Object.keys(lastResult).length > 0);
+  const payload = {
+    generated_at: new Date().toISOString(),
+    summary: hasFreshResult ? summary : (previous?.summary || summary),
+    last_result: hasFreshResult ? lastResult : (previous?.last_result || null),
+    hard_constraints: {
+      inv_sell_trigger_slots: CFG.invSellTriggerSlots,
+      inv_sell_target_slots: CFG.invSellTargetSlots,
+      inv_sell_max_iterations_per_tick: CFG.invSellMaxIterationsPerTick
+    },
+    config_snapshot: {
+      base_delay_ms: CFG.delayMs,
+      max_actions_per_cycle: CFG.maxActions,
+      move_level_2: CFG.moveLv2,
+      move_level_3: CFG.moveLv3,
+      area_lv1: CFG.area1,
+      area_lv2: CFG.area2,
+      area_lv3: CFG.area3,
+      max_safe_monster_level_gap: CFG.maxSafeMonsterLevelGap,
+      min_gold_reserve: CFG.minGoldReserve,
+      enhance_mid_level: CFG.enhanceMidLevel,
+      enhance_gold_reserve: CFG.enhanceGoldReserve,
+      enhance_cooldown_ticks: CFG.enhanceCooldownTicks,
+      use_combat_start: CFG.useCombatStart
+    },
+    stall_state: [...stallState.entries()].map(([actionKey, state]) => ({ actionKey, ...state })),
+    last_dry_run_at: hasFreshResult ? (previous?.last_dry_run_at || null) : new Date().toISOString()
+  };
+  fs.mkdirSync(path.dirname(RUNNER_ARTIFACT_PATH), { recursive: true });
+  fs.writeFileSync(RUNNER_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+}
+
 async function step() {
   tickCounter += 1;
 
@@ -597,8 +731,11 @@ async function step() {
 
   // Priority 1: inventory full-risk guard (batch-first sell where possible).
   // 전투 중이면 sell 불가이므로 슬롯 압박 시 먼저 항복 후 정리한다.
-  const hasSellCandidateNow = !!chooseSellCandidate(inventory, equipped);
-  if (slotUsed >= CFG.invSurrenderSlots && hasSellCandidateNow && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
+  const cleanupCandidates = await getInventoryCleanupCandidates(inventory, equipped);
+  const hasCleanupCandidateNow = !!(cleanupCandidates.worse || cleanupCandidates.generic);
+  const shouldForceWorseGearCleanup = slotUsed >= CFG.invSellTriggerSlots && !!cleanupCandidates.worse;
+  const shouldForceOverflowCleanup = slotUsed >= CFG.invSurrenderSlots && hasCleanupCandidateNow;
+  if ((shouldForceWorseGearCleanup || shouldForceOverflowCleanup) && inCombat && hasRateBudget(rateLimits, 'surrender') && !shouldSkipAction('surrender_inventory')) {
     const surrender = await req('/combat/surrender', { method: 'POST', body: '{}' });
     recordActionResult('surrender_inventory', surrender.status);
     if (surrender.status === 200) {
@@ -680,7 +817,7 @@ async function step() {
       const er = await req('/item/use', { method: 'POST', body: JSON.stringify({ action: 'equip', item_id: emergencyEquip.itemId }) });
       recordActionResult('equip', er.status);
       if (er.status === 200) {
-        return { ok: true, action: 'equip_emergency', item_id: emergencyEquip.itemId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+        return { ok: true, action: 'equip_emergency', item_id: emergencyEquip.itemId, equip_slot: emergencyEquip.equipSlot, item_score: emergencyEquip.score, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
       }
     }
   }
@@ -704,12 +841,12 @@ async function step() {
     const r = await req('/item/use', { method: 'POST', body: JSON.stringify({ action: 'equip', item_id: equipPlan.itemId }) });
     recordActionResult('equip', r.status);
     if (r.status === 200) {
-      return { ok: true, action: 'equip', item_id: equipPlan.itemId, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
+      return { ok: true, action: 'equip', item_id: equipPlan.itemId, equip_slot: equipPlan.equipSlot, item_score: equipPlan.score, previous_item_id: equipPlan.currentItemId, previous_item_score: equipPlan.currentScore, level: c.level, exp: c.exp, gold: c.gold, code: 200 };
     }
     // 400 soft-fail => continue
   }
 
-  const enhancePlan = await ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimits);
+  const enhancePlan = await ensureSafeEnhancement(c, inventory, equipped, inCombat, rateLimits, slotUsed, hpRatio);
   if (enhancePlan) return enhancePlan;
 
   const hpS = qty(inventory, 'hp_potion_s');
@@ -780,7 +917,8 @@ async function step() {
 
   const areaMon = await req(`/areas/${c.current_area}/monsters`);
   const monsters = areaMon.status === 200 ? areaMon.json?.monsters || [] : [];
-  const monsterId = chooseMonster(monsters, c, equipped);
+  const monsterPlan = chooseMonsterPlan(monsters, c, equipped);
+  const monsterId = monsterPlan.monsterId;
 
   if (CFG.useCombatStart) {
     if (tickCounter <= forceHuntUntilTick) {
@@ -791,6 +929,10 @@ async function step() {
         ok: huntFallback.status === 200,
         action: huntFallback.status === 200 ? 'hunt_on_forced_429_fallback' : 'wait_forced_429_fallback',
         monster_id: monsterId,
+        selected_monster_score: monsterPlan.selected?.score,
+        selected_monster_danger: monsterPlan.selected?.danger,
+        selected_monster_efficiency: monsterPlan.selected?.efficiency,
+        selected_monster_mode: monsterPlan.safety?.fallbackMode,
         skill_id: skillId,
         result: huntFallback.json?.result,
         level: c.level,
@@ -810,6 +952,10 @@ async function step() {
         ok: huntFallback.status === 200,
         action: huntFallback.status === 200 ? 'hunt_on_combat_cooldown' : 'wait_combat_start_cooldown',
         monster_id: monsterId,
+        selected_monster_score: monsterPlan.selected?.score,
+        selected_monster_danger: monsterPlan.selected?.danger,
+        selected_monster_efficiency: monsterPlan.selected?.efficiency,
+        selected_monster_mode: monsterPlan.safety?.fallbackMode,
         skill_id: skillId,
         result: huntFallback.json?.result,
         level: c.level,
@@ -871,6 +1017,10 @@ async function step() {
           ok: true,
           action: 'hunt_on_combat_start_rate_limit',
           monster_id: monsterId,
+          selected_monster_score: monsterPlan.selected?.score,
+          selected_monster_danger: monsterPlan.selected?.danger,
+          selected_monster_efficiency: monsterPlan.selected?.efficiency,
+          selected_monster_mode: monsterPlan.safety?.fallbackMode,
           skill_id: skillId,
           result: huntFallback.json?.result,
           level: c.level,
@@ -887,7 +1037,7 @@ async function step() {
       const huntFallback = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
       recordActionResult('hunt', huntFallback.status);
       pushCombatOutcome(huntFallback.json?.result?.outcome || huntFallback.json?.result || null);
-      return { ok: huntFallback.status === 200, action: 'hunt_fallback', monster_id: monsterId, skill_id: skillId, result: huntFallback.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: huntFallback.status };
+      return { ok: huntFallback.status === 200, action: 'hunt_fallback', monster_id: monsterId, selected_monster_score: monsterPlan.selected?.score, selected_monster_danger: monsterPlan.selected?.danger, selected_monster_efficiency: monsterPlan.selected?.efficiency, selected_monster_mode: monsterPlan.safety?.fallbackMode, skill_id: skillId, result: huntFallback.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: huntFallback.status };
     }
 
     if (combat.status !== 429) {
@@ -900,6 +1050,11 @@ async function step() {
     return {
       ok: combat.status === 200,
       action: 'combat_start',
+      monster_id: monsterId,
+      selected_monster_score: monsterPlan.selected?.score,
+      selected_monster_danger: monsterPlan.selected?.danger,
+      selected_monster_efficiency: monsterPlan.selected?.efficiency,
+      selected_monster_mode: monsterPlan.safety?.fallbackMode,
       combat_result: combat.json?.result,
       reward_exp: rewards.exp,
       reward_gold: rewards.gold,
@@ -913,7 +1068,7 @@ async function step() {
   const hunt = await req('/hunt', { method: 'POST', body: JSON.stringify({ monster_id: monsterId, skill_id: skillId }) });
   recordActionResult('hunt', hunt.status);
   pushCombatOutcome(hunt.json?.result?.outcome || hunt.json?.result || null);
-  return { ok: hunt.status === 200, action: 'hunt', monster_id: monsterId, skill_id: skillId, result: hunt.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: hunt.status };
+  return { ok: hunt.status === 200, action: 'hunt', monster_id: monsterId, selected_monster_score: monsterPlan.selected?.score, selected_monster_danger: monsterPlan.selected?.danger, selected_monster_efficiency: monsterPlan.selected?.efficiency, selected_monster_mode: monsterPlan.safety?.fallbackMode, skill_id: skillId, result: hunt.json?.result, level: c.level, exp: c.exp, gold: c.gold, code: hunt.status };
 }
 
 async function main() {
@@ -925,7 +1080,9 @@ async function main() {
   }
   const okCount = out.filter(x => x.ok).length;
   const last = out[out.length - 1] || {};
-  console.log(`live-strategy ok=${okCount}/${out.length} lastAction=${last.action || 'none'} level=${last.level || '?'} exp=${last.exp || '?'} gold=${last.gold || '?'} code=${last.code || '?'}`);
+  const summary = `live-strategy ok=${okCount}/${out.length} lastAction=${last.action || 'none'} level=${last.level || '?'} exp=${last.exp || '?'} gold=${last.gold || '?'} code=${last.code || '?'}`;
+  writeRunnerArtifact(summary, last);
+  console.log(summary);
 }
 
 main().catch(e => { console.log(`live-strategy error=${e.message}`); process.exit(1); });

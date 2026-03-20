@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-20 21:08 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - CHANGE evidence from mandatory last-20 adaptive loop (`npm run strategy:director`): `level +2`, `exp n/a`, `gold -20`, `inventory +3`, `death/defeat mentions 55`, `rate/429/cooldown mentions 88`; KEEP was rejected for this window.
+  - Reversible CHANGE applied in runtime logic: safest-high-efficiency band tightened `0.92 -> 0.95` in `chooseMonsterPlan` so tie-band picks bias lower danger while preserving efficiency.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation still prioritizes unequipped worse-than-equipped gear first.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active; staged enhancement plan in `docs/DECISIONS.md` unchanged (early safe-gold -> mid weapon-first -> late armor/accessory with failure controls); minimal enhancement path remains prerequisite-gated (`scroll+npc+resource`).
+  - Validation + continuity: `npm run verify:cycle` passed (`tmp/cron-smoke-2108.txt`), daemon lineage remained active (`tmp/live-runner-procs-2104.txt`) with no stop/restart action.
+  - Ops telemetry posted successfully: `POST /api/agent/thinking => 200` (`tmp/thinking-post-2107.json`, `tmp/thinking-post-response-2107.json`, `tmp/thinking-post-status-2107.txt`) after clipping `action_detail` length to API limit.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434`, daemon continuous.
+
 - [2026-03-20 20:39 KST] 30-min STRATEGY DIRECTOR rerun completed after delta-model fix (adaptive mode + equipment progression).
   - CHANGE evidence (mandatory adaptive loop): `npm run strategy:director` now computes last-20 deltas for `level/exp/gold/death/rate-limit` explicitly, and the current window is mixed rather than KEEP-safe: `level +1`, `exp n/a`, `gold -20`, `inventory +6`, `death/defeat 21->34 (delta +13)`, `rate/429/cooldown 38->52 (delta +14)`.
   - CHANGE applied in runner logic for this tick: inventory cleanup surrender now triggers as soon as `slots>=10` and a worse-than-equipped sell candidate exists during combat; safest monster selection now chooses the lowest-danger target inside the top efficiency band (`92%` of max efficiency) to reduce repeat-danger drift without moving earlier than the level gate.
