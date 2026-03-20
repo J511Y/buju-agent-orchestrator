@@ -172,7 +172,7 @@ function main() {
 
   const actionDetail = adaptiveDecision === 'KEEP'
     ? `keep:inv=10/8/10(worse-first>=10),safest=${targetMonster},moveGate=lv30,BiS(slot+maxDamage+defBonus),enhance=weapon-first-when-prereqs-and-safety-pass`
-    : `change:cleanupSurrenderAt10ForWorseGear=1;safestHighEfficiencyBand=0.95;inv=10/8/10(worse-first>=10);safest=${targetMonster};moveGate=lv30;BiS(slot+maxDamage+defBonus);enhance=weapon-first-when-prereqs-and-safety-pass`;
+    : `change:cleanupSurrenderAt10ForWorseGear=1;safestHighEfficiencyBand=0.95(base)/0.98(pressure);inv=10/8/10(worse-first>=10);safest=${targetMonster};moveGate=lv30;BiS(slot+maxDamage+defBonus);enhance=weapon-first-when-prereqs-and-safety-pass`;
 
   const artifact = {
     generated_at: new Date().toISOString(),

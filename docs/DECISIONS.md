@@ -1,6 +1,13 @@
 # Engineering Decisions
 
 ## 2026-03-20
+- 30-min STRATEGY DIRECTOR (21:35 KST, adaptive mode + equipment progression) recomputed the latest 20 thinking rows via `npm run strategy:director` and remained CHANGE-qualified (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible risk-control logic path and kept daemon continuity.
+- CHANGE committed in runtime logic: under sustained danger pressure, safest-high-efficiency filtering is now tighter (`efficiency band 0.95 -> 0.98` only when pressure is active) so target selection prioritizes lower danger while still staying in the top efficiency set.
+- Hard constraints remain invariant in runtime code: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear liquidation remains first-priority.
+- Equipment progression requirements remain active: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` is unchanged; staged enhancement strategy remains explicit (early gold/no risky spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement path remains `scroll + npc + resource` prerequisite-gated.
+- Buju thinking was posted successfully (`POST /api/agent/thinking => 200`, `tmp/thinking-post-status-2135.txt`, `tmp/thinking-post-response-2135.json`) with concrete delta-based rationale and next KPI target.
+- KPI target (next 30m): `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434` while daemon remains continuous.
+
 - 30-min STRATEGY DIRECTOR (21:06 KST, adaptive mode + equipment progression) rerun produced CHANGE evidence from the latest 20 thinking rows (`level +2`, `exp n/a`, `gold -20`, `inventory +3`, `death/defeat mentions 55`, `rate/429/cooldown mentions 88`), so this cycle applied a reversible risk-lowering logic update.
 - CHANGE committed in runtime logic: safest-high-efficiency band was tightened from `0.92` to `0.95` of max efficiency in `chooseMonsterPlan`, forcing safer picks when efficiency is close and reducing repeat-danger drift while preserving strict movement thresholds.
 - Hard inventory constraints remain invariant in code path: `trigger=10`, `target=8`, `maxIterations=10`; when slots `>=10`, unequipped worse-than-equipped gear liquidation remains first-priority.
