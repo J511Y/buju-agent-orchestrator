@@ -1,6 +1,13 @@
 # Engineering Decisions
 
 ## 2026-03-20
+- 30-min STRATEGY DIRECTOR (22:06 KST, adaptive mode + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and stayed CHANGE-qualified (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible safety parameter and committed it.
+- CHANGE committed in runtime logic: under sustained danger pressure the safest-high-efficiency band is now tighter (`0.95 -> 0.99` pressure band in `chooseMonsterPlan`) so monster selection remains in near-max efficiency while preferring lower danger to reduce repeat defeats.
+- Hard constraints remain pinned as invariants in code path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear is still sold first.
+- Equipment progression remains active and unchanged: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan (early gold/no spam -> mid weapon-first at reserve threshold -> late armor/accessory with failure-risk controls); safe enhancement path remains prerequisite-gated (`scroll + npc + resource`).
+- Buju thinking payload was regenerated with delta-based reasoning + next KPI (`tmp/thinking-post.json`) and post attempted; current endpoint response was `401` (`tmp/thinking-post-status-2206.txt`, `tmp/thinking-post-response-2206.json`).
+- KPI target (next 30m): `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434`; live runner daemon continuity preserved (no stop/restart in this tick).
+
 - 30-min STRATEGY DIRECTOR (21:35 KST, adaptive mode + equipment progression) recomputed the latest 20 thinking rows via `npm run strategy:director` and remained CHANGE-qualified (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible risk-control logic path and kept daemon continuity.
 - CHANGE committed in runtime logic: under sustained danger pressure, safest-high-efficiency filtering is now tighter (`efficiency band 0.95 -> 0.98` only when pressure is active) so target selection prioritizes lower danger while still staying in the top efficiency set.
 - Hard constraints remain invariant in runtime code: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear liquidation remains first-priority.
