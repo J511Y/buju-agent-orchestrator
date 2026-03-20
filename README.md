@@ -63,6 +63,8 @@ npm run dev
 - 연속 전략 실행: `node scripts/live-strategy-runner.js`
 - 데몬 실행(로그: `logs/live-runner-daemon.log`): `bash scripts/live-runner-daemon.sh`
   - 단일 인스턴스 가드: `logs/live-runner-daemon.lock` PID 락이 살아있으면 중복 실행을 건너뜀
+- 전략 디렉터 artifact 생성: `npm run strategy:director`
+  - 러너 최신 상태는 `tmp/live-strategy-runner-latest.json`, 적응형 KEEP/CHANGE 근거와 다음 thinking payload는 `tmp/strategy-director-latest.json`, `tmp/thinking-post.json`에 기록
 - 운영 설정: `config/strategy.env` (민감정보는 `.env`의 `BUJU_API_KEY`만 사용, 커밋 금지)
 - 주요 튜닝 키: `BUJU_BASE_DELAY_MS`, `BUJU_MAX_ACTIONS_PER_CYCLE`, `BUJU_BUY_COOLDOWN_TICKS`, `BUJU_MOVE_LEVEL_*`, `BUJU_AREA_LV*`, `BUJU_MAX_SAFE_MONSTER_LEVEL_GAP`, `BUJU_INV_SURRENDER_SLOTS`, `BUJU_MIN_HP_POTION_S`, `BUJU_MIN_MP_POTION_S`, `BUJU_MIN_BUY_QTY`, `BUJU_LOW_HP_RATIO`, `BUJU_LOW_HP_POTION_RATIO`, `BUJU_MIN_GOLD_RESERVE`, `BUJU_MUTATION_MIN_GOLD_RESERVE`, `BUJU_POTION_USE_MAX_QUANTITY`, `BUJU_STALL_*`, `BUJU_RETRY_MAX_ATTEMPTS`, `BUJU_BACKOFF_*`, `BUJU_USE_COMBAT_START`, `BUJU_ENHANCE_*`
 - 하드 인벤토리 안전 불변식(환경변수로 오버라이드하지 않음): 판매 트리거/목표 슬롯은 10→8, 정리 반복 상한은 tick당 10회로 고정
@@ -80,7 +82,7 @@ npm run dev
   - 저체력 운영은 rest-first 경제 모드(임계 이하에서 즉시 `rest`), 극저체력 구간에서만 potion 보조 사용 (`rest` 400은 soft-fail로 처리해 루프 정체 방지, 현재 기본값: `BUJU_POTION_USE_MAX_QUANTITY=3`)
   - 루틴 포션 바닥 보충(`hp_potion_s`, `mp_potion_s`)은 `BUJU_MIN_GOLD_RESERVE`를 침범하지 않는 범위에서만 수행
   - mutation 방어 부적(`mutation_shield_charm`) 확보는 일반 예비금과 분리된 하한(`min(BUJU_MIN_GOLD_RESERVE, BUJU_MUTATION_MIN_GOLD_RESERVE)`)으로 판단해 이동 중 연속 사망 리스크를 우선 차단
-  - 중반 레벨 이상에서는 블랙스미스 NPC + 주문서 보유 + 골드 예비금 조건을 동시에 만족할 때만 안전 강화(`enhance`)를 수행
+  - 중반 레벨 이상에서는 블랙스미스 NPC + 주문서 보유 + 골드 예비금 조건을 동시에 만족할 때만 안전 강화(`enhance`)를 수행하고, 최근 패배/위험 항복이 있거나 인벤토리 압박/저체력 구간이면 강화는 건너뛴다
   - 전투 진입 경로는 `BUJU_USE_COMBAT_START` 토글로 운영한다(현재 기본값: `1`). 기본값에서는 `POST /combat/start`(`monster_id`,`area`) + `POST /combat/strategy` 조건부 갱신(payload 변경 또는 `BUJU_COMBAT_STRATEGY_REFRESH_TICKS` 경과)을 적용하고, 토글 비활성화 시 `POST /hunt`(`monster_id`,`skill_id`) 경로로 동작한다
   - `hunt` 예산이 0이면 `/combat/strategy` 갱신 호출까지 생략하고 `wait_hunt_rate_limit`로 대기(제어 호출 churn 최소화)
   - `POST /combat/start`가 404 또는 `API_DEPRECATED` 응답이면 `POST /hunt`(`monster_id`,`skill_id`)로 자동 폴백
