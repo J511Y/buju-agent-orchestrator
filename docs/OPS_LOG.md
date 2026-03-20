@@ -5359,3 +5359,12 @@
 - Retry recommendation: Re-run in 10 minutes with DNS/connectivity preflight first; if still transport-fail, validate `BUJU_API_BASE_URL` reachability and TLS/network path before attempting policy changes.
 - Dev feedback: Keep runner strategy unchanged this cycle (no evidence-grade gameplay deltas); prioritize observability/read-path recovery over behavior tuning.
 - Next 30m TODO: Add `hourly-connectivity-preflight` (status+logs probe with explicit `{dns_state,transport_state,retry_after_ms}` artifact) and gate KPI synthesis when either probe is non-200.
+
+## [2026-03-20 19:39 KST] Hourly gameplay-feedback cycle
+- Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked; not printed), ran `node scripts/fetch-activity.js --hours=1` and direct live probe `GET /api/status` with `X-GQ-API-Key`.
+- Live activity/status read: `/api/status=200` (character snapshot: `Lv30`, `EXP=40/9000`, `gold=434`, `HP=267/535`, `MP=282/282`, `area=gludio_field`, `combat_in_progress=true` vs `lamia`); `recent` families unresolved (`/api/activity/recent*`, `/api/logs/recent*`, `/api/battle/logs/recent*` all `404`).
+- Last-hour gameplay signals: progression delta unresolved (`Δlevel=0`, `Δexp=0`, `Δgold=0`) from API path due to missing `recent` endpoints; outcomes unresolved (`wins=0`, `defeats=0` in fallback summary, interpreted as no evidence rather than zero activity).
+- Resource/anomaly trend: no evidence-grade one-hour trend from canonical recent endpoints; anomaly remains persistent endpoint mismatch (`recent_endpoint_404`, probe summary failure streak `3`, `/api/status` healthy).
+- Development feedback: hold gameplay-policy changes this cycle; prioritize telemetry reliability so hourly feedback can derive real wins/defeats/resource flow instead of fallback zeros.
+- Failure mode + retry recommendation: classify as `recent_endpoint_404_with_status_ok`; retry hourly with staged probe order (`recent -> paged logs fallback -> status snapshot`) and promote confidence only when at least one recent/log source returns `200` for `>=2` consecutive cycles.
+- TODO (next 30-min dev cycle): implement `status-delta-buffer-v1` to persist 5-minute `/api/status` snapshots (`tmp/status-delta-buffer.jsonl`) and compute short-window `Δexp/Δgold/hp-risk` when `recent` endpoints are unavailable.

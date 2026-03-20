@@ -1672,3 +1672,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit failure class`, `false gameplay-summary count during transport failures`, `time-to-root-cause classification`.
 - Result: Current cycle canonical probes both transport-failed (`statusHttp=0`, `logsHttp=0`), leaving last-hour evidence unavailable (`events=0`; `tmp/hourly-feedback-summary.json`).
 - Decision: Execute in next 30-min dev cycle; keep if 3 consecutive failure cycles are classified with zero gameplay-policy output.
+
+- Date: 2026-03-20 19:39 KST
+- Hypothesis: A lightweight status-delta buffer (5-minute `/api/status` snapshots) will recover directional progression/resource signals during `recent*` endpoint outages without introducing gameplay-policy noise.
+- Change: Add `status-delta-buffer-v1` artifact `tmp/status-delta-buffer.jsonl` with `{ts,level,exp,gold,hp_current,hp_max,mp_current,mp_max,area,combat_in_progress}` and compute hourly proxy metrics `{delta_exp,delta_gold,low_hp_minutes,combat_uptime}` when recent logs are `404`.
+- Metric(s): `% hourly cycles with non-zero evidence despite recent* outage`, `false inference count`, `time-to-trend visibility after outage`.
+- Result (baseline): current cycle had `/api/status=200` while all `recent*` probes stayed `404` and fallback produced zero-delta summary (`source=fallback:local_replay`).
+- Decision: Execute in next 30-min dev cycle; keep if evidence-coverage improves for 3 consecutive outage cycles without triggering gameplay-policy changes on low-confidence windows.
