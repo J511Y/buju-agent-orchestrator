@@ -1,5 +1,14 @@
 # Ops Log
 
+- [2026-03-20 16:28 KST] 30-min STRATEGY DIRECTOR run completed (adaptive mode + equipment progression).
+  - KEEP evidence (mandatory adaptive loop): `npm run strategy:director` regenerated `tmp/strategy-director-latest.json` and kept positive progression evidence (`level +1`, `gold +5`) with pressure still monitored (`inventory +3`, `death/defeat mentions 49`, `rate/429/cooldown mentions 82`), so adaptive CHANGE was not triggered.
+  - Hard constraints preserved exactly: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; at `slots>=10`, liquidation remains unequipped-worse-than-equipped first.
+  - Safety/efficiency evidence refreshed: `GET /api/status => 200` (`tmp/cron-status-now-1628.json`) and `GET /api/areas/talking_island_field/monsters => 200` (`tmp/cron-monsters-now-1628.json`) keep safest high-efficiency target as `skeleton`; movement gate remains strict at `BUJU_MOVE_LEVEL_2=30` to avoid repeated-defeat expansion.
+  - Equipment progression revalidated: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)` remains active (`tmp/cron-inventory-now-1628.json` keeps `short_sword` equipped over `rusty_sword`); staged enhancement plan remains explicit in `docs/DECISIONS.md`; minimal safe enhancement path stayed prerequisite-gated this cycle (`tmp/cron-npc-now-1628.json` returned `404`, so `scroll+npc+resource` satisfiability not confirmed).
+  - Live continuity preserved: daemon lineage remained active (`tmp/live-runner-procs-1628.txt`) and tail output continues with successful ticks (`tmp/live-runner-tail-1628.txt`) without intentional stop/restart.
+  - Ops telemetry posted: `POST /api/agent/thinking => 200 {"success":true}` (`tmp/thinking-post-1628.json`, `tmp/thinking-post-response-1628.json`) with concrete delta-based reasoning and next 30-minute KPI.
+  - Next 30m KPI: `deaths=0`, inventory `<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=3/20`, and progression `exp>=173` or `gold>=444` while daemon stays continuous.
+
 - [2026-03-18 19:29 KST] Hourly gameplay-feedback cycle (cron `buju-hourly-activity-feedback`).
   - API key load: `.env` parsed in-process (`BUJU_API_KEY` present; secret masked, never printed).
   - Live API evidence: canonical reads failed auth (`GET /api/status => 401`, `GET /api/logs?page=1&limit=100 => 401`; artifact `tmp/hourly-feedback-2026-03-18-10-29.json`).
