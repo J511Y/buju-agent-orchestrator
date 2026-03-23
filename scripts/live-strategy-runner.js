@@ -443,7 +443,7 @@ function chooseMonsterPlan(monsters, player, equipped = {}) {
   const pressure = Math.max(defeatPressure, surrenderPressure);
   const sustainedDangerPressure = defeatPressure >= 1 || recentDangerSurrenderCount(4) >= 2;
   const hasArmor = !!(equipped?.armor && (equipped.armor.item_id || equipped.armor));
-  const armorRiskPenalty = hasArmor ? 0 : 1;
+  const armorRiskPenalty = hasArmor ? 0 : 2;
   const dynamicGap = Math.max(0, CFG.maxSafeMonsterLevelGap - Math.min(3, pressure + armorRiskPenalty));
 
   const estimateDanger = (m) => {
@@ -674,9 +674,14 @@ function chooseHpPotionPlan(inventory, hpCurrent, hpMax) {
 let tickCounter = 0;
 
 function writeRunnerArtifact(summary, lastResult) {
-  const previous = fs.existsSync(RUNNER_ARTIFACT_PATH)
-    ? JSON.parse(fs.readFileSync(RUNNER_ARTIFACT_PATH, 'utf8'))
-    : null;
+  let previous = null;
+  if (fs.existsSync(RUNNER_ARTIFACT_PATH)) {
+    try {
+      previous = JSON.parse(fs.readFileSync(RUNNER_ARTIFACT_PATH, 'utf8'));
+    } catch {
+      previous = null;
+    }
+  }
   const hasFreshResult = !!(lastResult && Object.keys(lastResult).length > 0);
   const payload = {
     generated_at: new Date().toISOString(),

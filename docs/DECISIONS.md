@@ -1,5 +1,12 @@
 # Engineering Decisions
 
+## 2026-03-23
+- 30-min STRATEGY DIRECTOR (20:10 KST, adaptive mode + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and returned CHANGE-qualified with concrete deltas (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible risk-gap logic path and committed it.
+- CHANGE committed in runtime monster safety gate: when armor is missing, danger pressure now applies an extra dynamic-gap penalty (`armorRiskPenalty 1 -> 2` in `chooseMonsterPlan`), lowering repeated-defeat exposure while preserving strict movement thresholds and safest-high-efficiency selection.
+- Hard constraints remain pinned as invariants in runtime path: `BUJU_INV_SELL_TRIGGER_SLOTS=10`, `BUJU_INV_SELL_TARGET_SLOTS=8`, `BUJU_INV_SELL_MAX_ITERATIONS_PER_TICK=10`; when slots `>=10`, unequipped worse-than-equipped gear liquidation remains first-priority.
+- Equipment progression requirements remain active: BiS auto-equip by `equipSlot + score(maxDamage+defBonus)`; staged enhancement plan (early safe gold/no risky spam -> mid weapon-first at reserve+prereqs -> late armor/accessory with failure-risk controls); minimal safe enhancement action path remains prerequisite-gated (`scroll + npc + resource`).
+- KPI target (next 30m): `deaths=0`, `inventory<=8`, `wait_combat_start_rate_limit+wait_combat_start_cooldown<=2/20`, progression `exp>=168` or `gold>=434`; live runner daemon continuity preserved with no stop/restart action.
+
 ## 2026-03-21
 - 30-min STRATEGY DIRECTOR (01:52 KST, adaptive mode + equipment progression) reran `npm run strategy:director` on the latest 20 thinking logs and stayed CHANGE-qualified with concrete deltas (`level +1`, `exp n/a`, `gold -15`, `inventory +2`, `death/defeat mentions 57`, `rate/429/cooldown mentions 90`), so this cycle changed one reversible risk-gap logic path.
 - CHANGE committed in runtime monster safety gate: under danger pressure, `dynamicGap` now clamps one step tighter (`maxSafeMonsterLevelGap - min(2, pressure+armorPenalty)` -> `- min(3, pressure+armorPenalty)` in `chooseMonsterPlan`), lowering repeated-defeat exposure while still selecting within the high-efficiency pool.
