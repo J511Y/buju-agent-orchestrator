@@ -5429,3 +5429,11 @@
 - 2026-03-21 02:10:31 KST | hourly-buju-feedback | failure mode: direct status probe attempt returned auth/transport issue (`/api/status` on bujuagent.com => `401`; `/api/status` on www.buju.quest => DNS ENOTFOUND), so no trustworthy last-hour gameplay event stream was available in this cycle.
 - 2026-03-21 02:10:31 KST | hourly-buju-feedback | retry recommendation: in next cycle run canonical preflight (`/api/status` + paged `/api/logs?page=1&limit=100`) against the active base URL, verify token format/validity, and only allow gameplay inference when both probes are `200` with non-empty event sample.
 - 2026-03-21 02:10:31 KST | hourly-buju-feedback | TODO (next 30m): implement `tmp/hourly-auth-preflight.json` writer in hourly job (`{base_url,status_http,logs_http,auth_state,inference_allowed}`) and gate OPS gameplay metrics on `inference_allowed=true`.
+
+## [2026-03-23 20:16 KST] Hourly gameplay-feedback cycle
+- Evidence: loaded `BUJU_API_KEY` from `.env` in-process (masked `gq***80`, raw key never printed); canonical probes against `https://bujuagent.com/api` succeeded (`GET /api/status=200`, paged `GET /api/logs?page=1&limit=100=200`). Artifact: `tmp/hourly-feedback-2026-03-23T11-16-08-938Z.json`.
+- Last-hour gameplay signals (`19:16~20:16 KST`): `events=480`, `move=470`, `rest=5`, `death=5`, `wins=0`, `surrenders=0`.
+- Progression/resources: `Lv30`, `EXP=19/9000`, `gold=434`, `area=talking_island_field`, `HP=374/535`, `MP=282/282`.
+- Anomaly: near-total movement thrash (`move_share=0.98`) with repeated defeats and no hunt wins in-window, indicating a navigation loop dominating action budget.
+- Development feedback: freeze aggression/economy tuning; prioritize navigation-loop recovery and combat re-entry conditions before any progression optimization.
+- Next 30m TODO: implement `hourly-nav-loop-breaker-v1` (`tmp/hourly-nav-loop-breaker.json`) that triggers when `move_share>=0.90 && wins=0 && deaths>=3`, then enforces 5-tick `no-move + safe-hunt-or-rest` recovery mode and records trigger count.

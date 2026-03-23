@@ -1707,3 +1707,10 @@ Track A/B and policy experiments.
 - Metric(s): `% blocked cycles with explicit failure class`, `false zero-activity summaries`, `time-to-auth-drift detection`.
 - Result (baseline): current cycle had `recent*` endpoints all `404`, collector summary fallback with zero signals, and direct status probes failing (`401` on bujuagent.com, DNS ENOTFOUND on www.buju.quest).
 - Decision: Execute in next 30-min dev cycle; keep only if 3 consecutive degraded cycles are classified with zero gameplay-policy output.
+
+- Date: 2026-03-23 20:16 KST
+- Hypothesis: A navigation-loop breaker that temporarily blocks move spam when hourly windows show `move_share>=0.90` and zero hunt wins will reduce defeat churn and restore combat throughput.
+- Change: Run `hourly-nav-loop-breaker-v1` for next 30-min cycle; emit `tmp/hourly-nav-loop-breaker.json` `{move_share,wins_h,deaths_h,breaker_state,recovery_ticks}` and force 5 ticks of `no-move + safe-hunt-or-rest` when trigger condition is met.
+- Metric(s): `move_share`, `wins_h`, `deaths_h`, `recovery_trigger_count`.
+- Result (baseline): current cycle (`tmp/hourly-feedback-2026-03-23T11-16-08-938Z.json`) shows `events=480`, `move=470` (`0.98`), `wins=0`, `deaths=5`, `rest=5`, status `Lv30 / gold=434`.
+- Decision: Execute in next 30-min dev cycle; keep only if `move_share<=0.80` and `wins_h>=5` for 2 consecutive windows without increasing `deaths_h`.
